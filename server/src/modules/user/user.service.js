@@ -1,0 +1,88 @@
+import jwt from 'jsonwebtoken';
+import User from './user.model.js';
+import env from '../../config/env.js';
+import ApiError from '../../utils/ApiError.js';
+
+// generate jwt auth token for a user
+export const generateAuthToken = (user) => {
+  const payload = {
+    id: user.id || user._id,
+    email: user.email,
+    isAdmin: user.isAdmin,
+  };
+
+  return jwt.sign(payload, env.jwtSecret, {
+    expiresIn: env.jwtExpiresIn,
+  });
+};
+
+// register a new user
+export const registerUser = async (userData) => {
+  const { name, email, phone, password } = userData;
+
+  const existingEmail = await User.findOne({ email: email.toLowerCase() });
+  if (existingEmail) {
+    throw new ApiError(400, 'User with this email already exists');
+  }
+
+  const existingPhone = await User.findOne({ phone });
+  if (existingPhone) {
+    throw new ApiError(400, 'User with this phone number already exists');
+  }
+
+  const user = await User.create({
+    name,
+    email,
+    phone,
+    password,
+    isAdmin: false,
+  });
+
+  const token = generateAuthToken(user);
+
+  return {
+    user: user.toJSON(),
+    token,
+  };
+};
+
+// login an existing user
+export const loginUser = async ({ email, phone, identifier, password }) => {
+  let query = {};
+  if (identifier) {
+    query = {
+      $or: [{ email: identifier.toLowerCase() }, { phone: identifier }],
+    };
+  } else if (email) {
+    query = { email: email.toLowerCase() };
+  } else if (phone) {
+    query = { phone };
+  } else {
+    throw new ApiError(400, 'Email, phone, or identifier is required');
+  }
+
+  // include password field explicitly as select: false in schema
+  const user = await User.findOne(query).select('+password');
+  if (!user) {
+    throw new ApiError(401, 'Invalid credentials');
+  }
+
+  if (!user.password) {
+    throw new ApiError(
+      400,
+      'This account was created via guest checkout without a password. Please set a password first.'
+    );
+  }
+
+  const isMatch = await user.isPasswordMatch(password);
+  if (!isMatch) {
+    throw new ApiError(401, 'Invalid credentials');
+  }
+
+  const token = generateAuthToken(user);
+
+  return {
+    user: user.toJSON(),
+    token,
+  };
+};
