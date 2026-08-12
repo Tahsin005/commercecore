@@ -1,19 +1,60 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f9fafb;
-  --foreground: #111827;
+  --maroon-900: #321014;
+  --maroon-800: #42151B;
+  --maroon-700: #5B1E26;
+  --maroon-600: #7A2933;
+  --maroon-500: #8E3A43;
+
+  --maroon-200: #D9A6A3;
+  --maroon-100: #F3E4E3;
+
+  --cream: #D9C6B5;
+  --off-white: #F7F7F7;
+  --white: #FFFFFF;
+  --text: #333333;
+
+  --background: var(--off-white);
+  --foreground: var(--text);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-maroon-900: var(--maroon-900);
+  --color-maroon-800: var(--maroon-800);
+  --color-maroon-700: var(--maroon-700);
+  --color-maroon-600: var(--maroon-600);
+  --color-maroon-500: var(--maroon-500);
+
+  --color-maroon-200: var(--maroon-200);
+  --color-maroon-100: var(--maroon-100);
+
+  --color-cream: var(--cream);
+  --color-off-white: var(--off-white);
+  --color-white: var(--white);
+  --color-text-main: var(--text);
+
+  --font-serif: var(--font-playfair);
+  --font-sans: var(--font-poppins);
+  --font-playfair: var(--font-playfair);
+  --font-poppins: var(--font-poppins);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-poppins), system-ui, sans-serif;
 }
