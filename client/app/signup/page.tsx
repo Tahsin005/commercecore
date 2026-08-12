@@ -20,6 +20,9 @@ import {
 
 import { signupSchema, SignupInput } from "@/lib/validations/auth";
 import { useSignupMutation } from "@/hooks/useAuthMutations";
+import { apiClient } from "@/lib/api-client";
+import { useCartStore } from "@/store/useCartStore";
+import { useWishlistStore } from "@/store/useWishlistStore";
 import { GuestGuard } from "@/components/guards/GuestGuard";
 
 export default function SignupPage() {
@@ -46,8 +49,32 @@ export default function SignupPage() {
   const onSubmit = (data: SignupInput) => {
     const { confirmPassword, ...signupPayload } = data;
     signupMutation.mutate(signupPayload, {
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success("Account created successfully!");
+        const guestCartItems = useCartStore.getState().items;
+        if (guestCartItems.length > 0) {
+          try {
+            await apiClient("/cart/sync", {
+              method: "POST",
+              body: JSON.stringify({ items: guestCartItems.map((i) => ({ productId: i.productId, quantity: i.quantity })) }),
+            });
+            useCartStore.getState().clearCart();
+          } catch (e) {
+            console.error("Failed to sync guest cart:", e);
+          }
+        }
+        const guestWishlistItems = useWishlistStore.getState().items;
+        if (guestWishlistItems.length > 0) {
+          try {
+            await apiClient("/wishlist/sync", {
+              method: "POST",
+              body: JSON.stringify({ items: guestWishlistItems.map((i) => ({ productId: i.productId })) }),
+            });
+            useWishlistStore.getState().clearWishlist();
+          } catch (e) {
+            console.error("Failed to sync guest wishlist:", e);
+          }
+        }
         router.push("/");
       },
       onError: (error) => {

@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { useCartStore } from "./useCartStore";
+import { useWishlistStore } from "./useWishlistStore";
 
 export interface User {
   id: string;
@@ -40,7 +42,17 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         if (typeof window !== "undefined") {
           document.cookie = "commercecore_token=; path=/; max-age=0; SameSite=Lax";
+          try {
+            localStorage.clear();
+          } catch (err) {
+            console.error("Failed to clear localStorage on logout:", err);
+          }
         }
+
+        // reset all Zustand stores
+        useCartStore.getState().clearCart();
+        useWishlistStore.getState().clearWishlist();
+
         set({
           user: null,
           token: null,
