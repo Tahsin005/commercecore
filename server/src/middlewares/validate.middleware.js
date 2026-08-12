@@ -10,8 +10,8 @@ export const validate = (schema) => (req, res, next) => {
     });
 
     if (parsed.body) req.body = parsed.body;
-    if (parsed.query) req.query = parsed.query;
-    if (parsed.params) req.params = parsed.params;
+    if (parsed.query && req.query) Object.assign(req.query, parsed.query);
+    if (parsed.params && req.params) Object.assign(req.params, parsed.params);
 
     next();
   } catch (error) {
