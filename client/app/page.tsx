@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   RotateCw,
   Loader2,
@@ -9,7 +10,14 @@ import {
   Server,
   Database,
   Activity,
+  User as UserIcon,
+  LogIn,
+  UserPlus,
+  LogOut,
+  ShieldCheck,
 } from "lucide-react";
+
+import { useAuth } from "@/hooks/useAuth";
 
 interface HealthData {
   uptime: number;
@@ -32,6 +40,8 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState<number>(0);
+
+  const { user, isAuthenticated, logout, isHydrated } = useAuth();
 
   const fetchHealth = () => {
     setLoading(true);
@@ -59,7 +69,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
-      <main className="w-full max-w-xl bg-white rounded-xl shadow-xl border border-maroon-100 overflow-hidden transition-all">
+      <main className="w-full max-w-xl bg-white rounded-xl shadow-xl border border-maroon-100 overflow-hidden transition-all space-y-0">
         <div className="bg-maroon-900 p-8 text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -87,6 +97,63 @@ export default function Home() {
             </button>
           </div>
         </div>
+
+        {isHydrated && (
+          <div className="bg-maroon-100/70 border-b border-maroon-200 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            {isAuthenticated && user ? (
+              <div className="flex items-center space-x-3 text-maroon-900 text-sm">
+                <div className="p-2 bg-maroon-900 text-white rounded-full">
+                  <UserIcon className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-semibold flex items-center space-x-1.5">
+                    <span>{user.name}</span>
+                    {user.isAdmin && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-maroon-900 text-cream">
+                        <ShieldCheck className="w-3 h-3 mr-0.5" /> ADMIN
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-maroon-700">{user.email} &bull; {user.phone}</div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2 text-maroon-800 text-sm font-medium">
+                <UserIcon className="w-4 h-4 text-maroon-600" />
+                <span>Not signed in</span>
+              </div>
+            )}
+
+            <div className="flex items-center space-x-2">
+              {isAuthenticated ? (
+                <button
+                  onClick={logout}
+                  className="px-3.5 py-1.5 bg-white hover:bg-maroon-50 border border-maroon-300 text-maroon-900 font-medium text-xs rounded-md transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-maroon-700" />
+                  <span>Logout</span>
+                </button>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="px-3.5 py-1.5 bg-maroon-900 hover:bg-maroon-800 text-white font-medium text-xs rounded-md transition-all flex items-center space-x-1.5 shadow-sm"
+                  >
+                    <LogIn className="w-3.5 h-3.5 text-cream" />
+                    <span>Sign In</span>
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="px-3.5 py-1.5 bg-white hover:bg-maroon-50 border border-maroon-300 text-maroon-900 font-medium text-xs rounded-md transition-all flex items-center space-x-1.5 shadow-sm"
+                  >
+                    <UserPlus className="w-3.5 h-3.5 text-maroon-700" />
+                    <span>Sign Up</span>
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="p-6 sm:p-8 space-y-6 bg-white font-sans">
           {loading && !health && (

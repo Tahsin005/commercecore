@@ -1,0 +1,56 @@
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  isAdmin: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  setAuth: (user: User, token: string) => void;
+  logout: () => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+
+      setAuth: (user: User, token: string) => {
+        if (typeof window !== "undefined") {
+          document.cookie = `commercecore_token=${token}; path=/; max-age=2592000; SameSite=Lax`;
+        }
+        set({
+          user,
+          token,
+          isAuthenticated: true,
+        });
+      },
+
+      logout: () => {
+        if (typeof window !== "undefined") {
+          document.cookie = "commercecore_token=; path=/; max-age=0; SameSite=Lax";
+        }
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+        });
+      },
+    }),
+    {
+      name: "commercecore_auth_store",
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
