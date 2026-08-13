@@ -10,7 +10,7 @@ export const placeOrderSchema = z.object({
     items: z
       .array(
         z.object({
-          productId: z.string().min(1, 'Product ID is required'),
+          productVariantId: z.string().min(1, 'Product Variant ID is required'),
           quantity: z.number().int().min(1, 'Quantity must be at least 1'),
         })
       )
@@ -18,7 +18,7 @@ export const placeOrderSchema = z.object({
     guestCartItems: z
       .array(
         z.object({
-          productId: z.string(),
+          productVariantId: z.string(),
           quantity: z.number().optional(),
         })
       )
@@ -26,7 +26,7 @@ export const placeOrderSchema = z.object({
     guestWishlistItems: z
       .array(
         z.object({
-          productId: z.string(),
+          productVariantId: z.string(),
         })
       )
       .optional(),

@@ -13,6 +13,6 @@ router.post('/', validate(addToCartSchema), addToCart);
 router.put('/', validate(updateCartQuantitySchema), updateCartQuantity);
 router.post('/sync', validate(syncCartSchema), syncCart);
 router.delete('/', clearCart);
-router.delete('/:productId', validate(removeFromCartSchema), removeFromCart);
+router.delete('/:productVariantId', validate(removeFromCartSchema), removeFromCart);
 
 export default router;

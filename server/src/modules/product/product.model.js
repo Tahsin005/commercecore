@@ -1,7 +1,15 @@
 import mongoose from 'mongoose';
+import ProductVariant from './productVariant.model.js';
+
+// TODO: add images field later
 
 const productSchema = new mongoose.Schema(
   {
+    categoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      default: null,
+    },
     name: {
       type: String,
       required: [true, 'Product name is required'],
@@ -14,20 +22,28 @@ const productSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    code: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     description: {
       type: String,
       default: '',
       trim: true,
     },
-    price: {
+    defaultPrice: {
       type: Number,
-      required: [true, 'Product price is required'],
-      min: [0, 'Price cannot be negative'],
+      required: [true, 'Product default price is required'],
+      min: [0, 'Default price cannot be negative'],
     },
-    categoryId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Category',
-      default: null,
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {
@@ -53,4 +69,5 @@ const productSchema = new mongoose.Schema(
 
 const Product = mongoose.model('Product', productSchema);
 
+export { ProductVariant };
 export default Product;

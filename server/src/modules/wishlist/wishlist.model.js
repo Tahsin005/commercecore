@@ -38,10 +38,10 @@ const wishlistItemSchema = new mongoose.Schema(
       required: [true, 'Wishlist ID is required'],
       index: true,
     },
-    productId: {
+    productVariantId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
-      required: [true, 'Product ID is required'],
+      ref: 'ProductVariant',
+      required: [true, 'Product Variant ID is required'],
     },
   },
   {
@@ -65,8 +65,8 @@ const wishlistItemSchema = new mongoose.Schema(
   }
 );
 
-// Prevent duplicate product entries per wishlist
-wishlistItemSchema.index({ wishlistId: 1, productId: 1 }, { unique: true });
+// Prevent duplicate variant entries per wishlist
+wishlistItemSchema.index({ wishlistId: 1, productVariantId: 1 }, { unique: true });
 
 export const Wishlist = mongoose.model('Wishlist', wishlistSchema);
 export const WishlistItem = mongoose.model('WishlistItem', wishlistItemSchema);

@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+// TODO: add imageUrl field later
+
 const categorySchema = new mongoose.Schema(
   {
     name: {
@@ -13,6 +15,10 @@ const categorySchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+    },
+    isFeatured: {
+      type: Boolean,
+      default: false,
     },
   },
   {

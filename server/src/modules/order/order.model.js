@@ -103,14 +103,19 @@ const orderItemSchema = new mongoose.Schema(
       required: [true, 'Order ID is required'],
       index: true,
     },
-    productId: {
+    productVariantId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
-      required: [true, 'Product ID is required'],
+      ref: 'ProductVariant',
+      required: [true, 'Product Variant ID is required'],
     },
     productName: {
       type: String,
       required: [true, 'Product name is required'],
+    },
+    size: {
+      type: String,
+      default: '',
+      trim: true,
     },
     unitPrice: {
       type: Number,
