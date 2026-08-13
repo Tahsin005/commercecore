@@ -18,7 +18,20 @@ export const getAllProductsService = async (query = {}) => {
     .populate('categoryId', 'name slug isFeatured')
     .sort({ createdAt: -1 });
 
-  return products;
+  const productIds = products.map((p) => p.id);
+  const variants = await ProductVariant.find({ productId: { $in: productIds } });
+
+  const variantMap = variants.reduce((acc, v) => {
+    const pid = v.productId.toString();
+    if (!acc[pid]) acc[pid] = [];
+    acc[pid].push(v);
+    return acc;
+  }, {});
+
+  return products.map((p) => ({
+    ...p.toJSON(),
+    variants: variantMap[p.id] || [],
+  }));
 };
 
 export const getProductByIdService = async (productId) => {

@@ -1,12 +1,14 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { ApiResponse } from "@/types/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
+import { CART_QUERY_KEY } from "./useCartQueries";
+import { WISHLIST_QUERY_KEY } from "./useWishlistQueries";
 
 export interface OrderItemPayload {
-  productId: string;
+  productVariantId: string;
   quantity: number;
 }
 
@@ -18,7 +20,7 @@ export interface CreateOrderPayload {
   deliveryZone: "inside_dhaka" | "outside_dhaka";
   items: OrderItemPayload[];
   guestCartItems?: OrderItemPayload[];
-  guestWishlistItems?: { productId: string }[];
+  guestWishlistItems?: { productVariantId: string }[];
 }
 
 export interface CreateOrderResponseData {
@@ -41,6 +43,7 @@ export interface CreateOrderResponseData {
 
 export function useCreateOrderMutation() {
   const setAuth = useAuthStore((state) => state.setAuth);
+  const queryClient = useQueryClient();
 
   return useMutation<ApiResponse<CreateOrderResponseData>, ApiError, CreateOrderPayload>({
     mutationFn: (orderPayload) =>
@@ -52,6 +55,13 @@ export function useCreateOrderMutation() {
       // Clear local guest cart and wishlist stores
       useCartStore.getState().clearCart();
       useWishlistStore.getState().clearWishlist();
+
+      // Immediately set and invalidate TanStack Query cache for cart and wishlist
+      queryClient.setQueryData(CART_QUERY_KEY, []);
+      queryClient.setQueryData(WISHLIST_QUERY_KEY, []);
+      await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      await queryClient.invalidateQueries({ queryKey: WISHLIST_QUERY_KEY });
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
 
       if (response.data?.token && response.data?.user) {
         setAuth(response.data.user, response.data.token);
