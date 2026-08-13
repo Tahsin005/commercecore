@@ -11,6 +11,6 @@ router.use(authenticateToken);
 router.get('/', getWishlist);
 router.post('/', validate(addToWishlistSchema), addToWishlist);
 router.post('/sync', validate(syncWishlistSchema), syncWishlist);
-router.delete('/:productId', validate(removeFromWishlistSchema), removeFromWishlist);
+router.delete('/:productVariantId', validate(removeFromWishlistSchema), removeFromWishlist);
 
 export default router;

@@ -42,33 +42,40 @@ export function useCart() {
   };
 
   const addItem = async (
-    product: { id: string; name: string; slug: string; price: number },
+    item: {
+      productVariantId: string;
+      productId: string;
+      name: string;
+      slug: string;
+      size: string;
+      price: number;
+    },
     quantity = 1
   ) => {
     if (isAuthenticated) {
-      await addMutation.mutateAsync({ product, quantity });
+      await addMutation.mutateAsync({ item, quantity });
     } else {
-      addGuestItem(product, quantity);
+      addGuestItem(item, quantity);
     }
   };
 
-  const removeItem = async (productId: string) => {
+  const removeItem = async (productVariantId: string) => {
     if (isAuthenticated) {
-      await removeMutation.mutateAsync(productId);
+      await removeMutation.mutateAsync(productVariantId);
     } else {
-      removeGuestItem(productId);
+      removeGuestItem(productVariantId);
     }
   };
 
-  const updateQuantity = async (productId: string, quantity: number) => {
+  const updateQuantity = async (productVariantId: string, quantity: number) => {
     if (isAuthenticated) {
       if (quantity <= 0) {
-        await removeMutation.mutateAsync(productId);
+        await removeMutation.mutateAsync(productVariantId);
       } else {
-        await updateQtyMutation.mutateAsync({ productId, quantity });
+        await updateQtyMutation.mutateAsync({ productVariantId, quantity });
       }
     } else {
-      updateGuestQuantity(productId, quantity);
+      updateGuestQuantity(productVariantId, quantity);
     }
   };
 

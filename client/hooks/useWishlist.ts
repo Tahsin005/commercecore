@@ -13,7 +13,6 @@ export function useWishlist() {
   const guestItems = useWishlistStore((state) => state.items);
   const addGuestItem = useWishlistStore((state) => state.addItem);
   const removeGuestItem = useWishlistStore((state) => state.removeItem);
-  const clearGuestWishlist = useWishlistStore((state) => state.clearWishlist);
 
   // authenticated server state from TanStack Query
   const {
@@ -28,23 +27,30 @@ export function useWishlist() {
   const items: WishlistItem[] = isAuthenticated ? serverItems || [] : guestItems;
   const isLoading = isAuthenticated ? isServerLoading : !isHydrated;
 
-  const isInWishlist = (productId: string) => {
-    return items.some((i) => i.productId === productId);
+  const isInWishlist = (productVariantId: string) => {
+    return items.some((item) => item.productVariantId === productVariantId);
   };
 
-  const addToWishlist = async (product: { id: string; name: string; slug: string; price: number }) => {
+  const addToWishlist = async (item: {
+    productVariantId: string;
+    productId: string;
+    name: string;
+    slug: string;
+    size: string;
+    price: number;
+  }) => {
     if (isAuthenticated) {
-      await addMutation.mutateAsync(product);
+      await addMutation.mutateAsync(item);
     } else {
-      addGuestItem(product);
+      addGuestItem(item);
     }
   };
 
-  const removeFromWishlist = async (productId: string) => {
+  const removeFromWishlist = async (productVariantId: string) => {
     if (isAuthenticated) {
-      await removeMutation.mutateAsync(productId);
+      await removeMutation.mutateAsync(productVariantId);
     } else {
-      removeGuestItem(productId);
+      removeGuestItem(productVariantId);
     }
   };
 
@@ -52,9 +58,9 @@ export function useWishlist() {
     items,
     isLoading,
     error: serverError,
+    wishlistCount: items.length,
     isInWishlist,
     addToWishlist,
     removeFromWishlist,
-    clearWishlist: clearGuestWishlist,
   };
 }

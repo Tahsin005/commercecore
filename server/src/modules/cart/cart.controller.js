@@ -19,8 +19,8 @@ export const getCart = async (req, res, next) => {
 
 export const addToCart = async (req, res, next) => {
   try {
-    const { productId, quantity } = req.body;
-    const cart = await addToCartService(req.user.id, productId, quantity);
+    const { productVariantId, quantity } = req.body;
+    const cart = await addToCartService(req.user.id, productVariantId, quantity);
     res.status(200).json(new ApiResponse(200, cart, 'Item added to cart successfully'));
   } catch (error) {
     next(error);
@@ -29,8 +29,8 @@ export const addToCart = async (req, res, next) => {
 
 export const updateCartQuantity = async (req, res, next) => {
   try {
-    const { productId, quantity } = req.body;
-    const cart = await updateCartQuantityService(req.user.id, productId, quantity);
+    const { productVariantId, quantity } = req.body;
+    const cart = await updateCartQuantityService(req.user.id, productVariantId, quantity);
     res.status(200).json(new ApiResponse(200, cart, 'Cart quantity updated successfully'));
   } catch (error) {
     next(error);
@@ -39,8 +39,8 @@ export const updateCartQuantity = async (req, res, next) => {
 
 export const removeFromCart = async (req, res, next) => {
   try {
-    const { productId } = req.params;
-    const cart = await removeFromCartService(req.user.id, productId);
+    const { productVariantId } = req.params;
+    const cart = await removeFromCartService(req.user.id, productVariantId);
     res.status(200).json(new ApiResponse(200, cart, 'Item removed from cart successfully'));
   } catch (error) {
     next(error);

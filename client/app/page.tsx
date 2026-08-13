@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -13,62 +13,58 @@ import {
   Package,
   ArrowRight,
   Eye,
+  Tag,
 } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
-import { useProductsQuery } from "@/hooks/useProductQueries";
-
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-}
-
-export interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  price: number;
-  categoryId?: Category | null;
-  createdAt: string;
-}
+import { useProductsQuery, Product } from "@/hooks/useProductQueries";
+import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 
 export default function Home() {
   const { user, isAuthenticated, logout, isHydrated } = useAuth();
   
-  // React Query Hook for products catalog
-  const { data: response, isLoading, error } = useProductsQuery();
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
+  // React Query Hooks
+  const { data: categoriesResponse } = useCategoriesQuery();
+  const categories = categoriesResponse?.data || [];
+
+  const { data: response, isLoading, error } = useProductsQuery(
+    selectedCategory !== "all" ? selectedCategory : undefined
+  );
   const products = response?.data || [];
 
-  const { addItem: addToCart, cartCount } = useCart();
-
+  const { cartCount } = useCart();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
 
-  const handleAddToCart = (product: Product) => {
-    addToCart({
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      price: product.price,
-    });
-    toast.success(`Added "${product.name}" to cart`);
-  };
-
   const handleToggleWishlist = (product: Product) => {
-    if (isInWishlist(product.id)) {
-      removeFromWishlist(product.id);
+    if (!product.variants || product.variants.length === 0) {
+      toast.error(`No variants available for "${product.name}"`);
+      return;
+    }
+
+    const defaultVariant = product.variants[0];
+    const wishlisted = isInWishlist(defaultVariant.id);
+
+    const price = defaultVariant.price !== null && defaultVariant.price !== undefined
+      ? defaultVariant.price
+      : product.defaultPrice;
+
+    if (wishlisted) {
+      removeFromWishlist(defaultVariant.id);
       toast.success(`Removed "${product.name}" from wishlist`);
     } else {
       addToWishlist({
-        id: product.id,
+        productVariantId: defaultVariant.id,
+        productId: product.id,
         name: product.name,
         slug: product.slug,
-        price: product.price,
+        size: defaultVariant.size,
+        price,
       });
-      toast.success(`Added "${product.name}" to wishlist`);
+      toast.success(`Added "${product.name}" (${defaultVariant.size}) to wishlist`);
     }
   };
 
@@ -160,6 +156,48 @@ export default function Home() {
           </Link>
         </div>
 
+        {/* Category Filter Tabs */}
+        {categories.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2 text-xs font-semibold text-maroon-800 uppercase tracking-wider mb-2">
+              <Tag className="w-3.5 h-3.5" />
+              <span>Browse Categories</span>
+            </div>
+            <div className="flex flex-wrap gap-2 pb-2">
+              <button
+                type="button"
+                onClick={() => setSelectedCategory("all")}
+                className={`px-4 py-2 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                  selectedCategory === "all"
+                    ? "bg-maroon-900 text-cream border-maroon-900 shadow-sm"
+                    : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
+                }`}
+              >
+                All Products
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-4 py-2 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                    selectedCategory === cat.id
+                      ? "bg-maroon-900 text-cream border-maroon-900 shadow-sm"
+                      : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
+                  }`}
+                >
+                  {cat.name}
+                  {cat.isFeatured && (
+                    <span className="ml-1 text-[9px] bg-cream text-maroon-900 px-1.5 py-0.2 rounded-full font-bold">
+                      Featured
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between border-b border-maroon-100 pb-4">
           <div>
             <h2 className="text-2xl font-serif font-bold text-maroon-900">Products Catalog</h2>
@@ -187,7 +225,8 @@ export default function Home() {
         {!isLoading && !error && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product) => {
-              const wishlisted = isInWishlist(product.id);
+              const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+              const wishlisted = defaultVariant ? isInWishlist(defaultVariant.id) : false;
 
               return (
                 <div
@@ -214,6 +253,12 @@ export default function Home() {
                         {product.categoryId.name}
                       </span>
                     )}
+
+                    {product.isFeatured && (
+                      <span className="absolute top-3 left-3 bg-maroon-900 text-cream text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow">
+                        Featured
+                      </span>
+                    )}
                   </div>
 
                   <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
@@ -232,26 +277,18 @@ export default function Home() {
                           Price
                         </span>
                         <span className="text-lg font-bold font-mono text-maroon-900">
-                          ৳{product.price.toFixed(2)}
+                          ৳{product.defaultPrice.toFixed(2)}
                         </span>
                       </div>
 
-                      <div className="flex items-center space-x-2">
-                        <Link
-                          href={`/product/${product.id}`}
-                          className="p-2.5 bg-off-white hover:bg-maroon-100 border border-maroon-200 text-maroon-800 rounded-md transition-all"
-                          title="View Product Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleAddToCart(product)}
-                          className="px-3 py-2 bg-maroon-900 hover:bg-maroon-800 active:scale-95 text-white font-medium text-xs rounded-md transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
-                        >
-                          <ShoppingCart className="w-3.5 h-3.5 text-cream" />
-                          <span>Add</span>
-                        </button>
-                      </div>
+                      <Link
+                        href={`/product/${product.id}`}
+                        className="px-3.5 py-2 bg-maroon-900 hover:bg-maroon-800 active:scale-95 text-white font-medium text-xs rounded-md transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
+                        title="View Product Details"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-cream" />
+                        <span>View Details</span>
+                      </Link>
                     </div>
                   </div>
                 </div>

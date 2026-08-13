@@ -8,14 +8,28 @@ export const WISHLIST_QUERY_KEY = ["wishlist"];
 export const mapApiWishlistItems = (apiItems: any[]): WishlistItem[] => {
   if (!apiItems || !Array.isArray(apiItems)) return [];
   return apiItems
-    .filter((item) => item && item.productId)
+    .filter((item) => item && item.productVariantId)
     .map((item) => {
-      const prod = item.productId;
+      const variant = item.productVariantId;
+      const product = typeof variant === "object" && variant ? variant.productId : null;
+
+      const variantId = typeof variant === "object" ? variant.id || variant._id : variant;
+      const productId = typeof product === "object" ? product.id || product._id : (variant?.productId || "");
+      const name = typeof product === "object" ? product.name : "Product";
+      const slug = typeof product === "object" ? product.slug : "product";
+      const size = typeof variant === "object" ? variant.size : "Standard";
+      const price =
+        typeof variant === "object" && variant.price !== null && variant.price !== undefined
+          ? variant.price
+          : typeof product === "object" ? product.defaultPrice || 0 : 0;
+
       return {
-        productId: typeof prod === "object" ? prod.id || prod._id : prod,
-        name: typeof prod === "object" ? prod.name : "Product",
-        slug: typeof prod === "object" ? prod.slug : "product",
-        price: typeof prod === "object" ? prod.price || 0 : 0,
+        productVariantId: variantId,
+        productId,
+        name,
+        slug,
+        size,
+        price,
       };
     });
 };
@@ -37,27 +51,29 @@ export function useAddWishlistMutation() {
   return useMutation<
     ApiResponse<{ items: any[] }>,
     ApiError,
-    { id: string; name: string; slug: string; price: number },
+    { productVariantId: string; productId: string; name: string; slug: string; size: string; price: number },
     { previousWishlist: WishlistItem[] | undefined }
   >({
-    mutationFn: (product) =>
+    mutationFn: (item) =>
       apiClient<ApiResponse<{ items: any[] }>>("/wishlist", {
         method: "POST",
-        body: JSON.stringify({ productId: product.id }),
+        body: JSON.stringify({ productVariantId: item.productVariantId }),
       }),
-    onMutate: async (product) => {
+    onMutate: async (item) => {
       await queryClient.cancelQueries({ queryKey: WISHLIST_QUERY_KEY });
 
       const previousWishlist = queryClient.getQueryData<WishlistItem[]>(WISHLIST_QUERY_KEY) || [];
 
       const newItem: WishlistItem = {
-        productId: product.id,
-        name: product.name,
-        slug: product.slug,
-        price: product.price,
+        productVariantId: item.productVariantId,
+        productId: item.productId,
+        name: item.name,
+        slug: item.slug,
+        size: item.size,
+        price: item.price,
       };
 
-      if (!previousWishlist.some((i) => i.productId === product.id)) {
+      if (!previousWishlist.some((i) => i.productVariantId === item.productVariantId)) {
         queryClient.setQueryData<WishlistItem[]>(WISHLIST_QUERY_KEY, [
           ...previousWishlist,
           newItem,
@@ -66,7 +82,7 @@ export function useAddWishlistMutation() {
 
       return { previousWishlist };
     },
-    onError: (_err, _product, context) => {
+    onError: (_err, _item, context) => {
       if (context?.previousWishlist) {
         queryClient.setQueryData<WishlistItem[]>(WISHLIST_QUERY_KEY, context.previousWishlist);
       }
@@ -86,23 +102,23 @@ export function useRemoveWishlistMutation() {
     string,
     { previousWishlist: WishlistItem[] | undefined }
   >({
-    mutationFn: (productId) =>
-      apiClient<ApiResponse<{ items: any[] }>>(`/wishlist/${productId}`, {
+    mutationFn: (productVariantId) =>
+      apiClient<ApiResponse<{ items: any[] }>>(`/wishlist/${productVariantId}`, {
         method: "DELETE",
       }),
-    onMutate: async (productId) => {
+    onMutate: async (productVariantId) => {
       await queryClient.cancelQueries({ queryKey: WISHLIST_QUERY_KEY });
 
       const previousWishlist = queryClient.getQueryData<WishlistItem[]>(WISHLIST_QUERY_KEY) || [];
 
       queryClient.setQueryData<WishlistItem[]>(
         WISHLIST_QUERY_KEY,
-        previousWishlist.filter((i) => i.productId !== productId)
+        previousWishlist.filter((i) => i.productVariantId !== productVariantId)
       );
 
       return { previousWishlist };
     },
-    onError: (_err, _productId, context) => {
+    onError: (_err, _productVariantId, context) => {
       if (context?.previousWishlist) {
         queryClient.setQueryData<WishlistItem[]>(WISHLIST_QUERY_KEY, context.previousWishlist);
       }
@@ -116,7 +132,7 @@ export function useRemoveWishlistMutation() {
 export function useSyncWishlistMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<ApiResponse<{ items: any[] }>, ApiError, { productId: string }[]>({
+  return useMutation<ApiResponse<{ items: any[] }>, ApiError, { productVariantId: string }[]>({
     mutationFn: (items) =>
       apiClient<ApiResponse<{ items: any[] }>>("/wishlist/sync", {
         method: "POST",

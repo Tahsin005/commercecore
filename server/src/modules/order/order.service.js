@@ -1,5 +1,6 @@
 import { Order, OrderItem } from './order.model.js';
 import Product from '../product/product.model.js';
+import ProductVariant from '../product/productVariant.model.js';
 import User from '../user/user.model.js';
 import { generateAuthToken } from '../user/user.service.js';
 import { syncGuestCartService, clearUserCartService } from '../cart/cart.service.js';
@@ -37,7 +38,7 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
     if (!user) {
       // create new user account for guest
       const userEmail = email && email.trim() ? email.trim().toLowerCase() : `guest_${Date.now()}@commercecore.com`;
-      
+
       user = await User.create({
         name: customerName.trim(),
         phone: phone.trim(),
@@ -67,19 +68,36 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
   const processedItems = [];
 
   for (const item of items) {
-    const product = await Product.findById(item.productId);
+    const variant = await ProductVariant.findById(item.productVariantId);
+    if (!variant) {
+      throw new ApiError(404, `Product variant with ID ${item.productVariantId} not found`);
+    }
+
+    const product = await Product.findById(variant.productId);
     if (!product) {
-      throw new ApiError(404, `Product with ID ${item.productId} not found`);
+      throw new ApiError(404, `Product for variant ${item.productVariantId} not found`);
     }
 
     const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
-    const unitPrice = product.price;
+
+    // Check if variant has sufficient stock
+    if (variant.quantity < qty) {
+      throw new ApiError(
+        400,
+        `Insufficient stock for "${product.name}" (${variant.size}). Only ${variant.quantity} available.`
+      );
+    }
+
+    // price override on variant takes priority; fallback to product defaultPrice
+    const unitPrice = variant.price !== null && variant.price !== undefined ? variant.price : product.defaultPrice;
     const itemSubtotal = unitPrice * qty;
     subtotal += itemSubtotal;
 
     processedItems.push({
-      productId: product.id,
+      variant,
+      productVariantId: variant.id,
       productName: product.name,
+      size: variant.size,
       unitPrice,
       quantity: qty,
     });
@@ -110,11 +128,17 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
 
   // Create OrderItems records
   const orderItems = await OrderItem.insertMany(
-    processedItems.map((item) => ({
+    processedItems.map(({ variant, ...item }) => ({
       ...item,
       orderId: order.id,
     }))
   );
+
+  // Deduct stock for ordered variants
+  for (const item of processedItems) {
+    item.variant.quantity -= item.quantity;
+    await item.variant.save();
+  }
 
   // Automatically clear user DB cart upon successful order placement
   await clearUserCartService(user.id);
@@ -133,7 +157,13 @@ export const getOrderByNumberService = async (orderNumber) => {
     throw new ApiError(404, 'Order not found');
   }
 
-  const items = await OrderItem.find({ orderId: order.id }).populate('productId', 'name slug price');
+  const items = await OrderItem.find({ orderId: order.id }).populate({
+    path: 'productVariantId',
+    populate: {
+      path: 'productId',
+      select: 'name slug code defaultPrice',
+    },
+  });
 
   return {
     order: order.toJSON(),

@@ -77,11 +77,20 @@ export default function CheckoutPage() {
       shippingAddress: data.shippingAddress.trim(),
       deliveryZone: data.deliveryZone,
       items: cartItems.map((item) => ({
-        productId: item.productId,
+        productVariantId: item.productVariantId,
         quantity: item.quantity,
       })),
-      guestCartItems: !isAuthenticated ? cartItems : [],
-      guestWishlistItems: !isAuthenticated ? wishlistItems : [],
+      guestCartItems: !isAuthenticated
+        ? cartItems.map((item) => ({
+            productVariantId: item.productVariantId,
+            quantity: item.quantity,
+          }))
+        : [],
+      guestWishlistItems: !isAuthenticated
+        ? wishlistItems.map((item) => ({
+            productVariantId: item.productVariantId,
+          }))
+        : [],
     };
 
     createOrderMutation.mutate(orderPayload, {
@@ -308,12 +317,17 @@ export default function CheckoutPage() {
                 <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
                   {cartItems.map((item) => (
                     <div
-                      key={item.productId}
+                      key={item.productVariantId}
                       className="flex items-center justify-between p-3.5 bg-off-white rounded-xl border border-maroon-100"
                     >
                       <div className="flex-1 space-y-0.5 pr-2">
-                        <h4 className="font-semibold text-xs text-maroon-900 line-clamp-1">{item.name}</h4>
-                        <span className="text-xs font-mono text-maroon-700">
+                        <div className="flex items-center space-x-1.5">
+                          <h4 className="font-semibold text-xs text-maroon-900 line-clamp-1">{item.name}</h4>
+                          <span className="text-[10px] font-bold font-mono text-maroon-700 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm shrink-0">
+                            {item.size}
+                          </span>
+                        </div>
+                        <span className="text-xs font-mono text-maroon-700 block">
                           ৳{item.price.toFixed(2)} × {item.quantity}
                         </span>
                       </div>
@@ -322,8 +336,8 @@ export default function CheckoutPage() {
                         <div className="inline-flex items-center border border-maroon-200 rounded-md bg-white overflow-hidden shadow-xs">
                           <button
                             type="button"
-                            onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                            className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors"
+                            onClick={() => updateQuantity(item.productVariantId, item.quantity - 1)}
+                            className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer"
                           >
                             <Minus className="w-3.5 h-3.5" />
                           </button>
@@ -332,8 +346,8 @@ export default function CheckoutPage() {
                           </span>
                           <button
                             type="button"
-                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                            className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors"
+                            onClick={() => updateQuantity(item.productVariantId, item.quantity + 1)}
+                            className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" />
                           </button>
@@ -341,8 +355,8 @@ export default function CheckoutPage() {
 
                         <button
                           type="button"
-                          onClick={() => removeItem(item.productId)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                          onClick={() => removeItem(item.productVariantId)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
                           title="Remove item"
                         >
                           <Trash2 className="w-4 h-4" />
