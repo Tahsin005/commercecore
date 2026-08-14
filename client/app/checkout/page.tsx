@@ -25,6 +25,7 @@ import { useWishlistStore } from "@/store/useWishlistStore";
 import { useAuth } from "@/hooks/useAuth";
 import { useCreateOrderMutation } from "@/hooks/useOrderQueries";
 import { checkoutSchema, CheckoutInput } from "@/lib/validations/order";
+import { CheckoutSkeleton, OrderSuccessSkeleton } from "@/components/skeletons";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -111,36 +112,58 @@ export default function CheckoutPage() {
     });
   };
 
+  // Render receipt skeleton during successful order creation transition
+  if (createOrderMutation.isSuccess) {
+    return <OrderSuccessSkeleton />;
+  }
+
   if (!isHydrated || isCartLoading) {
-    return (
-      <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
-        <main className="max-w-5xl mx-auto px-4 sm:px-6 py-20 flex-1 flex flex-col items-center justify-center">
-          <div className="flex flex-col items-center space-y-4 bg-white p-8 px-10 rounded-2xl shadow-xl border border-maroon-100">
-            <Loader2 className="w-8 h-8 animate-spin text-maroon-700" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-maroon-900">
-              Loading cart &amp; checkout details...
-            </span>
-          </div>
-        </main>
-      </div>
-    );
+    return <CheckoutSkeleton />;
   }
 
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 w-full flex-1">
-        {cartItems.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center shadow-md border border-maroon-100 max-w-md mx-auto space-y-4">
-            <Package className="w-16 h-16 text-maroon-300 mx-auto" />
-            <h1 className="text-2xl font-serif font-bold text-maroon-900">Your Cart is Empty</h1>
-            <p className="text-xs text-maroon-700">Add products to your cart before proceeding to checkout.</p>
-            <Link
-              href="/"
-              className="inline-flex items-center space-x-2 px-6 py-3 bg-maroon-900 text-white font-medium text-xs rounded-md shadow hover:bg-maroon-800 transition-all"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Browse Products</span>
-            </Link>
+        {cartItems.length === 0 && !createOrderMutation.isSuccess && !createOrderMutation.isPending ? (
+          <div className="py-12 flex flex-col items-center justify-center">
+            <div className="bg-white rounded-2xl p-8 sm:p-12 text-center shadow-lg border border-maroon-100 max-w-lg w-full space-y-6">
+              <div className="space-y-4">
+                <div className="w-20 h-20 bg-off-white border-2 border-maroon-100 rounded-2xl flex items-center justify-center mx-auto shadow-sm text-maroon-700 group-hover:scale-105 transition-transform duration-300">
+                  <ShoppingBag className="w-9 h-9 text-maroon-700" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-maroon-500 bg-maroon-50 border border-maroon-200/80 px-3 py-1 rounded-full inline-block">
+                    Checkout Unavailable
+                  </span>
+                  <h1 className="text-2xl sm:text-3xl font-serif font-bold text-maroon-900 tracking-tight">
+                    Your Cart is Empty
+                  </h1>
+                  <p className="text-xs sm:text-sm text-maroon-700/80 max-w-sm mx-auto font-sans leading-relaxed">
+                    You haven't added any products to your cart yet. Explore our curated collections to start your order.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link
+                  href="/"
+                  className="w-full sm:w-auto px-6 py-3.5 bg-maroon-900 hover:bg-maroon-800 active:scale-[0.98] text-white font-semibold text-xs rounded-md shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4 text-cream" />
+                  <span>Explore Products Catalog</span>
+                </Link>
+              </div>
+
+              <div className="pt-4 border-t border-maroon-100/80 flex items-center justify-center space-x-4 text-[11px] text-maroon-600 font-medium">
+                <span className="flex items-center space-x-1">
+                  <Package className="w-3.5 h-3.5 text-maroon-500" />
+                  <span>Nationwide Shipping</span>
+                </span>
+                <span>&bull;</span>
+                <span>Cash on Delivery</span>
+              </div>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-12 gap-8" noValidate>

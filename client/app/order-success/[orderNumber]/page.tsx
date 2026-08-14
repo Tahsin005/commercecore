@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   CheckCircle2,
   ArrowLeft,
-  Loader2,
   Package,
   MapPin,
   Phone,
@@ -15,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { useOrderDetailsQuery } from "@/hooks/useOrderQueries";
+import { OrderSuccessSkeleton } from "@/components/skeletons";
 
 interface OrderSuccessPageProps {
   params: Promise<{ orderNumber: string }>;
@@ -30,16 +30,7 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
   const items = response?.data?.items || [];
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
-        <main className="flex-1 flex flex-col items-center justify-center p-4">
-          <div className="flex items-center space-x-3 text-maroon-700 bg-white p-6 px-8 rounded-xl shadow-md border border-maroon-100">
-            <Loader2 className="w-6 h-6 animate-spin text-maroon-700" />
-            <span className="text-sm font-semibold text-maroon-900">Loading order receipt...</span>
-          </div>
-        </main>
-      </div>
-    );
+    return <OrderSuccessSkeleton />;
   }
 
   if (error || !order) {

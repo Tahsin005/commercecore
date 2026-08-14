@@ -14,6 +14,7 @@ import {
 import { useWishlist } from "@/hooks/useWishlist";
 import { useProductsQuery, Product } from "@/hooks/useProductQueries";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
+import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -72,19 +73,9 @@ export default function Home() {
           />
         </div>
 
+        {/* Category Filter Tabs */}
         {isCategoriesLoading ? (
-          <div className="space-y-2 animate-pulse">
-            <div className="flex items-center space-x-2 text-xs font-semibold text-maroon-800 uppercase tracking-wider mb-2">
-              <Tag className="w-3.5 h-3.5" />
-              <span>Browse Categories</span>
-            </div>
-            <div className="flex flex-wrap gap-2 pb-2">
-              <div className="w-28 h-8 bg-maroon-100/70 border border-maroon-200/60 rounded-full" />
-              <div className="w-32 h-8 bg-maroon-100/70 border border-maroon-200/60 rounded-full" />
-              <div className="w-24 h-8 bg-maroon-100/70 border border-maroon-200/60 rounded-full" />
-              <div className="w-36 h-8 bg-maroon-100/70 border border-maroon-200/60 rounded-full" />
-            </div>
-          </div>
+          <CategoriesSkeleton />
         ) : categories.length > 0 ? (
           <div className="space-y-2">
             <div className="flex items-center space-x-2 text-xs font-semibold text-maroon-800 uppercase tracking-wider mb-2">
@@ -136,37 +127,7 @@ export default function Home() {
           </span>
         </div>
 
-        {isLoading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, idx) => (
-              <div
-                key={idx}
-                className="bg-white rounded-xl shadow-md border border-maroon-100 overflow-hidden flex flex-col justify-between animate-pulse"
-              >
-                <div className="bg-maroon-100/50 p-6 relative flex items-center justify-center border-b border-maroon-100/60 h-48">
-                  <Package className="w-16 h-16 text-maroon-200/80" />
-                  <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 border border-maroon-200/60" />
-                </div>
-
-                <div className="p-5 space-y-4 flex-1 flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <div className="h-5 bg-maroon-200/60 rounded-md w-3/4" />
-                    <div className="h-3 bg-maroon-100/80 rounded-md w-full" />
-                    <div className="h-3 bg-maroon-100/80 rounded-md w-4/5" />
-                  </div>
-
-                  <div className="pt-3 border-t border-maroon-100 flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="h-3 bg-maroon-100/60 rounded w-10" />
-                      <div className="h-6 bg-maroon-200/70 rounded w-16" />
-                    </div>
-                    <div className="w-24 h-8 bg-maroon-800/20 border border-maroon-200/60 rounded-md" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {isLoading && <ProductGridSkeleton count={8} />}
 
         {error && (
           <div className="p-6 bg-maroon-100/60 border border-maroon-200 rounded-xl text-maroon-900 text-center space-y-2">
