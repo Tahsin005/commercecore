@@ -20,7 +20,8 @@ import {
 
 import { signupSchema, SignupInput } from "@/lib/validations/auth";
 import { useSignupMutation } from "@/hooks/useAuthMutations";
-import { apiClient } from "@/lib/api-client";
+import { useSyncCartMutation } from "@/hooks/useCartQueries";
+import { useSyncWishlistMutation } from "@/hooks/useWishlistQueries";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { GuestGuard } from "@/components/guards/GuestGuard";
@@ -30,6 +31,8 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const signupMutation = useSignupMutation();
+  const syncCartMutation = useSyncCartMutation();
+  const syncWishlistMutation = useSyncWishlistMutation();
 
   const {
     register,
@@ -54,22 +57,26 @@ export default function SignupPage() {
         const guestCartItems = useCartStore.getState().items;
         if (guestCartItems.length > 0) {
           try {
-            await apiClient("/cart/sync", {
-              method: "POST",
-              body: JSON.stringify({ items: guestCartItems.map((i) => ({ productId: i.productId, quantity: i.quantity })) }),
-            });
+            await syncCartMutation.mutateAsync(
+              guestCartItems.map((i) => ({
+                productVariantId: i.productVariantId,
+                quantity: i.quantity,
+              }))
+            );
             useCartStore.getState().clearCart();
           } catch (e) {
             console.error("Failed to sync guest cart:", e);
           }
         }
+
         const guestWishlistItems = useWishlistStore.getState().items;
         if (guestWishlistItems.length > 0) {
           try {
-            await apiClient("/wishlist/sync", {
-              method: "POST",
-              body: JSON.stringify({ items: guestWishlistItems.map((i) => ({ productId: i.productId })) }),
-            });
+            await syncWishlistMutation.mutateAsync(
+              guestWishlistItems.map((i) => ({
+                productVariantId: i.productVariantId,
+              }))
+            );
             useWishlistStore.getState().clearWishlist();
           } catch (e) {
             console.error("Failed to sync guest wishlist:", e);
