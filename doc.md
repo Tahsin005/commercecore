@@ -45,20 +45,28 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 | slug | string, unique | |
 | code | string | product code |
 | description | text | |
-| defaultPrice | decimal | fallback when a variant has no price override |
+| price | decimal | single price for the whole product |
+| quantity | int | stock lives here, not on variants |
 | images | string[] | simple array of image URLs |
 | isFeatured | boolean | |
 | isActive | boolean | for hiding without deleting |
 | createdAt / updatedAt | timestamp | |
 
-### ProductVariant
+### ProductVariant  (global, standalone catalog — not tied to any product by default)
+| Field | Type | Notes |
+|---|---|---|
+| id | PK | |
+| label | string, unique | e.g. "1-2 years", "2-3 years" |
+| order | int | for display ordering in admin UI / on product page |
+| isActive | boolean | lets admin retire a label without deleting it |
+
+### ProductVariantLink  (join table — connects Product ↔ ProductVariant, many-to-many)
 | Field | Type | Notes |
 |---|---|---|
 | id | PK | |
 | productId | FK → Product | |
-| size | enum/string | S, M, L, XL, XXL... |
-| price | decimal, nullable | overrides Product.defaultPrice when set |
-| quantity | int | stock for this size |
+| productVariantId | FK → ProductVariant | |
+| unique(productId, productVariantId) | | prevents linking the same variant twice to one product |
 
 ### Review
 | Field | Type | Notes |

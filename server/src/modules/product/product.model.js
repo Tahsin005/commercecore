@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import ProductVariant from './productVariant.model.js';
+import ProductVariantLink from './productVariantLink.model.js';
 
 // TODO: add images field later
 
@@ -32,10 +33,16 @@ const productSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
-    defaultPrice: {
+    price: {
       type: Number,
-      required: [true, 'Product default price is required'],
-      min: [0, 'Default price cannot be negative'],
+      required: [true, 'Product price is required'],
+      min: [0, 'Price cannot be negative'],
+    },
+    quantity: {
+      type: Number,
+      required: [true, 'Product stock quantity is required'],
+      default: 0,
+      min: [0, 'Quantity cannot be negative'],
     },
     isFeatured: {
       type: Boolean,
@@ -69,5 +76,5 @@ const productSchema = new mongoose.Schema(
 
 const Product = mongoose.model('Product', productSchema);
 
-export { ProductVariant };
+export { ProductVariant, ProductVariantLink };
 export default Product;

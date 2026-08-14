@@ -2,26 +2,19 @@ import mongoose from 'mongoose';
 
 const productVariantSchema = new mongoose.Schema(
   {
-    productId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
-      required: [true, 'Product ID is required'],
-      index: true,
-    },
-    size: {
+    label: {
       type: String,
-      required: [true, 'Size is required'],
+      required: [true, 'Variant label is required'],
+      unique: true,
       trim: true,
     },
-    price: {
+    order: {
       type: Number,
-      default: null, // Overrides Product.defaultPrice when set
-      min: [0, 'Price cannot be negative'],
+      default: 0,
     },
-    quantity: {
-      type: Number,
-      default: 0, // Stock for this size
-      min: [0, 'Quantity cannot be negative'],
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {
