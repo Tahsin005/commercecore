@@ -1,169 +1,85 @@
 import connectDB from '../config/db.js';
 import Category from '../modules/category/category.model.js';
-import Product, { ProductVariant } from '../modules/product/product.model.js';
+import Product, { ProductVariant, ProductVariantLink } from '../modules/product/product.model.js';
 import logger from '../utils/logger.js';
 
 const sampleCategories = [
-  { name: "Men's Fashion", slug: 'mens-fashion', isFeatured: true },
-  { name: "Women's Fashion", slug: 'womens-fashion', isFeatured: true },
-  { name: 'Electronics & Gadgets', slug: 'electronics-gadgets', isFeatured: true },
+  { name: "Kids' Fashion", slug: 'kids-fashion', isFeatured: true },
+  { name: "Infant Wear", slug: 'infant-wear', isFeatured: true },
   { name: 'Footwear & Shoes', slug: 'footwear-shoes', isFeatured: false },
   { name: 'Accessories', slug: 'accessories', isFeatured: false },
 ];
 
+const sampleAgeVariants = [
+  { label: '0-6 months', order: 1, isActive: true },
+  { label: '6-12 months', order: 2, isActive: true },
+  { label: '1-2 years', order: 3, isActive: true },
+  { label: '2-3 years', order: 4, isActive: true },
+  { label: '3-4 years', order: 5, isActive: true },
+  { label: '4-5 years', order: 6, isActive: true },
+  { label: '5-6 years', order: 7, isActive: true },
+];
+
 const sampleProducts = [
-  // Men's Fashion
   {
-    name: 'Classic Linen Shirt',
-    slug: 'classic-linen-shirt',
-    code: 'MF-SHIRT-001',
-    description: 'Premium lightweight linen shirt perfect for casual summer days.',
-    defaultPrice: 49.99,
+    name: 'Classic Organic Cotton Romper',
+    slug: 'classic-organic-cotton-romper',
+    code: 'KF-ROMP-001',
+    description: 'Ultra-soft 100% organic cotton romper designed for delicate skin.',
+    price: 49.99,
+    quantity: 50,
     isFeatured: true,
     isActive: true,
-    categorySlug: 'mens-fashion',
-    variants: [
-      { size: 'S', price: null, quantity: 15 },
-      { size: 'M', price: null, quantity: 25 },
-      { size: 'L', price: null, quantity: 20 },
-      { size: 'XL', price: 54.99, quantity: 10 },
-    ],
+    categorySlug: 'infant-wear',
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years'],
   },
   {
-    name: 'Slim Fit Denim Jacket',
-    slug: 'slim-fit-denim-jacket',
-    code: 'MF-JACKET-002',
-    description: 'Timeless vintage denim jacket crafted with durable reinforced stitching.',
-    defaultPrice: 89.99,
+    name: 'Cozy Fleece Bear Hoodie',
+    slug: 'cozy-fleece-bear-hoodie',
+    code: 'KF-HOOD-002',
+    description: 'Warm fleece jacket featuring cute bear ear hood design.',
+    price: 64.99,
+    quantity: 40,
     isFeatured: true,
     isActive: true,
-    categorySlug: 'mens-fashion',
-    variants: [
-      { size: 'M', price: null, quantity: 12 },
-      { size: 'L', price: null, quantity: 18 },
-      { size: 'XL', price: null, quantity: 8 },
-    ],
+    categorySlug: 'kids-fashion',
+    variantLabels: ['1-2 years', '2-3 years', '3-4 years', '4-5 years'],
   },
-
-  // Women's Fashion
   {
-    name: 'Floral Wrap Summer Dress',
-    slug: 'floral-wrap-summer-dress',
-    code: 'WF-DRESS-001',
-    description: 'Elegant floral print wrap dress made from breathable cotton blend.',
-    defaultPrice: 64.99,
+    name: 'Denim Overalls Set',
+    slug: 'denim-overalls-set',
+    code: 'KF-DEN-003',
+    description: 'Durable denim overalls paired with a soft striped cotton tee.',
+    price: 79.99,
+    quantity: 35,
     isFeatured: true,
     isActive: true,
-    categorySlug: 'womens-fashion',
-    variants: [
-      { size: 'S', price: null, quantity: 30 },
-      { size: 'M', price: null, quantity: 40 },
-      { size: 'L', price: null, quantity: 15 },
-    ],
+    categorySlug: 'kids-fashion',
+    variantLabels: ['2-3 years', '3-4 years', '4-5 years', '5-6 years'],
   },
   {
-    name: 'Cashmere Knit Cardigan',
-    slug: 'cashmere-knit-cardigan',
-    code: 'WF-KNIT-002',
-    description: 'Ultra-soft premium cashmere blend knit cardigan for cozy warmth.',
-    defaultPrice: 119.99,
+    name: 'Knit Wool Cardigan',
+    slug: 'knit-wool-cardigan',
+    code: 'KF-KNIT-004',
+    description: 'Hand-knit soft merino wool cardigan for chilly autumn evenings.',
+    price: 89.99,
+    quantity: 30,
     isFeatured: false,
     isActive: true,
-    categorySlug: 'womens-fashion',
-    variants: [
-      { size: 'S', price: null, quantity: 10 },
-      { size: 'M', price: null, quantity: 15 },
-    ],
-  },
-
-  // Electronics & Gadgets
-  {
-    name: 'Noise-Canceling Wireless Headphones',
-    slug: 'noise-canceling-wireless-headphones',
-    code: 'EG-AUDIO-001',
-    description: 'High-fidelity over-ear headphones featuring active noise cancellation and 30-hour battery life.',
-    defaultPrice: 199.99,
-    isFeatured: true,
-    isActive: true,
-    categorySlug: 'electronics-gadgets',
-    variants: [
-      { size: 'Standard', price: null, quantity: 50 },
-    ],
+    categorySlug: 'kids-fashion',
+    variantLabels: ['1-2 years', '2-3 years', '3-4 years'],
   },
   {
-    name: 'Smart Fitness Tracker Watch',
-    slug: 'smart-fitness-tracker-watch',
-    code: 'EG-WATCH-002',
-    description: 'Water-resistant smartwatch featuring heart rate monitoring, sleep tracking, and built-in GPS.',
-    defaultPrice: 129.99,
-    isFeatured: false,
-    isActive: true,
-    categorySlug: 'electronics-gadgets',
-    variants: [
-      { size: '38mm', price: 129.99, quantity: 20 },
-      { size: '42mm', price: 149.99, quantity: 25 },
-    ],
-  },
-
-  // Footwear & Shoes
-  {
-    name: 'Leather Urban Sneakers',
-    slug: 'leather-urban-sneakers',
+    name: 'Breathable Canvas Shoes',
+    slug: 'breathable-canvas-shoes',
     code: 'FS-SHOE-001',
-    description: 'Handcrafted genuine leather sneakers with cushioned ergonomic insoles.',
-    defaultPrice: 84.99,
+    description: 'Non-slip rubber sole canvas shoes perfect for active toddlers.',
+    price: 39.99,
+    quantity: 60,
     isFeatured: true,
     isActive: true,
     categorySlug: 'footwear-shoes',
-    variants: [
-      { size: '40', price: null, quantity: 10 },
-      { size: '41', price: null, quantity: 15 },
-      { size: '42', price: null, quantity: 20 },
-      { size: '43', price: null, quantity: 12 },
-    ],
-  },
-  {
-    name: 'Classic Oxford Dress Shoes',
-    slug: 'classic-oxford-dress-shoes',
-    code: 'FS-SHOE-002',
-    description: 'Sleek polished leather Oxfords designed for formal and business occasions.',
-    defaultPrice: 139.99,
-    isFeatured: false,
-    isActive: true,
-    categorySlug: 'footwear-shoes',
-    variants: [
-      { size: '41', price: null, quantity: 8 },
-      { size: '42', price: null, quantity: 14 },
-      { size: '43', price: null, quantity: 10 },
-    ],
-  },
-
-  // Accessories
-  {
-    name: 'Minimalist Leather Wallet',
-    slug: 'minimalist-leather-wallet',
-    code: 'AC-WAL-001',
-    description: 'Slim RFID-blocking genuine leather bi-fold wallet.',
-    defaultPrice: 34.99,
-    isFeatured: false,
-    isActive: true,
-    categorySlug: 'accessories',
-    variants: [
-      { size: 'One Size', price: null, quantity: 60 },
-    ],
-  },
-  {
-    name: 'Polarized UV Sunglasses',
-    slug: 'polarized-uv-sunglasses',
-    code: 'AC-SUN-002',
-    description: 'UV400 protection polarized sunglasses with lightweight aluminum-magnesium alloy frame.',
-    defaultPrice: 45.0,
-    isFeatured: false,
-    isActive: true,
-    categorySlug: 'accessories',
-    variants: [
-      { size: 'Standard', price: null, quantity: 35 },
-    ],
+    variantLabels: ['1-2 years', '2-3 years', '3-4 years', '4-5 years'],
   },
 ];
 
@@ -172,43 +88,50 @@ const seedDatabase = async () => {
     logger.info('Connecting to database...');
     await connectDB();
 
-    logger.info('Clearing existing Category, Product, and ProductVariant collections...');
+    logger.info('Clearing existing collections...');
     await Category.deleteMany({});
     await Product.deleteMany({});
     await ProductVariant.deleteMany({});
+    await ProductVariantLink.deleteMany({});
 
-    logger.info('Inserting Categories...');
+    logger.info('Inserting Master Categories...');
     const createdCategories = await Category.insertMany(sampleCategories);
-    logger.info(`Successfully seeded ${createdCategories.length} categories.`);
-
-    // map category slug to created category _id
     const categoryMap = createdCategories.reduce((acc, cat) => {
       acc[cat.slug] = cat._id;
       return acc;
     }, {});
 
-    logger.info('Inserting Products & Product Variants...');
-    let totalVariants = 0;
+    logger.info('Inserting Master Global Age Variants...');
+    const createdVariants = await ProductVariant.insertMany(sampleAgeVariants);
+    const variantMap = createdVariants.reduce((acc, v) => {
+      acc[v.label] = v.id;
+      return acc;
+    }, {});
+
+    logger.info('Inserting Products & Creating ProductVariantLinks...');
+    let totalLinks = 0;
     for (const p of sampleProducts) {
-      const { categorySlug, variants, ...productData } = p;
+      const { categorySlug, variantLabels, ...productData } = p;
       const product = await Product.create({
         ...productData,
         categoryId: categoryMap[categorySlug] || null,
       });
 
-      if (variants && variants.length > 0) {
-        const variantsToInsert = variants.map((v) => ({
-          productId: product.id,
-          size: v.size,
-          price: v.price,
-          quantity: v.quantity,
-        }));
-        const createdVariants = await ProductVariant.insertMany(variantsToInsert);
-        totalVariants += createdVariants.length;
+      if (variantLabels && variantLabels.length > 0) {
+        const linksToInsert = variantLabels
+          .filter((label) => variantMap[label])
+          .map((label) => ({
+            productId: product.id,
+            productVariantId: variantMap[label],
+          }));
+        if (linksToInsert.length > 0) {
+          const createdLinks = await ProductVariantLink.insertMany(linksToInsert);
+          totalLinks += createdLinks.length;
+        }
       }
     }
 
-    logger.info(`Successfully seeded ${sampleProducts.length} products and ${totalVariants} product variants.`);
+    logger.info(`Successfully seeded ${sampleCategories.length} categories, ${createdVariants.length} age variants, ${sampleProducts.length} products, and ${totalLinks} variant links.`);
     logger.info('Database seeding completed successfully!');
     process.exit(0);
   } catch (error) {

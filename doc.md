@@ -85,13 +85,13 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 | Field | Type | Notes |
 |---|---|---|
 | Wishlist.id, userId | | one per user |
-| WishlistItem.id, wishlistId, productVariantId | | |
+| WishlistItem.id, wishlistId, productId | | wishlist has no price/stock concern, so no variant reference needed here |
 
 ### Cart / CartItem *(guests use localStorage, logged-in users are DB-backed)*
 | Field | Type | Notes |
 |---|---|---|
 | Cart.id, userId | | |
-| CartItem.id, cartId, productVariantId, quantity | | |
+| CartItem.id, cartId, productId, quantity, productVariantId (nullable, FK → ProductVariant) | | variant is just "which age label they picked" — doesn't affect price/stock calc, purely for display/checkout reference |
 
 ### Order
 | Field | Type | Notes |
@@ -110,15 +110,16 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 | createdAt / updatedAt | timestamp | |
 
 **Order statuses (fixed enum, proposed):**
-`PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED`, with `CANCELLED` and `RETURNED` as side-branches. Let me know if you want to trim/rename this list.
+`PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED`, with `CANCELLED` and `RETURNED` as side-branches.
 
 ### OrderItem
 | Field | Type | Notes |
 |---|---|---|
 | id | PK | |
 | orderId | FK → Order | |
-| productVariantId | FK → ProductVariant | |
-| productName, size, unitPrice | snapshot | store copies at order time so later product edits don't rewrite history |
+| productId | FK → Product | |
+| productName, unitPrice | snapshot | store copies at order time so later product edits don't rewrite history |
+| selectedVariantLabel | string, nullable | plain text snapshot of the chosen age label (e.g. "2-3 years"), NOT an FK — so it stays correct even if the variant catalog changes later |
 | quantity | int | |
 
 ---
@@ -159,7 +160,7 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 ### Public storefront
 - Home: banners, marquee, featured categories, featured products
 - Category listing → product grid, filter by category
-- Product detail: images, size selector (pulls variant price/stock), quantity, add to cart/wishlist, reviews list, product info bullets, "questions? call us" block
+- Product detail: images, age size selector (pulls linked global ProductVariants), product price & stock quantity, quantity selector, add to cart/wishlist, reviews list, product info bullets, "questions? call us" block
 - Reviews: submit (name, rating, description, optional image) → goes to pending queue
 - Cart: guest = localStorage, logged-in = DB-backed; merge localStorage cart into DB cart on login
 - Wishlist: same behavior as cart — guest = localStorage, logged-in = DB-backed, merge on login
@@ -172,7 +173,9 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 ### Admin panel
 - Auth (separate admin role or `isAdmin` flag on User)
 - Category CRUD
-- Product + variant CRUD (stock, price overrides per size)
+- Product CRUD (flat price, stock quantity, category, details)
+- Master Global Age Variant CRUD (standalone catalog: label, display order, active status)
+- Product-Variant Linker (attach/detach global age labels to products via ProductVariantLink)
 - Review moderation queue (approve/reject)
 - Order management: view, update status, view/edit shipping info manually
 - Site discount config (percentage + date range)
@@ -183,3 +186,4 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 - Content blocks editor (About/Contact/How to Buy/Return Policy)
 - Product info bullets editor
 - Footer settings (social links, description)
+

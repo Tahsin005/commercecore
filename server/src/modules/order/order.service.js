@@ -1,5 +1,5 @@
 import { Order, OrderItem } from './order.model.js';
-import Product from '../product/product.model.js';
+import Product, { ProductVariantLink } from '../product/product.model.js';
 import ProductVariant from '../product/productVariant.model.js';
 import User from '../user/user.model.js';
 import { generateAuthToken } from '../user/user.service.js';
@@ -32,26 +32,22 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
       throw new ApiError(400, 'Phone number is required for guest checkout');
     }
 
-    // check if account already exists with phone number
     user = await User.findOne({ phone: phone.trim() });
 
     if (!user) {
-      // create new user account for guest
       const userEmail = email && email.trim() ? email.trim().toLowerCase() : `guest_${Date.now()}@commercecore.com`;
 
       user = await User.create({
         name: customerName.trim(),
         phone: phone.trim(),
         email: userEmail,
-        password: null, // guest checkout account without initial password
+        password: null,
         isAdmin: false,
       });
     }
 
-    // generate JWT token to log the guest user in seamlessly
     token = generateAuthToken(user);
 
-    // sync guest localStorage cart & wishlist to newly linked account in DB
     if (guestCartItems.length > 0) {
       await syncGuestCartService(user.id, guestCartItems);
     }
@@ -60,44 +56,61 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
     }
   }
 
-  // delivery charge calculation: Inside Dhaka = 60 Taka, Outside Dhaka = 120 Taka
   const deliveryCharge = deliveryZone === 'outside_dhaka' ? 120 : 60;
 
-  // process order items & snapshot prices
   let subtotal = 0;
   const processedItems = [];
 
   for (const item of items) {
-    const variant = await ProductVariant.findById(item.productVariantId);
-    if (!variant) {
-      throw new ApiError(404, `Product variant with ID ${item.productVariantId} not found`);
+    let product = null;
+    let variant = null;
+    let pId = item.productId;
+    let pvId = item.productVariantId;
+
+    if (pvId) {
+      variant = await ProductVariant.findById(pvId);
     }
 
-    const product = await Product.findById(variant.productId);
+    if (!pId && variant) {
+      if (variant.productId) pId = variant.productId;
+      else {
+        const link = await ProductVariantLink.findOne({ productVariantId: variant.id });
+        if (link) pId = link.productId;
+      }
+    }
+
+    if (!pId) {
+      throw new ApiError(400, 'Product ID is required for order items');
+    }
+
+    product = await Product.findById(pId);
     if (!product) {
-      throw new ApiError(404, `Product for variant ${item.productVariantId} not found`);
+      throw new ApiError(404, `Product with ID ${pId} not found`);
     }
 
     const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
 
-    // Check if variant has sufficient stock
-    if (variant.quantity < qty) {
+    if (product.quantity < qty) {
+      const label = item.selectedVariantLabel || (variant ? variant.label : '') || 'Standard';
       throw new ApiError(
         400,
-        `Insufficient stock for "${product.name}" (${variant.size}). Only ${variant.quantity} available.`
+        `Insufficient stock for "${product.name}" (${label}). Only ${product.quantity} available.`
       );
     }
 
-    // price override on variant takes priority; fallback to product defaultPrice
-    const unitPrice = variant.price !== null && variant.price !== undefined ? variant.price : product.defaultPrice;
+    const unitPrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
     const itemSubtotal = unitPrice * qty;
     subtotal += itemSubtotal;
 
+    const variantLabel = item.selectedVariantLabel || (variant ? variant.label : '') || '';
+
     processedItems.push({
-      variant,
-      productVariantId: variant.id,
+      product,
+      productId: product.id,
+      productVariantId: variant ? variant.id : null,
       productName: product.name,
-      size: variant.size,
+      selectedVariantLabel: variantLabel,
+      size: variantLabel,
       unitPrice,
       quantity: qty,
     });
@@ -106,7 +119,6 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
   const discountAmount = 0;
   const total = subtotal + deliveryCharge - discountAmount;
 
-  // Generate date-based unique order number
   const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   const randomSeq = Math.floor(1000 + Math.random() * 9000);
   const orderNumber = `CC-${dateStr}-${randomSeq}`;
@@ -126,28 +138,27 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
     status: 'PENDING',
   });
 
-  // Create OrderItems records
   const orderItems = await OrderItem.insertMany(
-    processedItems.map(({ variant, ...item }) => ({
+    processedItems.map(({ product, ...item }) => ({
       ...item,
       orderId: order.id,
     }))
   );
 
-  // Deduct stock for ordered variants
   for (const item of processedItems) {
-    item.variant.quantity -= item.quantity;
-    await item.variant.save();
+    if (item.product.quantity >= item.quantity) {
+      item.product.quantity -= item.quantity;
+      await item.product.save();
+    }
   }
 
-  // Automatically clear user DB cart upon successful order placement
   await clearUserCartService(user.id);
 
   return {
     order: order.toJSON(),
     items: orderItems,
     user: user.toJSON(),
-    token, // returned for guest checkout to authenticate client seamlessly
+    token,
   };
 };
 
@@ -157,13 +168,9 @@ export const getOrderByNumberService = async (orderNumber) => {
     throw new ApiError(404, 'Order not found');
   }
 
-  const items = await OrderItem.find({ orderId: order.id }).populate({
-    path: 'productVariantId',
-    populate: {
-      path: 'productId',
-      select: 'name slug code defaultPrice',
-    },
-  });
+  const items = await OrderItem.find({ orderId: order.id })
+    .populate('productId', 'name slug code price defaultPrice')
+    .populate('productVariantId', 'label');
 
   return {
     order: order.toJSON(),

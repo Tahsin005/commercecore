@@ -1,4 +1,4 @@
-import Product, { ProductVariant } from './product.model.js';
+import Product, { ProductVariant, ProductVariantLink } from './product.model.js';
 import Category from '../category/category.model.js'; // Registers Category schema with Mongoose
 import ApiError from '../../utils/ApiError.js';
 
@@ -19,17 +19,25 @@ export const getAllProductsService = async (query = {}) => {
     .sort({ createdAt: -1 });
 
   const productIds = products.map((p) => p.id);
-  const variants = await ProductVariant.find({ productId: { $in: productIds } });
+  const links = await ProductVariantLink.find({ productId: { $in: productIds } })
+    .populate('productVariantId');
 
-  const variantMap = variants.reduce((acc, v) => {
-    const pid = v.productId.toString();
+  const variantMap = links.reduce((acc, link) => {
+    const pid = link.productId.toString();
     if (!acc[pid]) acc[pid] = [];
-    acc[pid].push(v);
+    if (link.productVariantId) {
+      const v = link.productVariantId.toJSON ? link.productVariantId.toJSON() : link.productVariantId;
+      acc[pid].push({
+        ...v,
+        size: v.label,
+      });
+    }
     return acc;
   }, {});
 
   return products.map((p) => ({
     ...p.toJSON(),
+    defaultPrice: p.price,
     variants: variantMap[p.id] || [],
   }));
 };
@@ -39,9 +47,20 @@ export const getProductByIdService = async (productId) => {
   if (!product) {
     throw new ApiError(404, 'Product not found');
   }
-  const variants = await ProductVariant.find({ productId: product.id });
+  const links = await ProductVariantLink.find({ productId: product.id }).populate('productVariantId');
+  const variants = links
+    .filter((l) => l.productVariantId)
+    .map((l) => {
+      const v = l.productVariantId.toJSON ? l.productVariantId.toJSON() : l.productVariantId;
+      return {
+        ...v,
+        size: v.label,
+      };
+    });
+
   return {
     ...product.toJSON(),
+    defaultPrice: product.price,
     variants,
   };
 };
@@ -51,9 +70,20 @@ export const getProductBySlugService = async (slug) => {
   if (!product) {
     throw new ApiError(404, 'Product not found');
   }
-  const variants = await ProductVariant.find({ productId: product.id });
+  const links = await ProductVariantLink.find({ productId: product.id }).populate('productVariantId');
+  const variants = links
+    .filter((l) => l.productVariantId)
+    .map((l) => {
+      const v = l.productVariantId.toJSON ? l.productVariantId.toJSON() : l.productVariantId;
+      return {
+        ...v,
+        size: v.label,
+      };
+    });
+
   return {
     ...product.toJSON(),
+    defaultPrice: product.price,
     variants,
   };
 };
@@ -63,5 +93,18 @@ export const getProductVariantsService = async (productId) => {
   if (!product) {
     throw new ApiError(404, 'Product not found');
   }
-  return ProductVariant.find({ productId });
+  const links = await ProductVariantLink.find({ productId: product.id }).populate('productVariantId');
+  return links
+    .filter((l) => l.productVariantId)
+    .map((l) => {
+      const v = l.productVariantId.toJSON ? l.productVariantId.toJSON() : l.productVariantId;
+      return {
+        ...v,
+        size: v.label,
+      };
+    });
+};
+
+export const getGlobalVariantsService = async () => {
+  return ProductVariant.find({ isActive: true }).sort({ order: 1 });
 };

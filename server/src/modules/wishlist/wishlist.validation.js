@@ -2,13 +2,17 @@ import { z } from 'zod';
 
 export const addToWishlistSchema = z.object({
   body: z.object({
-    productVariantId: z.string().min(1, 'Product Variant ID is required'),
+    productId: z.string().optional(),
+    productVariantId: z.string().optional(),
+  }).refine((data) => data.productId || data.productVariantId, {
+    message: 'productId or productVariantId is required',
   }),
 });
 
 export const removeFromWishlistSchema = z.object({
   params: z.object({
-    productVariantId: z.string().min(1, 'Product Variant ID is required'),
+    productId: z.string().optional(),
+    productVariantId: z.string().optional(),
   }),
 });
 
@@ -16,7 +20,8 @@ export const syncWishlistSchema = z.object({
   body: z.object({
     items: z.array(
       z.object({
-        productVariantId: z.string().min(1, 'Product Variant ID is required'),
+        productId: z.string().optional(),
+        productVariantId: z.string().optional(),
       })
     ),
   }),
