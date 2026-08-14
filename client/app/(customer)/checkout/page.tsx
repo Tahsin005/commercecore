@@ -129,9 +129,7 @@ export default function CheckoutPage() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 w-full flex-1">
         {cartItems.length === 0 && !createOrderMutation.isSuccess && !createOrderMutation.isPending ? (
           <div className="py-8 sm:py-12 flex flex-col justify-between min-h-[70vh]">
-            {/* Top 2-Column Hero Section */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center max-w-5xl mx-auto w-full my-auto">
-              {/* Left Column: Visual Illustration Image */}
               <div className="lg:col-span-5 flex justify-center order-1 lg:order-1">
                 <div className="relative w-full max-w-sm aspect-4/3 rounded-3xl overflow-hidden shadow-2xl border border-maroon-100/80 group">
                   <Image
@@ -146,7 +144,6 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Right Column: Editorial Copy & Action */}
               <div className="lg:col-span-7 space-y-6 text-center lg:text-left order-2 lg:order-2 flex flex-col items-center lg:items-start">
                 <div className="space-y-3">
                   <span className="text-xs font-bold uppercase tracking-[0.25em] text-maroon-700 font-sans block">
@@ -173,7 +170,6 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Bottom 3-Column Value Proposition Highlights */}
             <div className="pt-8 border-t border-maroon-200/50 mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 text-left max-w-5xl mx-auto w-full">
               <div className="flex items-center space-x-3.5 p-3.5 bg-white rounded-xl border border-maroon-100 shadow-xs">
                 <div className="p-2.5 bg-maroon-100/60 border border-maroon-200/60 rounded-full text-maroon-900 shrink-0">
