@@ -8,7 +8,6 @@ import {
   ShoppingCart,
   Heart,
   ArrowLeft,
-  Loader2,
   Package,
   Plus,
   Minus,
@@ -20,6 +19,7 @@ import {
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useProductDetailsQuery, ProductVariant } from "@/hooks/useProductQueries";
+import { ProductDetailsSkeleton } from "@/components/skeletons";
 
 interface ProductDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -49,31 +49,26 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-off-white flex flex-col items-center justify-center p-4 font-sans">
-        <div className="flex items-center space-x-3 text-maroon-700 bg-white p-6 px-8 rounded-xl shadow-md border border-maroon-100">
-          <Loader2 className="w-6 h-6 animate-spin text-maroon-700" />
-          <span className="text-sm font-semibold text-maroon-900">Loading product details...</span>
-        </div>
-      </div>
-    );
+    return <ProductDetailsSkeleton />;
   }
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-off-white flex flex-col items-center justify-center p-4 font-sans">
-        <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md border border-maroon-100 text-center space-y-4">
-          <Package className="w-12 h-12 text-maroon-300 mx-auto" />
-          <h1 className="text-2xl font-serif font-bold text-maroon-900">Product Not Found</h1>
-          <p className="text-xs text-maroon-700">{error?.message || "Requested product does not exist."}</p>
-          <Link
-            href="/"
-            className="inline-flex items-center space-x-2 px-5 py-2.5 bg-maroon-900 text-white font-medium text-xs rounded-md shadow hover:bg-maroon-800 transition-all"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Products</span>
-          </Link>
-        </div>
+      <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
+        <main className="flex-1 flex flex-col items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md border border-maroon-100 text-center space-y-4">
+            <Package className="w-12 h-12 text-maroon-300 mx-auto" />
+            <h1 className="text-2xl font-serif font-bold text-maroon-900">Product Not Found</h1>
+            <p className="text-xs text-maroon-700">{error?.message || "Requested product does not exist."}</p>
+            <Link
+              href="/"
+              className="inline-flex items-center space-x-2 px-5 py-2.5 bg-maroon-900 text-white font-medium text-xs rounded-md shadow hover:bg-maroon-800 transition-all"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Products</span>
+            </Link>
+          </div>
+        </main>
       </div>
     );
   }
@@ -156,22 +151,17 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
 
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
-      <header className="bg-maroon-900 text-white shadow-md">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 w-full flex-1">
+        <div className="mb-6">
           <Link
             href="/"
-            className="inline-flex items-center space-x-2 text-cream hover:text-white transition-colors text-xs font-semibold"
+            className="inline-flex items-center space-x-2 text-maroon-800 hover:text-maroon-900 transition-colors text-xs font-semibold"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Home</span>
+            <span>Back to Products</span>
           </Link>
-          <span className="font-serif text-lg font-bold tracking-tight text-white">
-            Product Showcase
-          </span>
         </div>
-      </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 w-full flex-1">
         <div className="bg-white rounded-2xl shadow-xl border border-maroon-100 overflow-hidden grid grid-cols-1 md:grid-cols-2">
           <div className="bg-off-white p-8 sm:p-12 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-maroon-100 relative min-h-[320px]">
             <Package className="w-32 h-32 text-maroon-300" />
@@ -238,7 +228,10 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                         <button
                           key={variant.id}
                           type="button"
-                          onClick={() => setSelectedVariant(variant)}
+                          onClick={() => {
+                            setSelectedVariant(variant);
+                            setQuantity(1);
+                          }}
                           className={`px-3.5 py-2 rounded-md border text-xs font-bold font-mono transition-all cursor-pointer ${
                             isSelected
                               ? "bg-maroon-900 text-cream border-maroon-900 shadow-md ring-2 ring-maroon-700"

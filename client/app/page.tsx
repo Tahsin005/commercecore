@@ -5,30 +5,22 @@ import Link from "next/link";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import {
-  ShoppingCart,
   Heart,
-  LogIn,
-  LogOut,
-  Loader2,
   Package,
-  ArrowRight,
   Eye,
   Tag,
 } from "lucide-react";
 
-import { useAuth } from "@/hooks/useAuth";
-import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useProductsQuery, Product } from "@/hooks/useProductQueries";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
+import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
 
 export default function Home() {
-  const { user, isAuthenticated, logout, isHydrated } = useAuth();
-  
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   // React Query Hooks
-  const { data: categoriesResponse } = useCategoriesQuery();
+  const { data: categoriesResponse, isLoading: isCategoriesLoading } = useCategoriesQuery();
   const categories = categoriesResponse?.data || [];
 
   const { data: response, isLoading, error } = useProductsQuery(
@@ -36,7 +28,6 @@ export default function Home() {
   );
   const products = response?.data || [];
 
-  const { cartCount } = useCart();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
 
   const handleToggleWishlist = (product: Product) => {
@@ -70,94 +61,22 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
-      <header className="bg-maroon-900 text-white shadow-md sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-3 group">
-            <div className="p-1.5 bg-white rounded-lg shadow-sm">
-              <Image
-                src="/logo.png"
-                alt="CommerceCore Logo"
-                width={36}
-                height={36}
-                className="w-8 h-8 object-contain"
-                priority
-              />
-            </div>
-            <span className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-white group-hover:text-cream transition-colors">
-              CommerceCore
-            </span>
-          </Link>
-
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/checkout"
-              className="relative p-2.5 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 rounded-md text-cream hover:text-white transition-all flex items-center space-x-2"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              <span className="text-xs font-semibold hidden sm:inline">Cart</span>
-              {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-cream text-maroon-900 font-extrabold text-[11px] w-5 h-5 rounded-full flex items-center justify-center border border-maroon-900 shadow">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-
-            {isHydrated && (
-              <div className="flex items-center space-x-2">
-                {isAuthenticated && user ? (
-                  <div className="flex items-center space-x-3">
-                    <span className="text-xs font-medium text-cream hidden md:inline">
-                      Hi, {user.name}
-                    </span>
-                    <button
-                      onClick={logout}
-                      className="p-2.5 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white rounded-md text-xs transition-all flex items-center space-x-1 cursor-pointer"
-                      title="Logout"
-                    >
-                      <LogOut className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <Link
-                      href="/login"
-                      className="px-3.5 py-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white font-medium text-xs rounded-md transition-all flex items-center space-x-1"
-                    >
-                      <LogIn className="w-3.5 h-3.5" />
-                      <span>Sign In</span>
-                    </Link>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 w-full flex-1 space-y-8">
-        <div className="bg-maroon-900 text-white rounded-2xl p-8 sm:p-12 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-2 text-center md:text-left">
-            <span className="inline-block bg-maroon-800 border border-maroon-700 px-3 py-1 rounded-sm text-xs font-semibold text-cream uppercase tracking-wider">
-              Featured Collection
-            </span>
-            <h1 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
-              Premium E-Commerce Store
-            </h1>
-            <p className="text-sm text-maroon-200 max-w-lg font-sans">
-              Discover top products across fashion, electronics, accessories, and shoes with instant checkout support.
-            </p>
-          </div>
-          <Link
-            href="/checkout"
-            className="px-6 py-3 bg-white text-maroon-900 hover:bg-cream font-semibold text-sm rounded-md transition-all shadow-md flex items-center space-x-2 shrink-0"
-          >
-            <span>Proceed to Checkout</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+        <div className="relative rounded-2xl overflow-hidden shadow-xl border border-maroon-100/80 bg-maroon-900 group">
+          <Image
+            src="/banner.png"
+            alt="Rupzone Collection Banner"
+            width={1200}
+            height={450}
+            className="w-full h-auto object-cover rounded-2xl transition-transform duration-500 group-hover:scale-[1.01]"
+            priority
+          />
         </div>
 
         {/* Category Filter Tabs */}
-        {categories.length > 0 && (
+        {isCategoriesLoading ? (
+          <CategoriesSkeleton />
+        ) : categories.length > 0 ? (
           <div className="space-y-2">
             <div className="flex items-center space-x-2 text-xs font-semibold text-maroon-800 uppercase tracking-wider mb-2">
               <Tag className="w-3.5 h-3.5" />
@@ -196,7 +115,7 @@ export default function Home() {
               ))}
             </div>
           </div>
-        )}
+        ) : null}
 
         <div className="flex items-center justify-between border-b border-maroon-100 pb-4">
           <div>
@@ -204,16 +123,11 @@ export default function Home() {
             <p className="text-xs text-maroon-700">Browse curated items available for order</p>
           </div>
           <span className="text-xs font-semibold text-maroon-600 bg-maroon-100 px-3 py-1 rounded-sm">
-            {products.length} Items Available
+            {isLoading ? "..." : `${products.length} Items Available`}
           </span>
         </div>
 
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-16 space-y-3">
-            <Loader2 className="w-8 h-8 animate-spin text-maroon-700" />
-            <span className="text-sm font-medium text-maroon-800">Loading product catalog...</span>
-          </div>
-        )}
+        {isLoading && <ProductGridSkeleton count={8} />}
 
         {error && (
           <div className="p-6 bg-maroon-100/60 border border-maroon-200 rounded-xl text-maroon-900 text-center space-y-2">
@@ -297,12 +211,6 @@ export default function Home() {
           </div>
         )}
       </main>
-
-      <footer className="bg-maroon-900 text-white p-6 border-t border-maroon-800 text-center font-sans mt-12">
-        <p className="text-xs text-maroon-200 font-medium tracking-wide">
-          CommerceCore v1.0 &bull; E-Commerce Platform
-        </p>
-      </footer>
     </div>
   );
 }
