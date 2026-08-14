@@ -114,21 +114,6 @@ export default function CheckoutPage() {
   if (!isHydrated || isCartLoading) {
     return (
       <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
-        <header className="bg-maroon-900 text-white shadow-md">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-            <Link
-              href="/"
-              className="inline-flex items-center space-x-2 text-cream hover:text-white transition-colors text-xs font-semibold"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Continue Shopping</span>
-            </Link>
-            <span className="font-serif text-lg font-bold tracking-tight text-white">
-              Checkout &amp; Order
-            </span>
-          </div>
-        </header>
-
         <main className="max-w-5xl mx-auto px-4 sm:px-6 py-20 flex-1 flex flex-col items-center justify-center">
           <div className="flex flex-col items-center space-y-4 bg-white p-8 px-10 rounded-2xl shadow-xl border border-maroon-100">
             <Loader2 className="w-8 h-8 animate-spin text-maroon-700" />
@@ -143,21 +128,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
-      <header className="bg-maroon-900 text-white shadow-md">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center space-x-2 text-cream hover:text-white transition-colors text-xs font-semibold"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Continue Shopping</span>
-          </Link>
-          <span className="font-serif text-lg font-bold tracking-tight text-white">
-            Checkout &amp; Order
-          </span>
-        </div>
-      </header>
-
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 w-full flex-1">
         {cartItems.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 text-center shadow-md border border-maroon-100 max-w-md mx-auto space-y-4">
