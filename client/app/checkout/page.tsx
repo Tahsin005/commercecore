@@ -2,13 +2,14 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import {
   ShoppingBag,
-  ArrowLeft,
+  ArrowRight,
   Trash2,
   Plus,
   Minus,
@@ -17,7 +18,9 @@ import {
   MapPin,
   Phone,
   User,
-  Package,
+  Truck,
+  CreditCard,
+  ShieldCheck,
 } from "lucide-react";
 
 import { useCart } from "@/hooks/useCart";
@@ -125,43 +128,81 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 w-full flex-1">
         {cartItems.length === 0 && !createOrderMutation.isSuccess && !createOrderMutation.isPending ? (
-          <div className="py-12 flex flex-col items-center justify-center">
-            <div className="bg-white rounded-2xl p-8 sm:p-12 text-center shadow-lg border border-maroon-100 max-w-lg w-full space-y-6">
-              <div className="space-y-4">
-                <div className="w-20 h-20 bg-off-white border-2 border-maroon-100 rounded-2xl flex items-center justify-center mx-auto shadow-sm text-maroon-700 group-hover:scale-105 transition-transform duration-300">
-                  <ShoppingBag className="w-9 h-9 text-maroon-700" />
+          <div className="py-8 sm:py-12 flex flex-col justify-between min-h-[70vh]">
+            {/* Top 2-Column Hero Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center max-w-5xl mx-auto w-full my-auto">
+              {/* Left Column: Visual Illustration Image */}
+              <div className="lg:col-span-5 flex justify-center order-1 lg:order-1">
+                <div className="relative w-full max-w-sm aspect-4/3 rounded-3xl overflow-hidden shadow-2xl border border-maroon-100/80 group">
+                  <Image
+                    src="/empty-cart.jpg"
+                    alt="Your Cart is Waiting"
+                    width={500}
+                    height={375}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    priority
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-maroon-900/20 via-transparent to-transparent pointer-events-none" />
                 </div>
+              </div>
 
-                <div className="space-y-1.5">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-maroon-500 bg-maroon-50 border border-maroon-200/80 px-3 py-1 rounded-full inline-block">
-                    Checkout Unavailable
+              {/* Right Column: Editorial Copy & Action */}
+              <div className="lg:col-span-7 space-y-6 text-center lg:text-left order-2 lg:order-2 flex flex-col items-center lg:items-start">
+                <div className="space-y-3">
+                  <span className="text-xs font-bold uppercase tracking-[0.25em] text-maroon-700 font-sans block">
+                    YOUR CART IS EMPTY
                   </span>
-                  <h1 className="text-2xl sm:text-3xl font-serif font-bold text-maroon-900 tracking-tight">
-                    Your Cart is Empty
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-maroon-900 tracking-tight leading-[1.15]">
+                    Your cart is <br className="hidden sm:inline" /> waiting for you
                   </h1>
-                  <p className="text-xs sm:text-sm text-maroon-700/80 max-w-sm mx-auto font-sans leading-relaxed">
-                    You haven't added any products to your cart yet. Explore our curated collections to start your order.
+                  <div className="w-12 h-0.5 bg-maroon-700/60 mx-auto lg:mx-0 my-2" />
+                  <p className="text-xs sm:text-sm text-maroon-700/85 max-w-md font-sans leading-relaxed">
+                    Looks like you haven't added anything to your cart yet. Discover something you'll love and add it to your collection.
                   </p>
                 </div>
+
+                <div className="pt-2">
+                  <Link
+                    href="/"
+                    className="inline-flex items-center space-x-2.5 px-7 py-3.5 bg-maroon-900 hover:bg-maroon-800 active:scale-[0.98] text-white font-semibold text-xs sm:text-sm rounded-xl shadow-md transition-all cursor-pointer group"
+                  >
+                    <ArrowRight className="w-4 h-4 text-cream group-hover:translate-x-1 transition-transform" />
+                    <span>Explore Products</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom 3-Column Value Proposition Highlights */}
+            <div className="pt-8 border-t border-maroon-200/50 mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 text-left max-w-5xl mx-auto w-full">
+              <div className="flex items-center space-x-3.5 p-3.5 bg-white rounded-xl border border-maroon-100 shadow-xs">
+                <div className="p-2.5 bg-maroon-100/60 border border-maroon-200/60 rounded-full text-maroon-900 shrink-0">
+                  <Truck className="w-5 h-5 text-maroon-800" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-maroon-900 font-sans">Nationwide Delivery</h4>
+                  <p className="text-[11px] text-maroon-700/80 mt-0.5">Fast and reliable shipping</p>
+                </div>
               </div>
 
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Link
-                  href="/"
-                  className="w-full sm:w-auto px-6 py-3.5 bg-maroon-900 hover:bg-maroon-800 active:scale-[0.98] text-white font-semibold text-xs rounded-md shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
-                >
-                  <ArrowLeft className="w-4 h-4 text-cream" />
-                  <span>Explore Products Catalog</span>
-                </Link>
+              <div className="flex items-center space-x-3.5 p-3.5 bg-white rounded-xl border border-maroon-100 shadow-xs">
+                <div className="p-2.5 bg-maroon-100/60 border border-maroon-200/60 rounded-full text-maroon-900 shrink-0">
+                  <CreditCard className="w-5 h-5 text-maroon-800" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-maroon-900 font-sans">Cash on Delivery</h4>
+                  <p className="text-[11px] text-maroon-700/80 mt-0.5">Pay when you receive</p>
+                </div>
               </div>
 
-              <div className="pt-4 border-t border-maroon-100/80 flex items-center justify-center space-x-4 text-[11px] text-maroon-600 font-medium">
-                <span className="flex items-center space-x-1">
-                  <Package className="w-3.5 h-3.5 text-maroon-500" />
-                  <span>Nationwide Shipping</span>
-                </span>
-                <span>&bull;</span>
-                <span>Cash on Delivery</span>
+              <div className="flex items-center space-x-3.5 p-3.5 bg-white rounded-xl border border-maroon-100 shadow-xs">
+                <div className="p-2.5 bg-maroon-100/60 border border-maroon-200/60 rounded-full text-maroon-900 shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-maroon-800" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-maroon-900 font-sans">Secure Checkout</h4>
+                  <p className="text-[11px] text-maroon-700/80 mt-0.5">Your data is protected</p>
+                </div>
               </div>
             </div>
           </div>

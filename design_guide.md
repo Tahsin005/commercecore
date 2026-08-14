@@ -9,7 +9,7 @@ This document serves as the authoritative visual design guide for **CommerceCore
 CommerceCore embodies an **elegant, high-contrast, luxury e-commerce aesthetic**. It blends rich deep maroon shades with warm cream accents, soft rose blush tones, crisp white surfaces, and refined serif/sans-serif typography.
 
 ### Key Aesthetic Principles:
-- **Rich Palette**: Deep maroon hues (`--maroon-900`) for headers, primary actions, and hero sections paired with warm cream (`--cream`) and rose blush (`--maroon-100`).
+- **Rich Palette**: Deep maroon hues (`--maroon-900`) for headers, primary actions, and hero sections paired with warm cream (`--cream`) and rose blush (`--maroon-100` / `--maroon-50`).
 - **Typography Contrast**: Editorial serif headers (`Playfair Display`) paired with clean, readable sans-serif body text (`Poppins`) and monospaced prices (`font-mono`).
 - **Tactile Depth**: Subtle border definitions (`border-maroon-100`), smooth box shadows, and smooth micro-animations (`active:scale-95`, hover scale transitions).
 
@@ -17,7 +17,7 @@ CommerceCore embodies an **elegant, high-contrast, luxury e-commerce aesthetic**
 
 ## 2. Color Palette & Tokens
 
-Referenced directly from [`client/app/globals.css`](file:///home/tahsin005/Downloads/Codes/third-party-projects/commercecore/client/app/globals.css).
+Referenced directly from [`client/app/globals.css`](client/app/globals.css).
 
 ### Primary Color Tokens
 
@@ -30,6 +30,7 @@ Referenced directly from [`client/app/globals.css`](file:///home/tahsin005/Downl
 | `--maroon-500` | `#8E3A43` | Uppercase tracking labels, muted metadata, icon defaults |
 | `--maroon-200` | `#D9A6A3` | Subtle element borders, outline button borders, hero paragraph text |
 | `--maroon-100` | `#F3E4E3` | Card divider lines (`border-maroon-100`), soft background accents, badge fills |
+| `--maroon-50` | `#FAECEB` | Outline button hover backgrounds (`hover:bg-maroon-50`), soft pill highlights |
 | `--cream` | `#D9C6B5` | High-contrast text on dark backgrounds, active badge text, logo hover highlights |
 | `--off-white` | `#F7F7F7` | Main page background (`var(--background)`), product card image containers |
 | `--white` | `#FFFFFF` | Card surfaces, modal dialogs, input field backgrounds |
@@ -47,7 +48,7 @@ Referenced directly from [`client/app/globals.css`](file:///home/tahsin005/Downl
 
 ## 3. Typography & Hierarchy
 
-CommerceCore uses two primary Google Fonts loaded via Next.js Font Optimization in [`client/app/layout.tsx`](file:///home/tahsin005/Downloads/Codes/third-party-projects/commercecore/client/app/layout.tsx):
+CommerceCore uses two primary Google Fonts loaded via Next.js Font Optimization in [`client/app/layout.tsx`](client/app/layout.tsx):
 
 1. **Serif Heading Font**: `Playfair Display` (`--font-playfair`, Tailwind class `font-serif`)
 2. **Sans-Serif Body Font**: `Poppins` (`--font-poppins`, Tailwind class `font-sans`, weights: 400, 500, 600, 700)
@@ -138,4 +139,4 @@ CommerceCore uses two primary Google Fonts loaded via Next.js Font Optimization 
 
 - **Hover States**: All clickable buttons and cards must feature smooth background and shadow transitions (`transition-all duration-200`).
 - **Active Click Feedback**: Buttons use `active:scale-[0.98]` or `active:scale-95` to give physical touch feedback.
-- **Mobile First Spacing**: Mobile padding defaults to `px-4 py-6`, expanding to `sm:px-6 md:px-8 py-10` on desktop containers (`max-w-6xl` or `max-w-5xl`).
+- **Mobile First Spacing**: Mobile padding defaults to `px-4 py-6`, expanding to `sm:px-6 md:px-8 md:py-10` on desktop containers (`max-w-6xl` or `max-w-5xl`).

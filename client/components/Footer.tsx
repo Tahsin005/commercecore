@@ -11,7 +11,7 @@ import {
 export function Footer() {
   return (
     <footer className="bg-maroon-900 text-white border-t border-maroon-800 font-sans mt-auto">
-      <div className="border-b border-maroon-800/80 bg-maroon-950/60 py-6">
+      <div className="border-b border-maroon-800/80 bg-maroon-900/80 py-6">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-left">
           <div className="flex items-center space-x-3 p-3.5 bg-maroon-900/50 rounded-xl border border-maroon-800/80 shadow-xs">
             <div className="p-2.5 bg-maroon-800/90 border border-maroon-700 rounded-lg text-cream shrink-0">
@@ -45,6 +45,7 @@ export function Footer() {
         </div>
       </div>
 
+      {/* Main Footer Links & Info Grid */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-8">
         {/* Brand Column */}
         <div className="sm:col-span-2 md:col-span-5 space-y-4">
@@ -68,6 +69,7 @@ export function Footer() {
           </p>
         </div>
 
+        {/* Quick Navigation Links */}
         <div className="md:col-span-3 space-y-3">
           <h4 className="text-xs font-bold uppercase tracking-wider text-cream font-serif">Quick Navigation</h4>
           <ul className="space-y-2.5 text-xs text-maroon-200 font-sans">
@@ -98,6 +100,7 @@ export function Footer() {
           </ul>
         </div>
 
+        {/* Customer Support & Shipping info */}
         <div className="md:col-span-4 space-y-3">
           <h4 className="text-xs font-bold uppercase tracking-wider text-cream font-serif">Delivery &amp; Support</h4>
           <p className="text-xs text-maroon-200 leading-relaxed font-sans">
@@ -111,10 +114,11 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-maroon-800/80 bg-maroon-950 py-4 text-xs text-maroon-300 font-sans">
+      {/* Bottom Copyright Strip */}
+      <div className="border-t border-maroon-800/80 bg-maroon-900 py-4 text-xs text-maroon-200 font-sans">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <p>&copy; {new Date().getFullYear()} CommerceCore. All rights reserved.</p>
-          <p className="flex items-center justify-center space-x-1 text-[11px] text-maroon-400">
+          <p className="flex items-center justify-center space-x-1 text-[11px] text-maroon-200">
             <span>Crafted with</span>
             <Heart className="w-3 h-3 text-red-500 fill-red-500" />
             <span>for seamless e-commerce</span>

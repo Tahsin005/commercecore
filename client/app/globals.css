@@ -9,6 +9,7 @@
 
   --maroon-200: #D9A6A3;
   --maroon-100: #F3E4E3;
+  --maroon-50: #FAECEB;
 
   --cream: #D9C6B5;
   --off-white: #F7F7F7;
@@ -36,6 +37,7 @@
 
   --color-maroon-200: var(--maroon-200);
   --color-maroon-100: var(--maroon-100);
+  --color-maroon-50: var(--maroon-50);
 
   --color-cream: var(--cream);
   --color-off-white: var(--off-white);
