@@ -2,6 +2,7 @@
 
 import { use } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   CheckCircle2,
   ArrowLeft,
@@ -115,26 +116,39 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
               </h3>
 
               <div className="divide-y divide-maroon-100 border border-maroon-100 rounded-xl overflow-hidden bg-off-white/50">
-                {items.map((item: any, idx: number) => (
-                  <div key={idx} className="p-3.5 flex items-center justify-between text-xs">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center space-x-1.5">
-                        <h4 className="font-semibold text-maroon-900">{item.productName}</h4>
-                        {item.size && (
-                          <span className="text-[10px] font-bold font-mono text-maroon-700 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm">
-                            {item.size}
+                {items.map((item: any, idx: number) => {
+                  const imageUrl = item.imageUrl || item.product?.images?.[0] || item.product?.imageUrl || item.productId?.images?.[0];
+
+                  return (
+                    <div key={idx} className="p-3.5 flex items-center justify-between text-xs">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-white border border-maroon-200 flex items-center justify-center shrink-0 relative">
+                          {imageUrl ? (
+                            <Image src={imageUrl} alt={item.productName} fill sizes="40px" className="object-cover" />
+                          ) : (
+                            <Package className="w-5 h-5 text-maroon-300" />
+                          )}
+                        </div>
+                        <div className="space-y-0.5">
+                          <div className="flex items-center space-x-1.5">
+                            <h4 className="font-semibold text-maroon-900">{item.productName}</h4>
+                            {item.size && (
+                              <span className="text-[10px] font-bold font-mono text-maroon-700 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm">
+                                {item.size}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-maroon-600 text-[11px] font-mono">
+                            ৳{item.unitPrice.toFixed(2)} × {item.quantity}
                           </span>
-                        )}
+                        </div>
                       </div>
-                      <span className="text-maroon-600 text-[11px] font-mono">
-                        ৳{item.unitPrice.toFixed(2)} × {item.quantity}
+                      <span className="font-mono font-bold text-maroon-900">
+                        ৳{(item.unitPrice * item.quantity).toFixed(2)}
                       </span>
                     </div>
-                    <span className="font-mono font-bold text-maroon-900">
-                      ৳{(item.unitPrice * item.quantity).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

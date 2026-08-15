@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import Image from "next/image";
 import {
   useAdminOrdersQuery,
   useAdminOrderDetailQuery,
@@ -706,11 +707,29 @@ export default function AdminOrdersPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-maroon-100 text-xs">
-                        {selectedOrderItems.map((item) => (
-                          <tr key={item.id} className="hover:bg-maroon-50/30">
-                            <td className="py-3 px-4 font-semibold text-maroon-900">
-                              {item.productName}
-                            </td>
+                        {selectedOrderItems.map((item) => {
+                          const itemImg = item.imageUrl || item.productId?.images?.[0] || item.productId?.imageUrl;
+
+                          return (
+                            <tr key={item.id} className="hover:bg-maroon-50/30">
+                              <td className="py-3 px-4 font-semibold text-maroon-900">
+                                <div className="flex items-center space-x-2.5">
+                                  <div className="w-9 h-9 rounded-lg overflow-hidden bg-off-white border border-maroon-200 flex items-center justify-center shrink-0 relative">
+                                    {itemImg ? (
+                                      <Image
+                                        src={itemImg}
+                                        alt={item.productName}
+                                        fill
+                                        sizes="36px"
+                                        className="object-cover"
+                                      />
+                                    ) : (
+                                      <Package className="w-4 h-4 text-maroon-300" />
+                                    )}
+                                  </div>
+                                  <span>{item.productName}</span>
+                                </div>
+                              </td>
                             <td className="py-3 px-4">
                               <span className="text-[11px] font-semibold bg-off-white text-maroon-800 border border-maroon-200 px-2 py-0.5 rounded">
                                 {item.size || item.selectedVariantLabel || "Standard"}
@@ -726,7 +745,8 @@ export default function AdminOrdersPage() {
                               ৳{(item.unitPrice * item.quantity).toLocaleString()}
                             </td>
                           </tr>
-                        ))}
+                        );
+                      })}
                       </tbody>
                     </table>
                   </div>

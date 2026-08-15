@@ -20,6 +20,8 @@ export interface AdminOrderItem {
     slug: string;
     code?: string;
     price: number;
+    images?: string[];
+    imageUrl?: string;
   } | null;
   productVariantId?: {
     id: string;
@@ -30,6 +32,7 @@ export interface AdminOrderItem {
   size: string;
   unitPrice: number;
   quantity: number;
+  imageUrl?: string;
 }
 
 export interface AdminOrder {

@@ -21,6 +21,7 @@ import {
   Truck,
   CreditCard,
   ShieldCheck,
+  Package,
 } from "lucide-react";
 
 import { useCart } from "@/hooks/useCart";
@@ -377,6 +378,14 @@ export default function CheckoutPage() {
                         key={itemKey}
                         className="flex items-center justify-between p-3.5 bg-off-white rounded-xl border border-maroon-100"
                       >
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-white border border-maroon-200 flex items-center justify-center shrink-0 relative mr-3">
+                          {item.imageUrl ? (
+                            <Image src={item.imageUrl} alt={item.name} fill sizes="48px" className="object-cover" />
+                          ) : (
+                            <Package className="w-5 h-5 text-maroon-300" />
+                          )}
+                        </div>
+
                         <div className="flex-1 space-y-0.5 pr-2">
                           <div className="flex items-center space-x-1.5">
                             <h4 className="font-semibold text-xs text-maroon-900 line-clamp-1">{item.name}</h4>

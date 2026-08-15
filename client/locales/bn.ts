@@ -97,6 +97,9 @@ export const bn = {
   // Homepage
   home: {
     browseCategories: "ক্যাটাগরি সমূহ",
+    categoryItems: "ক্যাটাগরি সমূহ",
+    showAllCategories: "সকল ক্যাটাগরি দেখুন",
+    all: "সব",
     allProducts: "সকল পণ্য",
     productsCatalog: "পণ্য ক্যাটালগ",
     catalogDesc: "আমাদের প্রিমিয়াম কালেকশন থেকে পছন্দ করুন",
@@ -119,6 +122,7 @@ export const bn = {
     orderNow: "এখনই অর্ডার করুন",
     addedToCart: "কার্টে যোগ করা হয়েছে",
     outOfStockMsg: "পণ্যটি বর্তমানে স্টকে নেই",
+    hoverToZoom: "জুম করতে কার্সার আনুন",
   },
 
   // Checkout Page

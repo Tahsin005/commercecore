@@ -15,7 +15,7 @@ const getOrCreateCart = async (userId) => {
 export const getUserCartService = async (userId) => {
   const cart = await getOrCreateCart(userId);
   const items = await CartItem.find({ cartId: cart.id })
-    .populate('productId', 'name slug code price quantity isFeatured isActive')
+    .populate('productId', 'name slug code price quantity isFeatured isActive images')
     .populate('productVariantId', 'label order isActive');
 
   const formattedItems = items.map((item) => {

@@ -49,6 +49,7 @@ export function useCart() {
       slug: string;
       size: string;
       price: number;
+      imageUrl?: string;
     },
     quantity = 1
   ) => {
