@@ -11,7 +11,7 @@ export const placeOrderSchema = z.object({
       .array(
         z.object({
           productId: z.string().min(1, 'Product ID is required'),
-          productVariantId: z.string().optional(),
+          productVariantId: z.string().nullable().optional(),
           selectedVariantLabel: z.string().optional(),
           quantity: z.number().int().min(1, 'Quantity must be at least 1'),
         })
@@ -21,7 +21,7 @@ export const placeOrderSchema = z.object({
       .array(
         z.object({
           productId: z.string().optional(),
-          productVariantId: z.string().optional(),
+          productVariantId: z.string().nullable().optional(),
           selectedVariantLabel: z.string().optional(),
           quantity: z.number().optional(),
         })

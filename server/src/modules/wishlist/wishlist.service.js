@@ -40,8 +40,8 @@ export const addToWishlistService = async (userId, productId, productVariantId =
   }
 
   const product = await Product.findById(pId);
-  if (!product) {
-    throw new ApiError(404, 'Product not found');
+  if (!product || product.isActive === false) {
+    throw new ApiError(404, 'Product not found or inactive');
   }
 
   const wishlist = await getOrCreateWishlist(userId);

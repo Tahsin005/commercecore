@@ -30,11 +30,15 @@ export const getUserCartService = async (userId) => {
       prodObj.defaultPrice = prodObj.price;
     }
 
+    const prodIdStr = prodObj ? (prodObj.id || prodObj._id || '').toString() : (itemObj.productId ? itemObj.productId.toString() : '');
+    const varIdStr = varObj ? (varObj.id || varObj._id || '').toString() : null;
+
     return {
       ...itemObj,
+      productId: prodObj,
       productVariantId: {
-        id: varObj ? varObj.id : (itemObj.productVariantId || itemObj.productId),
-        size: varObj ? varObj.label : 'Standard',
+        id: varIdStr || prodIdStr,
+        size: varObj ? (varObj.label || varObj.size) : 'Standard',
         productId: prodObj,
       },
     };
@@ -54,8 +58,8 @@ export const addToCartService = async (userId, productId, productVariantId = nul
   }
 
   const product = await Product.findById(pId);
-  if (!product) {
-    throw new ApiError(404, 'Product not found');
+  if (!product || product.isActive === false) {
+    throw new ApiError(404, 'Product not found or inactive');
   }
 
   if (productVariantId) {
@@ -114,6 +118,14 @@ export const updateCartQuantityService = async (userId, itemId, quantity) => {
   }
 
   if (!cartItem) {
+    cartItem = await CartItem.findOne({
+      cartId: cart.id,
+      productId: itemId,
+      productVariantId: null,
+    });
+  }
+
+  if (!cartItem) {
     throw new ApiError(404, 'Cart item not found');
   }
 
@@ -142,6 +154,14 @@ export const removeFromCartService = async (userId, itemId) => {
     result = await CartItem.deleteOne({
       cartId: cart.id,
       productVariantId: itemId,
+    });
+  }
+
+  if (result.deletedCount === 0) {
+    result = await CartItem.deleteOne({
+      cartId: cart.id,
+      productId: itemId,
+      productVariantId: null,
     });
   }
 

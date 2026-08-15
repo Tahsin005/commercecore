@@ -84,21 +84,30 @@ export default function CheckoutPage() {
       deliveryZone: data.deliveryZone,
       items: cartItems.map((item) => ({
         productId: item.productId,
-        productVariantId: item.productVariantId,
+        productVariantId:
+          typeof item.productVariantId === "string" && item.productVariantId !== item.productId
+            ? item.productVariantId
+            : undefined,
         selectedVariantLabel: item.size,
         quantity: item.quantity,
       })),
       guestCartItems: !isAuthenticated
         ? cartItems.map((item) => ({
             productId: item.productId,
-            productVariantId: item.productVariantId,
+            productVariantId:
+              typeof item.productVariantId === "string" && item.productVariantId !== item.productId
+                ? item.productVariantId
+                : undefined,
             quantity: item.quantity,
           }))
         : [],
       guestWishlistItems: !isAuthenticated
         ? wishlistItems.map((item) => ({
             productId: item.productId,
-            productVariantId: item.productVariantId,
+            productVariantId:
+              typeof item.productVariantId === "string" && item.productVariantId !== item.productId
+                ? item.productVariantId
+                : undefined,
           }))
         : [],
     };

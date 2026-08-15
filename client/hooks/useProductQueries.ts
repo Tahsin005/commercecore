@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { ApiResponse } from "@/types/api";
 
@@ -25,6 +25,47 @@ export interface Product {
   isActive?: boolean;
   variants?: ProductVariant[];
   createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateProductPayload {
+  name: string;
+  slug?: string;
+  code?: string;
+  categoryId?: string | null;
+  description?: string;
+  price: number;
+  quantity: number;
+  isFeatured?: boolean;
+  isActive?: boolean;
+  variantIds?: string[];
+}
+
+export interface UpdateProductPayload {
+  id: string;
+  name?: string;
+  slug?: string;
+  code?: string;
+  categoryId?: string | null;
+  description?: string;
+  price?: number;
+  quantity?: number;
+  isFeatured?: boolean;
+  isActive?: boolean;
+  variantIds?: string[];
+}
+
+export interface CreateVariantPayload {
+  label: string;
+  order?: number;
+  isActive?: boolean;
+}
+
+export interface UpdateVariantPayload {
+  id: string;
+  label?: string;
+  order?: number;
+  isActive?: boolean;
 }
 
 export function useProductsQuery(categoryId?: string, isFeatured?: boolean) {
@@ -37,6 +78,16 @@ export function useProductsQuery(categoryId?: string, isFeatured?: boolean) {
       const queryString = params.toString();
       const url = queryString ? `/products?${queryString}` : "/products";
       return apiClient<ApiResponse<Product[]>>(url);
+    },
+  });
+}
+
+export function useGlobalVariantsQuery(includeAll = true) {
+  return useQuery<ApiResponse<ProductVariant[]>, ApiError>({
+    queryKey: ["global-variants", includeAll ? "all" : "active"],
+    queryFn: () => {
+      const url = includeAll ? "/products/variants/all?includeAll=true" : "/products/variants/all";
+      return apiClient<ApiResponse<ProductVariant[]>>(url);
     },
   });
 }
@@ -54,5 +105,100 @@ export function useProductBySlugQuery(slug: string) {
     queryKey: ["product", "slug", slug],
     queryFn: () => apiClient<ApiResponse<Product>>(`/products/slug/${slug}`),
     enabled: Boolean(slug),
+  });
+}
+
+export function useCreateProductMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApiResponse<Product>, ApiError, CreateProductPayload>({
+    mutationFn: (payload) =>
+      apiClient<ApiResponse<Product>>("/products", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+}
+
+export function useUpdateProductMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApiResponse<Product>, ApiError, UpdateProductPayload>({
+    mutationFn: ({ id, ...payload }) =>
+      apiClient<ApiResponse<Product>>(`/products/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+    },
+  });
+}
+
+export function useDeleteProductMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApiResponse<Product>, ApiError, string>({
+    mutationFn: (id) =>
+      apiClient<ApiResponse<Product>>(`/products/${id}`, {
+        method: "DELETE",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+}
+
+export function useCreateVariantMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApiResponse<ProductVariant>, ApiError, CreateVariantPayload>({
+    mutationFn: (payload) =>
+      apiClient<ApiResponse<ProductVariant>>("/products/variants", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["global-variants"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+    },
+  });
+}
+
+export function useUpdateVariantMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApiResponse<ProductVariant>, ApiError, UpdateVariantPayload>({
+    mutationFn: ({ id, ...payload }) =>
+      apiClient<ApiResponse<ProductVariant>>(`/products/variants/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["global-variants"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+    },
+  });
+}
+
+export function useDeleteVariantMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApiResponse<ProductVariant>, ApiError, string>({
+    mutationFn: (id) =>
+      apiClient<ApiResponse<ProductVariant>>(`/products/variants/${id}`, {
+        method: "DELETE",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["global-variants"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+    },
   });
 }

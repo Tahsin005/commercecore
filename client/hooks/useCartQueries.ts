@@ -16,15 +16,27 @@ export const mapApiCartItems = (apiItems: any[]): CartItem[] => {
       const pObj = typeof product === "object" && product ? product : null;
       const vObj = typeof variant === "object" && variant ? variant : null;
 
-      const productId = pObj ? pObj.id || pObj._id : (typeof product === "string" ? product : "");
-      const productVariantId = vObj ? vObj.id || vObj._id : (typeof variant === "string" ? variant : undefined);
+      const productId = pObj ? (pObj.id || pObj._id || "").toString() : (typeof product === "string" ? product : "");
+      
+      let rawVariantId: string | undefined = undefined;
+      if (vObj) {
+        if (typeof vObj.id === "string") {
+          rawVariantId = vObj.id;
+        } else if (typeof vObj._id === "string") {
+          rawVariantId = vObj._id;
+        }
+      } else if (typeof variant === "string") {
+        rawVariantId = variant;
+      }
+
+      const realVariantId = (rawVariantId && rawVariantId !== productId) ? rawVariantId : undefined;
       const name = pObj ? pObj.name : "Product";
       const slug = pObj ? pObj.slug : "product";
-      const size = vObj ? vObj.label || vObj.size || "Standard" : "Standard";
+      const size = vObj ? (vObj.label || vObj.size || "Standard") : "Standard";
       const price = pObj && pObj.price !== undefined ? pObj.price : (pObj?.defaultPrice || 0);
 
       return {
-        productVariantId: productVariantId || productId,
+        productVariantId: realVariantId || productId,
         productId,
         name,
         slug,
