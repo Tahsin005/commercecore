@@ -1,5 +1,7 @@
+import mongoose from 'mongoose';
 import { Wishlist, WishlistItem } from './wishlist.model.js';
 import Product from '../product/product.model.js';
+import { resolveProductId } from '../product/product.service.js';
 import ApiError from '../../utils/ApiError.js';
 
 export const getOrCreateWishlist = async (userId) => {
@@ -31,18 +33,23 @@ export const getUserWishlistService = async (userId) => {
   };
 };
 
-export const addToWishlistService = async (userId, productId) => {
-  const product = await Product.findById(productId);
+export const addToWishlistService = async (userId, productId, productVariantId = null) => {
+  const pId = await resolveProductId(productId, productVariantId);
+  if (!pId) {
+    throw new ApiError(400, 'Product ID or valid product variant is required');
+  }
+
+  const product = await Product.findById(pId);
   if (!product) {
     throw new ApiError(404, 'Product not found');
   }
 
   const wishlist = await getOrCreateWishlist(userId);
-  const existing = await WishlistItem.findOne({ wishlistId: wishlist.id, productId });
+  const existing = await WishlistItem.findOne({ wishlistId: wishlist.id, productId: pId });
   if (!existing) {
     await WishlistItem.create({
       wishlistId: wishlist.id,
-      productId,
+      productId: pId,
     });
   }
 
@@ -50,6 +57,10 @@ export const addToWishlistService = async (userId, productId) => {
 };
 
 export const removeFromWishlistService = async (userId, itemId) => {
+  if (!itemId || !mongoose.Types.ObjectId.isValid(itemId)) {
+    throw new ApiError(404, 'Wishlist item not found');
+  }
+
   const wishlist = await Wishlist.findOne({ userId });
   if (wishlist && itemId) {
     let result = await WishlistItem.deleteOne({ wishlistId: wishlist.id, productId: itemId });
@@ -64,7 +75,7 @@ export const syncGuestWishlistService = async (userId, guestItems = []) => {
   const wishlist = await getOrCreateWishlist(userId);
 
   for (const item of guestItems) {
-    const pId = item.productId || item.productVariantId;
+    const pId = await resolveProductId(item.productId, item.productVariantId);
     if (!pId) continue;
     const existing = await WishlistItem.findOne({ wishlistId: wishlist.id, productId: pId });
     if (!existing) {

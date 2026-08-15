@@ -43,7 +43,7 @@ export function useCart() {
 
   const addItem = async (
     item: {
-      productVariantId: string;
+      productVariantId?: string;
       productId: string;
       name: string;
       slug: string;

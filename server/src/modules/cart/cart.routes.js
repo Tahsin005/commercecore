@@ -1,6 +1,6 @@
 import express from 'express';
 import { getCart, addToCart, updateCartQuantity, removeFromCart, clearCart, syncCart } from './cart.controller.js';
-import { addToCartSchema, updateCartQuantitySchema, syncCartSchema } from './cart.validation.js';
+import { addToCartSchema, updateCartQuantitySchema, removeFromCartSchema, syncCartSchema } from './cart.validation.js';
 import validate from '../../middlewares/validate.middleware.js';
 import { authenticateToken } from '../../middlewares/auth.middleware.js';
 
@@ -13,6 +13,6 @@ router.post('/', validate(addToCartSchema), addToCart);
 router.put('/', validate(updateCartQuantitySchema), updateCartQuantity);
 router.post('/sync', validate(syncCartSchema), syncCart);
 router.delete('/', clearCart);
-router.delete('/:id', removeFromCart);
+router.delete('/:id', validate(removeFromCartSchema), removeFromCart);
 
 export default router;

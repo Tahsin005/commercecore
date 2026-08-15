@@ -58,24 +58,69 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
 
   const deliveryCharge = deliveryZone === 'outside_dhaka' ? 120 : 60;
 
+  const variantIds = items.map((i) => i.productVariantId).filter(Boolean);
+  const rawProductIds = items.map((i) => i.productId).filter(Boolean);
+
+  const variants = variantIds.length > 0
+    ? await ProductVariant.find({ _id: { $in: variantIds } })
+    : [];
+  const variantMap = new Map(variants.map((v) => [v.id.toString(), v]));
+
+  const missingProductIdVariantIds = items
+    .filter((i) => !i.productId && i.productVariantId)
+    .map((i) => i.productVariantId);
+
+  let variantLinks = [];
+  if (missingProductIdVariantIds.length > 0) {
+    variantLinks = await ProductVariantLink.find({
+      productVariantId: { $in: missingProductIdVariantIds },
+    });
+  }
+  const variantLinkMap = new Map(variantLinks.map((l) => [l.productVariantId.toString(), l.productId.toString()]));
+
+  const allProductIds = new Set(rawProductIds);
+  for (const item of items) {
+    if (!item.productId && item.productVariantId) {
+      const v = variantMap.get(item.productVariantId.toString());
+      if (v && v.productId) {
+        allProductIds.add(v.productId.toString());
+      } else {
+        const pIdFromLink = variantLinkMap.get(item.productVariantId.toString());
+        if (pIdFromLink) allProductIds.add(pIdFromLink);
+      }
+    }
+  }
+
+  const products = allProductIds.size > 0
+    ? await Product.find({ _id: { $in: Array.from(allProductIds) } })
+    : [];
+  const productMap = new Map(products.map((p) => [p.id.toString(), p]));
+
+  const allVariantLinks = (allProductIds.size > 0 && variantIds.length > 0)
+    ? await ProductVariantLink.find({
+        productId: { $in: Array.from(allProductIds) },
+        productVariantId: { $in: variantIds },
+      }).populate('productVariantId')
+    : [];
+  const productVariantLinkSet = new Set(
+    allVariantLinks
+      .filter((l) => l.productVariantId && l.productVariantId.isActive === true)
+      .map((l) => `${l.productId.toString()}_${l.productVariantId.id ? l.productVariantId.id.toString() : l.productVariantId.toString()}`)
+  );
+
   let subtotal = 0;
   const processedItems = [];
 
   for (const item of items) {
-    let product = null;
-    let variant = null;
     let pId = item.productId;
     let pvId = item.productVariantId;
 
-    if (pvId) {
-      variant = await ProductVariant.findById(pvId);
-    }
-
-    if (!pId && variant) {
-      if (variant.productId) pId = variant.productId;
+    if (!pId && pvId) {
+      const v = variantMap.get(pvId.toString());
+      if (v && v.productId) pId = v.productId.toString();
       else {
-        const link = await ProductVariantLink.findOne({ productVariantId: variant.id });
-        if (link) pId = link.productId;
+        const linkPId = variantLinkMap.get(pvId.toString());
+        if (linkPId) pId = linkPId;
       }
     }
 
@@ -83,37 +128,63 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
       throw new ApiError(400, 'Product ID is required for order items');
     }
 
-    product = await Product.findById(pId);
+    const product = productMap.get(pId.toString());
     if (!product) {
       throw new ApiError(404, `Product with ID ${pId} not found`);
     }
 
-    const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
-
-    if (product.quantity < qty) {
-      const label = item.selectedVariantLabel || (variant ? variant.label : '') || 'Standard';
-      throw new ApiError(
-        400,
-        `Insufficient stock for "${product.name}" (${label}). Only ${product.quantity} available.`
-      );
+    let variant = null;
+    let selectedVariantLabel = '';
+    if (pvId) {
+      const isValidLink = productVariantLinkSet.has(`${pId.toString()}_${pvId.toString()}`);
+      if (!isValidLink) {
+        throw new ApiError(400, `Invalid product variant for product "${product.name}"`);
+      }
+      variant = variantMap.get(pvId.toString());
+      selectedVariantLabel = variant ? variant.label : '';
     }
+
+    const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
 
     const unitPrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
     const itemSubtotal = unitPrice * qty;
     subtotal += itemSubtotal;
-
-    const variantLabel = item.selectedVariantLabel || (variant ? variant.label : '') || '';
 
     processedItems.push({
       product,
       productId: product.id,
       productVariantId: variant ? variant.id : null,
       productName: product.name,
-      selectedVariantLabel: variantLabel,
-      size: variantLabel,
+      selectedVariantLabel: selectedVariantLabel || 'Standard',
+      size: selectedVariantLabel || 'Standard',
       unitPrice,
       quantity: qty,
     });
+  }
+
+  // Atomic stock deduction before persisting order records
+  const deductedProducts = [];
+  try {
+    for (const item of processedItems) {
+      const updatedProduct = await Product.findOneAndUpdate(
+        { _id: item.productId, quantity: { $gte: item.quantity } },
+        { $inc: { quantity: -item.quantity } },
+        { new: true }
+      );
+
+      if (!updatedProduct) {
+        throw new ApiError(
+          400,
+          `Insufficient stock for "${item.productName}" (${item.selectedVariantLabel}).`
+        );
+      }
+      deductedProducts.push({ productId: item.productId, quantity: item.quantity });
+    }
+  } catch (error) {
+    for (const dp of deductedProducts) {
+      await Product.updateOne({ _id: dp.productId }, { $inc: { quantity: dp.quantity } });
+    }
+    throw error;
   }
 
   const discountAmount = 0;
@@ -144,13 +215,6 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
       orderId: order.id,
     }))
   );
-
-  for (const item of processedItems) {
-    if (item.product.quantity >= item.quantity) {
-      item.product.quantity -= item.quantity;
-      await item.product.save();
-    }
-  }
 
   await clearUserCartService(user.id);
 

@@ -8,7 +8,7 @@ import { CART_QUERY_KEY } from "./useCartQueries";
 import { WISHLIST_QUERY_KEY } from "./useWishlistQueries";
 
 export interface OrderItemPayload {
-  productId?: string;
+  productId: string;
   productVariantId?: string;
   selectedVariantLabel?: string;
   quantity: number;

@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useCartStore } from "@/store/useCartStore";
-import { useWishlistStore } from "@/store/useWishlistStore";
 
 export function useAuth() {
   const [isHydrated, setIsHydrated] = useState(false);
@@ -19,21 +17,7 @@ export function useAuth() {
 
   const logout = () => {
     storeLogout();
-    useCartStore.getState().clearCart();
-    useWishlistStore.getState().clearWishlist();
-
     queryClient.clear();
-
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.removeItem("commercecore_auth_store");
-        localStorage.removeItem("commercecore_guest_cart");
-        localStorage.removeItem("commercecore_guest_wishlist");
-        localStorage.clear();
-      } catch (err) {
-        console.error("Failed to clear localStorage on logout:", err);
-      }
-    }
   };
 
   return {

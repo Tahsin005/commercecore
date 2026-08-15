@@ -11,18 +11,21 @@ export const addToWishlistSchema = z.object({
 
 export const removeFromWishlistSchema = z.object({
   params: z.object({
-    productId: z.string().optional(),
-    productVariantId: z.string().optional(),
+    id: z.string().min(1, 'Item ID is required'),
   }),
 });
 
 export const syncWishlistSchema = z.object({
   body: z.object({
     items: z.array(
-      z.object({
-        productId: z.string().optional(),
-        productVariantId: z.string().optional(),
-      })
+      z
+        .object({
+          productId: z.string().optional(),
+          productVariantId: z.string().optional(),
+        })
+        .refine((data) => data.productId || data.productVariantId, {
+          message: 'productId or productVariantId is required',
+        })
     ),
   }),
 });

@@ -66,7 +66,7 @@ export function useAddToCartMutation() {
       const previousCart = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY) || [];
       const itemKey = item.productVariantId || item.productId;
 
-      const existingIndex = previousCart.findIndex((i) => i.productVariantId === itemKey || i.productId === item.productId);
+      const existingIndex = previousCart.findIndex((i) => (i.productVariantId || i.productId) === itemKey);
       let newCart: CartItem[];
 
       if (existingIndex > -1) {

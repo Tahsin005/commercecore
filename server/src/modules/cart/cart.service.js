@@ -1,6 +1,7 @@
+import mongoose from 'mongoose';
 import { Cart, CartItem } from './cart.model.js';
-import Product, { ProductVariantLink } from '../product/product.model.js';
-import ProductVariant from '../product/productVariant.model.js';
+import Product from '../product/product.model.js';
+import { resolveProductId, validateProductVariant } from '../product/product.service.js';
 import ApiError from '../../utils/ApiError.js';
 
 const getOrCreateCart = async (userId) => {
@@ -46,19 +47,7 @@ export const getUserCartService = async (userId) => {
 };
 
 export const addToCartService = async (userId, productId, productVariantId = null, quantity = 1) => {
-  let pId = productId;
-  let pvId = productVariantId;
-
-  // Fallback: if caller passed productVariantId as first arg, resolve productId
-  if (!pId && pvId) {
-    const variant = await ProductVariant.findById(pvId);
-    if (variant && variant.productId) {
-      pId = variant.productId;
-    } else if (variant) {
-      const link = await ProductVariantLink.findOne({ productVariantId: variant.id });
-      if (link) pId = link.productId;
-    }
-  }
+  const pId = await resolveProductId(productId, productVariantId);
 
   if (!pId) {
     throw new ApiError(400, 'Product ID is required');
@@ -69,22 +58,31 @@ export const addToCartService = async (userId, productId, productVariantId = nul
     throw new ApiError(404, 'Product not found');
   }
 
+  if (productVariantId) {
+    await validateProductVariant(pId, productVariantId);
+  }
+
   const cart = await getOrCreateCart(userId);
 
   let cartItem = await CartItem.findOne({
     cartId: cart.id,
     productId: pId,
-    productVariantId: pvId || null,
+    productVariantId: productVariantId || null,
   });
 
+  const totalQuantity = (cartItem ? cartItem.quantity : 0) + quantity;
+  if (totalQuantity > product.quantity) {
+    throw new ApiError(400, `Requested quantity exceeds available stock (${product.quantity})`);
+  }
+
   if (cartItem) {
-    cartItem.quantity += quantity;
+    cartItem.quantity = totalQuantity;
     await cartItem.save();
   } else {
     cartItem = await CartItem.create({
       cartId: cart.id,
       productId: pId,
-      productVariantId: pvId || null,
+      productVariantId: productVariantId || null,
       quantity,
     });
   }
@@ -97,6 +95,10 @@ export const updateCartQuantityService = async (userId, itemId, quantity) => {
     throw new ApiError(400, 'Quantity must be at least 1');
   }
 
+  if (!itemId || !mongoose.Types.ObjectId.isValid(itemId)) {
+    throw new ApiError(404, 'Cart item not found');
+  }
+
   const cart = await getOrCreateCart(userId);
 
   let cartItem = await CartItem.findOne({
@@ -107,7 +109,7 @@ export const updateCartQuantityService = async (userId, itemId, quantity) => {
   if (!cartItem) {
     cartItem = await CartItem.findOne({
       cartId: cart.id,
-      $or: [{ productVariantId: itemId }, { productId: itemId }],
+      productVariantId: itemId,
     });
   }
 
@@ -122,6 +124,10 @@ export const updateCartQuantityService = async (userId, itemId, quantity) => {
 };
 
 export const removeFromCartService = async (userId, itemId) => {
+  if (!itemId || !mongoose.Types.ObjectId.isValid(itemId)) {
+    throw new ApiError(404, 'Cart item not found');
+  }
+
   const cart = await Cart.findOne({ userId });
   if (!cart) {
     throw new ApiError(404, 'Cart item not found');
@@ -135,7 +141,7 @@ export const removeFromCartService = async (userId, itemId) => {
   if (result.deletedCount === 0) {
     result = await CartItem.deleteOne({
       cartId: cart.id,
-      $or: [{ productVariantId: itemId }, { productId: itemId }],
+      productVariantId: itemId,
     });
   }
 
@@ -157,19 +163,18 @@ export const syncGuestCartService = async (userId, guestItems = []) => {
   const cart = await getOrCreateCart(userId);
 
   for (const guestItem of guestItems) {
-    let pId = guestItem.productId;
+    let pId = await resolveProductId(guestItem.productId, guestItem.productVariantId);
     let pvId = guestItem.productVariantId || null;
 
-    if (!pId && pvId) {
-      const variant = await ProductVariant.findById(pvId);
-      if (variant && variant.productId) pId = variant.productId;
-      else if (variant) {
-        const link = await ProductVariantLink.findOne({ productVariantId: variant.id });
-        if (link) pId = link.productId;
+    if (!pId) continue;
+
+    if (pvId) {
+      try {
+        await validateProductVariant(pId, pvId);
+      } catch (err) {
+        pvId = null;
       }
     }
-
-    if (!pId) continue;
 
     const qty = guestItem.quantity && guestItem.quantity > 0 ? guestItem.quantity : 1;
 

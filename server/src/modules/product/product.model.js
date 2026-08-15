@@ -43,6 +43,10 @@ const productSchema = new mongoose.Schema(
       required: [true, 'Product stock quantity is required'],
       default: 0,
       min: [0, 'Quantity cannot be negative'],
+      validate: {
+        validator: Number.isInteger,
+        message: '{VALUE} is not an integer quantity',
+      },
     },
     isFeatured: {
       type: Boolean,

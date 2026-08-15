@@ -46,7 +46,6 @@ export const useAuthStore = create<AuthState>()(
             localStorage.removeItem("commercecore_auth_store");
             localStorage.removeItem("commercecore_guest_cart");
             localStorage.removeItem("commercecore_guest_wishlist");
-            localStorage.clear();
           } catch (err) {
             console.error("Failed to clear localStorage on logout:", err);
           }

@@ -89,7 +89,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
 
     addToCart(
       {
-        productVariantId: selectedVariant?.id || product.id,
+        productVariantId: selectedVariant?.id,
         productId: product.id,
         name: product.name,
         slug: product.slug,
@@ -129,7 +129,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
 
     addToCart(
       {
-        productVariantId: selectedVariant?.id || product.id,
+        productVariantId: selectedVariant?.id,
         productId: product.id,
         name: product.name,
         slug: product.slug,

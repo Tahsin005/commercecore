@@ -53,6 +53,7 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 | createdAt / updatedAt | timestamp | |
 
 ### ProductVariant  (global, standalone catalog — not tied to any product by default)
+
 | Field | Type | Notes |
 |---|---|---|
 | id | PK | |
@@ -61,6 +62,7 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 | isActive | boolean | lets admin retire a label without deleting it |
 
 ### ProductVariantLink  (join table — connects Product ↔ ProductVariant, many-to-many)
+
 | Field | Type | Notes |
 |---|---|---|
 | id | PK | |
@@ -91,7 +93,7 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 | Field | Type | Notes |
 |---|---|---|
 | Cart.id, userId | | |
-| CartItem.id, cartId, productId, quantity, productVariantId (nullable, FK → ProductVariant) | | variant is just "which age label they picked" — doesn't affect price/stock calc, purely for display/checkout reference |
+| CartItem.id, cartId, productId, quantity, productVariantId (nullable, FK → ProductVariant) | | variant is validated via ProductVariantLink for the productId; selectedVariantLabel is derived from the linked ProductVariant |
 
 ### Order
 | Field | Type | Notes |

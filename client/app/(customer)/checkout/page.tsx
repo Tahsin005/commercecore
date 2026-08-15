@@ -372,8 +372,9 @@ export default function CheckoutPage() {
                           <div className="inline-flex items-center border border-maroon-200 rounded-md bg-white overflow-hidden shadow-xs">
                             <button
                               type="button"
+                              disabled={item.quantity <= 1}
                               onClick={() => updateQuantity(itemKey, item.quantity - 1)}
-                              className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer"
+                              className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <Minus className="w-3.5 h-3.5" />
                             </button>
