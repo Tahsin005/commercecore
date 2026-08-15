@@ -29,6 +29,14 @@ export const authenticateToken = async (req, res, next) => {
   }
 };
 
+// admin check middleware. Requires req.user to exist and have isAdmin === true.
+export const requireAdmin = (req, res, next) => {
+  if (!req.user || !req.user.isAdmin) {
+    return next(new ApiError(403, 'Access denied. Admin privileges required.'));
+  }
+  next();
+};
+
 // optional authentication middleware. Attaches req.user if valid token present, but allows unauthenticated requests to pass through.
 export const optionalAuth = async (req, res, next) => {
   try {
