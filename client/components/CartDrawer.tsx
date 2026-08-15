@@ -206,11 +206,12 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           ) : (
             <div className="space-y-3">
               {items.map((item) => {
-                const isPending = pendingVariantIds.has(item.productVariantId);
+                const itemKey = item.productVariantId || item.productId;
+                const isPending = pendingVariantIds.has(itemKey);
 
                 return (
                   <div
-                    key={item.productVariantId}
+                    key={itemKey}
                     className={`flex items-center justify-between p-3.5 bg-off-white rounded-xl border border-maroon-100 shadow-xs space-x-3 transition-opacity ${
                       isPending ? "opacity-60" : "opacity-100"
                     }`}
@@ -238,7 +239,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         <button
                           type="button"
                           disabled={isPending}
-                          onClick={() => handleUpdateQuantity(item.productVariantId, item.quantity - 1)}
+                          onClick={() => handleUpdateQuantity(itemKey, item.quantity - 1)}
                           className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <Minus className="w-3.5 h-3.5" />
@@ -249,7 +250,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         <button
                           type="button"
                           disabled={isPending}
-                          onClick={() => handleUpdateQuantity(item.productVariantId, item.quantity + 1)}
+                          onClick={() => handleUpdateQuantity(itemKey, item.quantity + 1)}
                           className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -259,7 +260,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       <button
                         type="button"
                         disabled={isPending}
-                        onClick={() => handleRemoveItem(item.productVariantId)}
+                        onClick={() => handleRemoveItem(itemKey)}
                         className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         title="Remove item"
                       >

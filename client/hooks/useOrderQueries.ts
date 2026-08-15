@@ -8,7 +8,9 @@ import { CART_QUERY_KEY } from "./useCartQueries";
 import { WISHLIST_QUERY_KEY } from "./useWishlistQueries";
 
 export interface OrderItemPayload {
-  productVariantId: string;
+  productId?: string;
+  productVariantId?: string;
+  selectedVariantLabel?: string;
   quantity: number;
 }
 
@@ -20,7 +22,7 @@ export interface CreateOrderPayload {
   deliveryZone: "inside_dhaka" | "outside_dhaka";
   items: OrderItemPayload[];
   guestCartItems?: OrderItemPayload[];
-  guestWishlistItems?: { productVariantId: string }[];
+  guestWishlistItems?: { productId?: string; productVariantId?: string }[];
 }
 
 export interface CreateOrderResponseData {

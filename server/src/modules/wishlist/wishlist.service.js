@@ -49,10 +49,13 @@ export const addToWishlistService = async (userId, productId) => {
   return getUserWishlistService(userId);
 };
 
-export const removeFromWishlistService = async (userId, productId) => {
+export const removeFromWishlistService = async (userId, itemId) => {
   const wishlist = await Wishlist.findOne({ userId });
-  if (wishlist) {
-    await WishlistItem.deleteOne({ wishlistId: wishlist.id, productId });
+  if (wishlist && itemId) {
+    let result = await WishlistItem.deleteOne({ wishlistId: wishlist.id, productId: itemId });
+    if (result.deletedCount === 0) {
+      await WishlistItem.deleteOne({ wishlistId: wishlist.id, _id: itemId });
+    }
   }
   return getUserWishlistService(userId);
 };
