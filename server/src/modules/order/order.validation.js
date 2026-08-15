@@ -21,6 +21,7 @@ export const placeOrderSchema = z.object({
     phone: z.string().min(1, 'Phone number is required'),
     email: z.string().email('Invalid email address').or(z.literal('')).optional(),
     shippingAddress: z.string().min(1, 'Shipping address is required'),
+    notes: z.string().trim().optional(),
     deliveryZone: z.enum(['inside_dhaka', 'outside_dhaka']),
     items: z
       .array(

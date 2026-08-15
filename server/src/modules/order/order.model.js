@@ -35,6 +35,11 @@ const orderSchema = new mongoose.Schema(
       required: [true, 'Shipping address is required'],
       trim: true,
     },
+    notes: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     deliveryZone: {
       type: String,
       enum: ['inside_dhaka', 'outside_dhaka'],

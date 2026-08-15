@@ -22,6 +22,7 @@ import {
   CreditCard,
   ShieldCheck,
   Package,
+  FileText,
 } from "lucide-react";
 
 import { useCart } from "@/hooks/useCart";
@@ -82,6 +83,7 @@ export default function CheckoutPage() {
       customerName: data.customerName.trim(),
       phone: data.phone.trim(),
       shippingAddress: data.shippingAddress.trim(),
+      notes: data.notes ? data.notes.trim() : undefined,
       deliveryZone: data.deliveryZone,
       items: cartItems.map((item) => ({
         productId: item.productId,
@@ -355,6 +357,24 @@ export default function CheckoutPage() {
                     {errors.shippingAddress && (
                       <p className="text-xs text-red-600 mt-1 font-medium">{errors.shippingAddress.message}</p>
                     )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="notes" className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
+                      {t.checkout.orderNotes}
+                    </label>
+                    <div className="relative">
+                      <div className="absolute top-3 left-3.5 text-maroon-500 pointer-events-none">
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      <textarea
+                        id="notes"
+                        rows={2}
+                        placeholder={t.checkout.notesPlaceholder}
+                        {...register("notes")}
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all resize-none"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

@@ -17,6 +17,7 @@ import {
   Mail,
   Loader2,
   KeyRound,
+  FileText,
 } from "lucide-react";
 
 import { useOrderDetailsQuery } from "@/hooks/useOrderQueries";
@@ -236,6 +237,16 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
                 </span>
               </div>
             </div>
+
+            {order.notes && (
+              <div className="p-4 bg-amber-50/60 border border-amber-200/80 rounded-xl space-y-1.5 text-xs font-sans">
+                <h3 className="font-semibold text-maroon-900 flex items-center space-x-1.5">
+                  <FileText className="w-3.5 h-3.5 text-amber-700" />
+                  <span>{t.orderSuccess.orderNotes}</span>
+                </h3>
+                <p className="text-maroon-800 leading-relaxed italic">"{order.notes}"</p>
+              </div>
+            )}
 
             <div className="space-y-3">
               <h3 className="font-serif font-bold text-base text-maroon-900 flex items-center space-x-2">

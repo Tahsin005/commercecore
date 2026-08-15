@@ -15,6 +15,7 @@ export const getCheckoutSchema = (t: TranslationType) =>
       .string()
       .trim()
       .min(5, { message: t.validation.addressMin }),
+    notes: z.string().trim().optional(),
     deliveryZone: z.enum(["inside_dhaka", "outside_dhaka"], {
       message: t.validation.deliveryZoneRequired,
     }),

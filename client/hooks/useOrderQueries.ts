@@ -19,6 +19,7 @@ export interface CreateOrderPayload {
   phone: string;
   email?: string;
   shippingAddress: string;
+  notes?: string;
   deliveryZone: "inside_dhaka" | "outside_dhaka";
   items: OrderItemPayload[];
   guestCartItems?: OrderItemPayload[];
@@ -32,6 +33,7 @@ export interface CreateOrderResponseData {
     customerName: string;
     phone: string;
     shippingAddress: string;
+    notes?: string;
     deliveryZone: string;
     deliveryCharge: number;
     subtotal: number;
