@@ -86,3 +86,30 @@ export const loginUser = async ({ email, phone, identifier, password }) => {
     token,
   };
 };
+
+// claim guest account by setting password & email
+export const claimAccountService = async (userId, { email, password }) => {
+  const user = await User.findById(userId).select('+password');
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  if (email && email.trim() && email.trim().toLowerCase() !== user.email.toLowerCase()) {
+    const cleanEmail = email.trim().toLowerCase();
+    const existing = await User.findOne({ email: cleanEmail });
+    if (existing && existing.id !== user.id) {
+      throw new ApiError(400, 'This email address is already registered to another user');
+    }
+    user.email = cleanEmail;
+  }
+
+  user.password = password;
+  await user.save();
+
+  const token = generateAuthToken(user);
+
+  return {
+    user: user.toJSON(),
+    token,
+  };
+};

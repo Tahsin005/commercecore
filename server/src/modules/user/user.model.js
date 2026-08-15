@@ -38,6 +38,7 @@ const userSchema = new mongoose.Schema(
       transform: (doc, ret) => {
         delete ret._id;
         delete ret.__v;
+        ret.hasPassword = Boolean(doc.password);
         delete ret.password;
         return ret;
       },
@@ -47,6 +48,7 @@ const userSchema = new mongoose.Schema(
       transform: (doc, ret) => {
         delete ret._id;
         delete ret.__v;
+        ret.hasPassword = Boolean(doc.password);
         delete ret.password;
         return ret;
       },

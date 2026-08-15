@@ -21,6 +21,8 @@ import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { CartDrawer } from "@/components/CartDrawer";
+import { LogoutWarningModal } from "@/components/modals/LogoutWarningModal";
+import { ClaimAccountModal } from "@/components/modals/ClaimAccountModal";
 
 export function Navbar() {
   const { user, isAuthenticated, logout, isHydrated } = useAuth();
@@ -30,6 +32,8 @@ export function Navbar() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
+  const [logoutWarningOpen, setLogoutWarningOpen] = useState(false);
+  const [claimModalOpen, setClaimModalOpen] = useState(false);
 
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
   const openCartDrawer = () => setCartDrawerOpen(true);
@@ -39,11 +43,18 @@ export function Navbar() {
     setLanguage(language === "bn" ? "en" : "bn");
   };
 
+  const handleLogoutClick = () => {
+    if (user && user.hasPassword === false) {
+      setLogoutWarningOpen(true);
+    } else {
+      logout();
+    }
+  };
+
   return (
     <>
       <header className="sticky top-0 z-40 bg-maroon-900 text-white shadow-lg border-b border-maroon-800 font-sans">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          {/* Brand Logo */}
           <Link href="/" className="flex items-center space-x-3 shrink-0 group mr-4">
             <div className="p-1.5 bg-white rounded-lg shadow-sm group-hover:bg-cream transition-colors shrink-0">
               <Image
@@ -59,7 +70,6 @@ export function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop Navigation Links (Visible on lg screens 1024px+) */}
           <nav className="hidden lg:flex items-center space-x-5">
             <Link
               href="/"
@@ -76,7 +86,6 @@ export function Navbar() {
               <span>{t.navbar.checkout}</span>
             </Link>
 
-            {/* Admin Panel Badge Link for Logged-In Admins */}
             {isHydrated && isAuthenticated && user?.isAdmin && (
               <Link
                 href="/admin"
@@ -88,9 +97,7 @@ export function Navbar() {
             )}
           </nav>
 
-          {/* Desktop Action Controls (Visible on lg screens 1024px+) */}
           <div className="hidden lg:flex items-center space-x-3">
-            {/* Language Toggle Button */}
             <button
               onClick={toggleLanguage}
               className="px-2.5 py-1.5 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white font-semibold text-xs rounded-md transition-all flex items-center space-x-1.5 cursor-pointer shadow-xs"
@@ -100,7 +107,6 @@ export function Navbar() {
               <span className="font-mono uppercase">{language === "bn" ? "EN" : "বাংলা"}</span>
             </button>
 
-            {/* Cart Drawer Trigger */}
             <button
               onClick={openCartDrawer}
               className="px-3.5 py-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white font-medium text-xs rounded-md transition-all flex items-center space-x-2 cursor-pointer shadow-sm whitespace-nowrap"
@@ -117,7 +123,6 @@ export function Navbar() {
               )}
             </button>
 
-            {/* Wishlist Indicator */}
             <div
               className="px-3.5 py-2 bg-maroon-800 border border-maroon-700 text-cream font-medium text-xs rounded-md flex items-center space-x-2 shadow-sm whitespace-nowrap"
               title={t.navbar.wishlist}
@@ -137,7 +142,6 @@ export function Navbar() {
               )}
             </div>
 
-            {/* Auth State Control */}
             {isHydrated ? (
               <div className="flex items-center space-x-2">
                 {isAuthenticated && user ? (
@@ -146,7 +150,7 @@ export function Navbar() {
                       {t.navbar.hi}, {user.name}
                     </span>
                     <button
-                      onClick={logout}
+                      onClick={handleLogoutClick}
                       className="p-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white rounded-md text-xs transition-all flex items-center space-x-1 cursor-pointer"
                       title={t.navbar.signOut}
                     >
@@ -170,9 +174,7 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Tablet & Mobile Header Controls (Visible on screens < 1024px) */}
           <div className="flex items-center space-x-2 lg:hidden">
-            {/* Mobile Language Switcher */}
             <button
               onClick={toggleLanguage}
               className="p-2 bg-maroon-800 border border-maroon-700 rounded-md text-cream font-bold text-xs flex items-center space-x-1"
@@ -259,8 +261,8 @@ export function Navbar() {
                     <span className="text-xs text-cream font-medium">{t.navbar.hi}, {user.name}</span>
                     <button
                       onClick={() => {
-                        logout();
                         setMobileMenuOpen(false);
+                        handleLogoutClick();
                       }}
                       className="px-3 py-1.5 bg-maroon-800 border border-maroon-700 text-cream rounded-md text-xs font-medium flex items-center space-x-1 cursor-pointer"
                     >
@@ -288,6 +290,20 @@ export function Navbar() {
 
       {/* Cart Drawer Component */}
       <CartDrawer isOpen={cartDrawerOpen} onClose={closeCartDrawer} />
+
+      {/* Logout Warning Modal for Guest Accounts */}
+      <LogoutWarningModal
+        isOpen={logoutWarningOpen}
+        onClose={() => setLogoutWarningOpen(false)}
+        onConfirmLogout={() => logout()}
+        onOpenClaimModal={() => setClaimModalOpen(true)}
+      />
+
+      {/* Claim Account Modal */}
+      <ClaimAccountModal
+        isOpen={claimModalOpen}
+        onClose={() => setClaimModalOpen(false)}
+      />
     </>
   );
 }

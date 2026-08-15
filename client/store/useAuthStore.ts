@@ -9,6 +9,7 @@ export interface User {
   email: string;
   phone: string;
   isAdmin: boolean;
+  hasPassword?: boolean;
   createdAt: string;
   updatedAt: string;
 }
