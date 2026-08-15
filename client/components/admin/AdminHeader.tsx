@@ -12,7 +12,6 @@ export function AdminHeader() {
       <div className="flex items-center space-x-3">
         <span className="text-xs font-bold uppercase tracking-wider text-maroon-700 bg-maroon-50 border border-maroon-200/80 px-2.5 py-1 rounded-md flex items-center space-x-1">
           <ShieldCheck className="w-3.5 h-3.5 text-maroon-700" />
-          <span>Admin Portal</span>
         </span>
       </div>
 
