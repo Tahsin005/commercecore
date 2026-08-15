@@ -1,5 +1,6 @@
 import express from 'express';
 import multer from 'multer';
+import ApiError from '../../utils/ApiError.js';
 import {
   getUploadConfigs,
   getLeastLoadedUploadConfig,
@@ -17,13 +18,49 @@ import validate from '../../middlewares/validate.middleware.js';
 import { authenticateToken, requireAdmin } from '../../middlewares/auth.middleware.js';
 
 const router = express.Router();
+
+const imageFileFilter = (req, file, cb) => {
+  const allowedMimeTypes = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+  ];
+  const allowedExtension = /\.(jpg|jpeg|png|gif|webp)$/i;
+
+  if (allowedMimeTypes.includes(file.mimetype) && allowedExtension.test(file.originalname)) {
+    cb(null, true);
+  } else {
+    cb(
+      new ApiError(
+        400,
+        'Invalid file type. Only JPG, JPEG, PNG, GIF, and WEBP image files are allowed.'
+      ),
+      false
+    );
+  }
+};
+
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: imageFileFilter,
 });
 
 // image upload endpoint (uses least-loaded cloudinary config)
-router.post('/image', authenticateToken, upload.single('image'), uploadImage);
+router.post(
+  '/image',
+  authenticateToken,
+  (req, res, next) => {
+    upload.single('image')(req, res, (err) => {
+      if (err) {
+        return next(err);
+      }
+      next();
+    });
+  },
+  uploadImage
+);
 
 // least loaded active config endpoint for uploads
 router.get('/least-loaded', authenticateToken, getLeastLoadedUploadConfig);

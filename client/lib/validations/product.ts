@@ -18,6 +18,7 @@ export const productSchema = z.object({
     .min(0, { message: "Quantity cannot be negative" }),
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
+  images: z.array(z.string()).optional(),
   variantIds: z.array(z.string()).optional(),
 });
 

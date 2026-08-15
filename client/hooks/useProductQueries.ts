@@ -38,6 +38,7 @@ export interface CreateProductPayload {
   quantity: number;
   isFeatured?: boolean;
   isActive?: boolean;
+  images?: string[];
   variantIds?: string[];
 }
 
@@ -52,6 +53,7 @@ export interface UpdateProductPayload {
   quantity?: number;
   isFeatured?: boolean;
   isActive?: boolean;
+  images?: string[];
   variantIds?: string[];
 }
 

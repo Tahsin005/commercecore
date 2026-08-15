@@ -36,6 +36,7 @@ export const createProductSchema = z.object({
     quantity: z.number().int().min(0, 'Quantity cannot be negative'),
     isFeatured: z.boolean().optional(),
     isActive: z.boolean().optional(),
+    images: z.array(z.string().trim()).optional(),
     variantIds: z.array(objectIdString).optional(),
   }),
 });
@@ -54,6 +55,7 @@ export const updateProductSchema = z.object({
     quantity: z.number().int().min(0, 'Quantity cannot be negative').optional(),
     isFeatured: z.boolean().optional(),
     isActive: z.boolean().optional(),
+    images: z.array(z.string().trim()).optional(),
     variantIds: z.array(objectIdString).optional(),
   }),
 });

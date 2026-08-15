@@ -145,7 +145,6 @@ export const getGlobalVariantsService = async (includeAll = false) => {
   return ProductVariant.find(filter).sort({ order: 1 });
 };
 
-// Admin CRUD Services
 export const createProductService = async ({
   name,
   slug,
@@ -156,6 +155,7 @@ export const createProductService = async ({
   quantity = 0,
   isFeatured = false,
   isActive = true,
+  images = [],
   variantIds = [],
 }) => {
   const finalSlug = generateSlug(slug || name);
@@ -202,6 +202,7 @@ export const createProductService = async ({
           quantity,
           isFeatured: Boolean(isFeatured),
           isActive: Boolean(isActive),
+          images: Array.isArray(images) ? images : [],
         },
       ],
       opts
@@ -243,6 +244,7 @@ export const updateProductService = async (
     quantity,
     isFeatured,
     isActive,
+    images,
     variantIds,
   }
 ) => {
@@ -275,6 +277,7 @@ export const updateProductService = async (
     if (quantity !== undefined) product.quantity = quantity;
     if (isFeatured !== undefined) product.isFeatured = Boolean(isFeatured);
     if (isActive !== undefined) product.isActive = Boolean(isActive);
+    if (images !== undefined) product.images = Array.isArray(images) ? images : [];
 
     if (categoryId !== undefined) {
       if (categoryId) {

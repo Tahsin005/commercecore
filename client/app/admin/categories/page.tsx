@@ -481,7 +481,7 @@ export default function AdminCategoriesPage() {
                       <>
                         <UploadCloud className="w-6 h-6 text-maroon-600" />
                         <span className="text-xs font-semibold">Click to upload image</span>
-                        <span className="text-[10px] text-maroon-500">Supports PNG, JPG, WEBP (Max 5MB)</span>
+                        <span className="text-[10px] text-maroon-500">Supports JPG, JPEG, PNG, GIF, WEBP</span>
                       </>
                     )}
                   </button>
@@ -628,7 +628,7 @@ export default function AdminCategoriesPage() {
                       <>
                         <UploadCloud className="w-6 h-6 text-maroon-600" />
                         <span className="text-xs font-semibold">Click to upload image</span>
-                        <span className="text-[10px] text-maroon-500">Supports PNG, JPG, WEBP (Max 5MB)</span>
+                        <span className="text-[10px] text-maroon-500">Supports JPG, JPEG, PNG, GIF, WEBP</span>
                       </>
                     )}
                   </button>
