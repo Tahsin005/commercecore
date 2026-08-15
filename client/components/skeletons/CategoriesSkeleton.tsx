@@ -1,17 +1,17 @@
-import { Tag } from "lucide-react";
-
 export function CategoriesSkeleton() {
   return (
-    <div className="space-y-2 animate-pulse">
-      <div className="flex items-center space-x-2 text-xs font-semibold text-maroon-800 uppercase tracking-wider mb-2">
-        <Tag className="w-3.5 h-3.5" />
-        <span>Browse Categories</span>
-      </div>
-      <div className="flex flex-wrap gap-2 pb-2">
-        <div className="w-28 h-8 bg-maroon-100/70 border border-maroon-200/60 rounded-full" />
-        <div className="w-32 h-8 bg-maroon-100/70 border border-maroon-200/60 rounded-full" />
-        <div className="w-24 h-8 bg-maroon-100/70 border border-maroon-200/60 rounded-full" />
-        <div className="w-36 h-8 bg-maroon-100/70 border border-maroon-200/60 rounded-full" />
+    <div className="space-y-4 animate-pulse">
+      <div className="h-6 w-36 bg-maroon-100/80 rounded-md" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+        {Array.from({ length: 5 }).map((_, idx) => (
+          <div
+            key={idx}
+            className="bg-white rounded-2xl border border-maroon-100 p-2.5 space-y-3 shadow-xs"
+          >
+            <div className="w-full aspect-square bg-maroon-100/60 rounded-xl" />
+            <div className="h-4 w-3/4 bg-maroon-100/80 rounded-md mx-auto" />
+          </div>
+        ))}
       </div>
     </div>
   );

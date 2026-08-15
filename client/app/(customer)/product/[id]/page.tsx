@@ -2,6 +2,7 @@
 
 import { useState, use, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import {
@@ -14,6 +15,7 @@ import {
   CheckCircle2,
   XCircle,
   ShoppingBag,
+  ZoomIn,
 } from "lucide-react";
 
 import { useCart } from "@/hooks/useCart";
@@ -33,6 +35,22 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
 
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+  const [isZoomed, setIsZoomed] = useState<boolean>(false);
+  const [zoomPos, setZoomPos] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    setZoomPos({ x, y });
+  };
+
+  const handleMouseEnter = () => setIsZoomed(true);
+  const handleMouseLeave = () => {
+    setIsZoomed(false);
+    setZoomPos({ x: 50, y: 50 });
+  };
 
   // react Query hook for product details
   const { data: response, isLoading, error } = useProductDetailsQuery(id);
@@ -81,6 +99,9 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   const isOutOfStock = stockQuantity <= 0;
   const wishlisted = isInWishlist(product.id);
 
+  const images = product.images || [];
+  const currentImage = images.length > 0 ? images[selectedImageIndex] || images[0] : null;
+
   const handleAddToCart = () => {
     if (isOutOfStock) {
       toast.error(t.productDetails.outOfStockMsg);
@@ -97,6 +118,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         slug: product.slug,
         size: selectedLabel,
         price: currentPrice,
+        imageUrl: currentImage || undefined,
       },
       quantity
     );
@@ -137,6 +159,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         slug: product.slug,
         size: selectedLabel,
         price: currentPrice,
+        imageUrl: currentImage || undefined,
       },
       quantity
     );
@@ -157,17 +180,70 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl border border-maroon-100 overflow-hidden grid grid-cols-1 md:grid-cols-2">
-          <div className="bg-off-white p-8 sm:p-12 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-maroon-100 relative min-h-[320px]">
-            <Package className="w-32 h-32 text-maroon-300" />
-            {product.categoryId && (
-              <span className="absolute top-6 left-6 bg-white border border-maroon-200 text-maroon-800 text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-sm shadow-sm">
-                {product.categoryId.name}
-              </span>
-            )}
-            {product.code && (
-              <span className="absolute top-6 right-6 font-mono text-[11px] text-maroon-500 bg-maroon-50 border border-maroon-200 px-2 py-0.5 rounded-sm">
-                {t.common.code}: {product.code}
-              </span>
+          <div className="bg-off-white p-6 sm:p-8 flex flex-col items-center justify-between border-b md:border-b-0 md:border-r border-maroon-100 relative min-h-[360px]">
+            <div
+              onMouseMove={handleMouseMove}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              className="relative w-full h-80 sm:h-96 rounded-xl overflow-hidden flex items-center justify-center bg-white border border-maroon-100/80 shadow-xs cursor-zoom-in group select-none"
+            >
+              {currentImage ? (
+                <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
+                  <Image
+                    src={currentImage}
+                    alt={product.name}
+                    fill
+                    className={`object-contain transition-transform duration-150 ease-out ${
+                      isZoomed ? "scale-250 cursor-zoom-in" : "scale-100"
+                    }`}
+                    style={{
+                      transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                    }}
+                    priority
+                  />
+
+                  <div
+                    className={`absolute bottom-3 right-3 bg-maroon-900/80 text-cream text-[10px] font-semibold px-2.5 py-1 rounded-full shadow-md backdrop-blur-xs flex items-center space-x-1 transition-opacity duration-200 pointer-events-none ${
+                      isZoomed ? "opacity-0" : "opacity-90"
+                    }`}
+                  >
+                    <ZoomIn className="w-3 h-3 text-cream" />
+                    <span>Hover to zoom</span>
+                  </div>
+                </div>
+              ) : (
+                <Package className="w-32 h-32 text-maroon-300" />
+              )}
+
+              {product.categoryId && (
+                <span className="absolute top-3 left-3 bg-white/95 border border-maroon-200 text-maroon-800 text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-md shadow-xs backdrop-blur-xs pointer-events-none z-10">
+                  {product.categoryId.name}
+                </span>
+              )}
+              {product.code && (
+                <span className="absolute top-3 right-3 font-mono text-[11px] text-maroon-700 bg-white/95 border border-maroon-200 px-2.5 py-1 rounded-md shadow-xs backdrop-blur-xs pointer-events-none z-10">
+                  {t.common.code}: {product.code}
+                </span>
+              )}
+            </div>
+
+            {images.length > 1 && (
+              <div className="flex items-center justify-center gap-2.5 mt-4 pt-4 border-t border-maroon-100/80 w-full overflow-x-auto overflow-y-hidden py-2 px-1 scrollbar-none">
+                {images.map((imgUrl, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
+                      selectedImageIndex === idx
+                        ? "border-maroon-900 ring-2 ring-maroon-700/30 scale-105"
+                        : "border-maroon-200 hover:border-maroon-500 opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <Image src={imgUrl} alt={`${product.name} thumbnail ${idx + 1}`} fill className="object-cover" />
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 

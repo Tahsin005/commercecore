@@ -9,6 +9,7 @@ export interface CartItem {
   size: string;
   price: number;
   quantity: number;
+  imageUrl?: string;
 }
 
 interface GuestCartState {
@@ -21,6 +22,7 @@ interface GuestCartState {
       slug: string;
       size?: string;
       price: number;
+      imageUrl?: string;
     },
     quantity?: number
   ) => void;
@@ -50,7 +52,7 @@ export const useCartStore = create<GuestCartState>()(
         if (existingIndex > -1) {
           const updatedItems = items.map((cartItem, idx) =>
             idx === existingIndex
-              ? { ...cartItem, quantity: cartItem.quantity + quantity }
+              ? { ...cartItem, quantity: cartItem.quantity + quantity, imageUrl: item.imageUrl || cartItem.imageUrl }
               : cartItem
           );
           set({ items: updatedItems });
@@ -66,6 +68,7 @@ export const useCartStore = create<GuestCartState>()(
                 size: item.size || "Standard",
                 price: item.price,
                 quantity,
+                imageUrl: item.imageUrl,
               },
             ],
           });

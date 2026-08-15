@@ -34,6 +34,10 @@ export const mapApiCartItems = (apiItems: any[]): CartItem[] => {
       const slug = pObj ? pObj.slug : "product";
       const size = vObj ? (vObj.label || vObj.size || "Standard") : "Standard";
       const price = pObj && pObj.price !== undefined ? pObj.price : (pObj?.defaultPrice || 0);
+      const rawImages = pObj?.images || vObj?.productId?.images;
+      const imageUrl = (rawImages && Array.isArray(rawImages) && rawImages.length > 0)
+        ? rawImages[0]
+        : (pObj?.imageUrl || vObj?.productId?.imageUrl || item.imageUrl || undefined);
 
       return {
         productVariantId: realVariantId || productId,
@@ -43,6 +47,7 @@ export const mapApiCartItems = (apiItems: any[]): CartItem[] => {
         size,
         price,
         quantity: item.quantity || 1,
+        imageUrl,
       };
     });
 };

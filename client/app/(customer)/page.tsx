@@ -67,46 +67,91 @@ export default function Home() {
           />
         </div>
 
-        {/* Category Filter Tabs */}
         {isCategoriesLoading ? (
           <CategoriesSkeleton />
         ) : categories.length > 0 ? (
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2 text-xs font-semibold text-maroon-800 uppercase tracking-wider mb-2">
-              <Tag className="w-3.5 h-3.5" />
-              <span>{t.home.browseCategories}</span>
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl sm:text-2xl font-serif font-bold text-maroon-900 tracking-tight">
+                Category Items
+              </h2>
+              {selectedCategory !== "all" && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory("all")}
+                  className="text-xs font-semibold text-maroon-700 hover:text-maroon-900 underline cursor-pointer"
+                >
+                  Show All Categories
+                </button>
+              )}
             </div>
-            <div className="flex flex-wrap gap-2 pb-2">
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
               <button
                 type="button"
                 onClick={() => setSelectedCategory("all")}
-                className={`px-4 py-2 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                className={`bg-white rounded-2xl border p-2.5 flex flex-col justify-between transition-all cursor-pointer group shadow-xs hover:shadow-md ${
                   selectedCategory === "all"
-                    ? "bg-maroon-900 text-cream border-maroon-900 shadow-sm"
-                    : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
+                    ? "border-maroon-900 ring-2 ring-maroon-800/30 shadow-md bg-maroon-50/20"
+                    : "border-maroon-100 hover:border-maroon-300"
                 }`}
               >
-                {t.home.allProducts}
+                <div className="relative w-full aspect-square bg-off-white rounded-xl overflow-hidden flex items-center justify-center p-3 border border-maroon-100/60">
+                  <div className="w-full h-full rounded-lg bg-maroon-900 flex flex-col items-center justify-center text-white space-y-1 group-hover:scale-105 transition-transform duration-300">
+                    <Tag className="w-8 h-8 text-cream" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-cream/90">All</span>
+                  </div>
+                </div>
+                <div className="pt-2.5 pb-1 px-1 text-center">
+                  <span className="font-serif font-bold text-xs sm:text-sm text-maroon-900 group-hover:text-maroon-700 block truncate">
+                    {t.home.allProducts}
+                  </span>
+                </div>
               </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-4 py-2 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
-                    selectedCategory === cat.id
-                      ? "bg-maroon-900 text-cream border-maroon-900 shadow-sm"
-                      : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
-                  }`}
-                >
-                  {cat.name}
-                  {cat.isFeatured && (
-                    <span className="ml-1 text-[9px] bg-cream text-maroon-900 px-1.5 py-0.2 rounded-full font-bold">
-                      {t.common.featured}
-                    </span>
-                  )}
-                </button>
-              ))}
+
+              {categories.map((cat) => {
+                const isSelected = selectedCategory === cat.id;
+
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`bg-white rounded-2xl border p-2.5 flex flex-col justify-between transition-all cursor-pointer group shadow-xs hover:shadow-md ${
+                      isSelected
+                        ? "border-maroon-900 ring-2 ring-maroon-800/30 shadow-md bg-maroon-50/20"
+                        : "border-maroon-100 hover:border-maroon-300"
+                    }`}
+                  >
+                    <div className="relative w-full aspect-square bg-off-white rounded-xl overflow-hidden flex items-center justify-center border border-maroon-100/60">
+                      {cat.imageUrl ? (
+                        <Image
+                          src={cat.imageUrl}
+                          alt={cat.name}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-maroon-50/50 flex flex-col items-center justify-center text-maroon-300">
+                          <Tag className="w-10 h-10 group-hover:scale-110 transition-transform duration-300" />
+                        </div>
+                      )}
+
+                      {cat.isFeatured && (
+                        <span className="absolute top-2 left-2 bg-maroon-900 text-cream text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs">
+                          {t.common.featured}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="pt-2.5 pb-1 px-1 text-center">
+                      <span className="font-serif font-bold text-xs sm:text-sm text-maroon-900 group-hover:text-maroon-700 block truncate">
+                        {cat.name}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         ) : null}
@@ -135,14 +180,24 @@ export default function Home() {
             {products.map((product) => {
               const wishlisted = isInWishlist(product.id);
               const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
+              const hasImage = Boolean(product.images && product.images.length > 0);
 
               return (
                 <div
                   key={product.id}
                   className="bg-white rounded-xl shadow-md border border-maroon-100 overflow-hidden hover:shadow-xl transition-all flex flex-col justify-between group"
                 >
-                  <div className="bg-off-white p-6 relative flex items-center justify-center border-b border-maroon-100/60 h-48">
-                    <Package className="w-16 h-16 text-maroon-300 group-hover:scale-110 transition-transform duration-300" />
+                  <div className="bg-off-white p-6 relative flex items-center justify-center border-b border-maroon-100/60 h-48 overflow-hidden">
+                    {hasImage ? (
+                      <Image
+                        src={product.images![0]}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <Package className="w-16 h-16 text-maroon-300 group-hover:scale-110 transition-transform duration-300" />
+                    )}
                     
                     <button
                       onClick={() => handleToggleWishlist(product)}

@@ -235,7 +235,7 @@ export const getOrderByNumberService = async (orderNumber) => {
   }
 
   const items = await OrderItem.find({ orderId: order.id })
-    .populate('productId', 'name slug code price defaultPrice')
+    .populate('productId', 'name slug code price defaultPrice images')
     .populate('productVariantId', 'label');
 
   return {
@@ -306,7 +306,7 @@ export const getAllOrdersAdminService = async (query = {}) => {
 
   const orderIds = orders.map((o) => o.id);
   const allOrderItems = await OrderItem.find({ orderId: { $in: orderIds } })
-    .populate('productId', 'name slug code price defaultPrice')
+    .populate('productId', 'name slug code price defaultPrice images')
     .populate('productVariantId', 'label');
 
   const itemsByOrderId = allOrderItems.reduce((acc, item) => {
@@ -358,7 +358,7 @@ export const getOrderByIdAdminService = async (orderId) => {
   }
 
   const items = await OrderItem.find({ orderId: order.id })
-    .populate('productId', 'name slug code price defaultPrice')
+    .populate('productId', 'name slug code price defaultPrice images')
     .populate('productVariantId', 'label');
 
   return {

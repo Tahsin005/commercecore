@@ -13,6 +13,7 @@ import {
   ArrowRight,
   Truck,
   ShieldCheck,
+  Package,
 } from "lucide-react";
 
 import { useCart } from "@/hooks/useCart";
@@ -218,6 +219,14 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       isPending ? "opacity-60" : "opacity-100"
                     }`}
                   >
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-white border border-maroon-200 flex items-center justify-center shrink-0 relative">
+                      {item.imageUrl ? (
+                        <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                      ) : (
+                        <Package className="w-6 h-6 text-maroon-300" />
+                      )}
+                    </div>
+
                     <div className="flex-1 space-y-1 min-w-0">
                       <div className="flex items-center space-x-1.5">
                         <Link
