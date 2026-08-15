@@ -28,7 +28,7 @@ export const getCategoryBySlugService = async (slug) => {
   return category;
 };
 
-export const createCategoryService = async ({ name, slug, isFeatured = false }) => {
+export const createCategoryService = async ({ name, slug, isFeatured = false, imageUrl = '' }) => {
   const finalSlug = generateSlug(slug || name);
   if (!finalSlug) {
     throw new ApiError(400, 'Invalid category name or slug');
@@ -43,12 +43,13 @@ export const createCategoryService = async ({ name, slug, isFeatured = false }) 
     name,
     slug: finalSlug,
     isFeatured: Boolean(isFeatured),
+    imageUrl: imageUrl ? imageUrl.trim() : '',
   });
 
   return category;
 };
 
-export const updateCategoryService = async (id, { name, slug, isFeatured }) => {
+export const updateCategoryService = async (id, { name, slug, isFeatured, imageUrl }) => {
   const category = await Category.findById(id);
   if (!category) {
     throw new ApiError(404, 'Category not found');
@@ -56,6 +57,7 @@ export const updateCategoryService = async (id, { name, slug, isFeatured }) => {
 
   if (name !== undefined) category.name = name;
   if (isFeatured !== undefined) category.isFeatured = Boolean(isFeatured);
+  if (imageUrl !== undefined) category.imageUrl = imageUrl.trim();
 
   if (slug !== undefined || name !== undefined) {
     const candidateSlug = generateSlug(slug || category.name);

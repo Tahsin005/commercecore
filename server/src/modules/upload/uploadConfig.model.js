@@ -1,27 +1,25 @@
 import mongoose from 'mongoose';
 
-const categorySchema = new mongoose.Schema(
+const uploadConfigSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Category name is required'],
-      trim: true,
-    },
-    slug: {
-      type: String,
-      required: [true, 'Category slug is required'],
-      unique: true,
-      lowercase: true,
-      trim: true,
-    },
-    isFeatured: {
-      type: Boolean,
-      default: false,
-    },
-    imageUrl: {
-      type: String,
       trim: true,
       default: '',
+    },
+    uploadUrl: {
+      type: String,
+      required: [true, 'Upload URL is required'],
+      trim: true,
+    },
+    load: {
+      type: Number,
+      default: 0,
+      min: [0, 'Load count cannot be negative'],
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {
@@ -45,6 +43,8 @@ const categorySchema = new mongoose.Schema(
   }
 );
 
-const Category = mongoose.model('Category', categorySchema);
+uploadConfigSchema.index({ isActive: 1, load: 1 });
 
-export default Category;
+const UploadConfig = mongoose.model('UploadConfig', uploadConfigSchema);
+
+export default UploadConfig;

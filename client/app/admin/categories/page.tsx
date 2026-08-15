@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
@@ -15,6 +16,8 @@ import {
   X,
   AlertTriangle,
   RefreshCw,
+  ImageIcon,
+  UploadCloud,
 } from "lucide-react";
 
 import {
@@ -24,6 +27,7 @@ import {
   useDeleteCategoryMutation,
   Category,
 } from "@/hooks/useCategoryQueries";
+import { useUploadImageMutation } from "@/hooks/useUploadMutation";
 import { categorySchema, CategoryInput } from "@/lib/validations/category";
 
 const slugify = (text: string) => {
@@ -44,13 +48,17 @@ export default function AdminCategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
 
-  // category Queries & Mutations
+  const fileInputRefCreate = useRef<HTMLInputElement>(null);
+  const fileInputRefEdit = useRef<HTMLInputElement>(null);
+
+  // Queries & Mutations
   const { data: response, isLoading, error, refetch } = useCategoriesQuery();
   const categories = response?.data || [];
 
   const createMutation = useCreateCategoryMutation();
   const updateMutation = useUpdateCategoryMutation();
   const deleteMutation = useDeleteCategoryMutation();
+  const uploadMutation = useUploadImageMutation();
 
   const createForm = useForm<CategoryInput>({
     resolver: zodResolver(categorySchema),
@@ -58,6 +66,7 @@ export default function AdminCategoriesPage() {
       name: "",
       slug: "",
       isFeatured: false,
+      imageUrl: "",
     },
   });
 
@@ -66,7 +75,7 @@ export default function AdminCategoriesPage() {
   });
 
   const handleOpenCreateModal = () => {
-    createForm.reset({ name: "", slug: "", isFeatured: false });
+    createForm.reset({ name: "", slug: "", isFeatured: false, imageUrl: "" });
     setIsCreateModalOpen(true);
   };
 
@@ -76,6 +85,30 @@ export default function AdminCategoriesPage() {
       name: cat.name,
       slug: cat.slug,
       isFeatured: cat.isFeatured || false,
+      imageUrl: cat.imageUrl || "",
+    });
+  };
+
+  const handleImageFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    formType: "create" | "edit"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    uploadMutation.mutate(file, {
+      onSuccess: (res) => {
+        const uploadedUrl = res.data.url;
+        if (formType === "create") {
+          createForm.setValue("imageUrl", uploadedUrl, { shouldValidate: true });
+        } else {
+          editForm.setValue("imageUrl", uploadedUrl, { shouldValidate: true });
+        }
+        toast.success("Category image uploaded successfully!");
+      },
+      onError: (err) => {
+        toast.error(err.message || "Failed to upload category image");
+      },
     });
   };
 
@@ -84,6 +117,7 @@ export default function AdminCategoriesPage() {
       name: data.name.trim(),
       slug: data.slug?.trim() ? slugify(data.slug) : slugify(data.name),
       isFeatured: data.isFeatured,
+      imageUrl: data.imageUrl || "",
     };
 
     createMutation.mutate(payload, {
@@ -106,6 +140,7 @@ export default function AdminCategoriesPage() {
       name: data.name.trim(),
       slug: data.slug?.trim() ? slugify(data.slug) : slugify(data.name),
       isFeatured: data.isFeatured,
+      imageUrl: data.imageUrl || "",
     };
 
     updateMutation.mutate(payload, {
@@ -175,6 +210,7 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="space-y-6 font-sans">
+      {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-maroon-100 shadow-sm">
         <div>
           <div className="flex items-center space-x-2 text-maroon-800">
@@ -182,7 +218,7 @@ export default function AdminCategoriesPage() {
             <h1 className="text-xl sm:text-2xl font-serif font-bold text-maroon-900">Category Management</h1>
           </div>
           <p className="text-xs text-maroon-700 mt-1">
-            Organize store catalog items, manage URL slugs, and highlight featured categories
+            Organize store catalog items, manage URL slugs, upload category images, and highlight featured categories.
           </p>
         </div>
 
@@ -195,6 +231,7 @@ export default function AdminCategoriesPage() {
         </button>
       </div>
 
+      {/* Summary Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="p-5 bg-white rounded-2xl border border-maroon-100 shadow-sm flex items-center justify-between">
           <div>
@@ -225,6 +262,7 @@ export default function AdminCategoriesPage() {
         </div>
       </div>
 
+      {/* Filters Bar */}
       <div className="bg-white p-4 rounded-2xl border border-maroon-100 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full sm:w-80">
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
@@ -260,6 +298,7 @@ export default function AdminCategoriesPage() {
         </div>
       </div>
 
+      {/* Categories Table */}
       <div className="bg-white rounded-2xl border border-maroon-100 shadow-md overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-maroon-700 flex flex-col items-center justify-center space-y-3">
@@ -298,6 +337,7 @@ export default function AdminCategoriesPage() {
             <table className="w-full text-left text-xs text-maroon-900 font-sans">
               <thead className="bg-maroon-900 text-white font-serif uppercase tracking-wider text-[11px] border-b border-maroon-800">
                 <tr>
+                  <th className="py-3.5 px-6 font-semibold">Image</th>
                   <th className="py-3.5 px-6 font-semibold">Category Name</th>
                   <th className="py-3.5 px-6 font-semibold">Slug</th>
                   <th className="py-3.5 px-6 font-semibold text-center">Featured Status</th>
@@ -307,17 +347,33 @@ export default function AdminCategoriesPage() {
               <tbody className="divide-y divide-maroon-100 bg-white">
                 {filteredCategories.map((cat) => (
                   <tr key={cat.id} className="hover:bg-maroon-50/50 transition-colors">
+                    <td className="py-3 px-6">
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-off-white border border-maroon-200 flex items-center justify-center shrink-0 relative">
+                        {cat.imageUrl ? (
+                          <Image
+                            src={cat.imageUrl}
+                            alt={cat.name}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <ImageIcon className="w-5 h-5 text-maroon-400" />
+                        )}
+                      </div>
+                    </td>
+
                     <td className="py-4 px-6 font-bold text-sm text-maroon-900">
                       <div className="flex items-center space-x-2">
-                        <Tag className="w-4 h-4 text-maroon-700 shrink-0" />
                         <span>{cat.name}</span>
                       </div>
                     </td>
+
                     <td className="py-4 px-6 font-mono text-xs text-maroon-700">
                       <span className="bg-off-white px-2 py-1 rounded-md">
                         {cat.slug}
                       </span>
                     </td>
+
                     <td className="py-4 px-6 text-center">
                       <button
                         onClick={() => handleToggleFeatured(cat)}
@@ -332,6 +388,7 @@ export default function AdminCategoriesPage() {
                         <span>{cat.isFeatured ? "Featured" : "Standard"}</span>
                       </button>
                     </td>
+
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end space-x-2">
                         <button
@@ -358,6 +415,7 @@ export default function AdminCategoriesPage() {
         )}
       </div>
 
+      {/* CREATE MODAL */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
@@ -376,6 +434,60 @@ export default function AdminCategoriesPage() {
             </div>
 
             <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4" noValidate>
+              {/* Category Image Upload Component */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
+                  Category Image
+                </label>
+
+                <input
+                  type="file"
+                  ref={fileInputRefCreate}
+                  accept="image/*"
+                  onChange={(e) => handleImageFileChange(e, "create")}
+                  className="hidden"
+                />
+
+                {createForm.watch("imageUrl") ? (
+                  <div className="relative w-full h-32 rounded-xl overflow-hidden border border-maroon-200 bg-off-white flex items-center justify-center group">
+                    <Image
+                      src={createForm.watch("imageUrl") || ""}
+                      alt="Category Preview"
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => createForm.setValue("imageUrl", "", { shouldValidate: true })}
+                      className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full opacity-90 hover:opacity-100 transition-all shadow-md cursor-pointer"
+                      title="Remove Image"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRefCreate.current?.click()}
+                    disabled={uploadMutation.isPending}
+                    className="w-full h-28 border-2 border-dashed border-maroon-200 hover:border-maroon-700 bg-off-white/80 hover:bg-white rounded-xl flex flex-col items-center justify-center space-y-1 text-maroon-700 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {uploadMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-6 h-6 animate-spin text-maroon-700" />
+                        <span className="text-xs font-semibold">Uploading to Cloudinary...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-6 h-6 text-maroon-600" />
+                        <span className="text-xs font-semibold">Click to upload image</span>
+                        <span className="text-[10px] text-maroon-500">Supports PNG, JPG, WEBP (Max 5MB)</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
                   Category Name *
@@ -432,7 +544,7 @@ export default function AdminCategoriesPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={createMutation.isPending}
+                  disabled={createMutation.isPending || uploadMutation.isPending}
                   className="px-5 py-2 bg-maroon-900 hover:bg-maroon-800 text-white text-xs font-semibold rounded-md shadow-md transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-60"
                 >
                   {createMutation.isPending ? (
@@ -450,6 +562,7 @@ export default function AdminCategoriesPage() {
         </div>
       )}
 
+      {/* EDIT MODAL */}
       {editingCategory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
@@ -468,6 +581,60 @@ export default function AdminCategoriesPage() {
             </div>
 
             <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4" noValidate>
+              {/* Category Image Upload Component */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
+                  Category Image
+                </label>
+
+                <input
+                  type="file"
+                  ref={fileInputRefEdit}
+                  accept="image/*"
+                  onChange={(e) => handleImageFileChange(e, "edit")}
+                  className="hidden"
+                />
+
+                {editForm.watch("imageUrl") ? (
+                  <div className="relative w-full h-32 rounded-xl overflow-hidden border border-maroon-200 bg-off-white flex items-center justify-center group">
+                    <Image
+                      src={editForm.watch("imageUrl") || ""}
+                      alt="Category Preview"
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => editForm.setValue("imageUrl", "", { shouldValidate: true })}
+                      className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full opacity-90 hover:opacity-100 transition-all shadow-md cursor-pointer"
+                      title="Remove Image"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRefEdit.current?.click()}
+                    disabled={uploadMutation.isPending}
+                    className="w-full h-28 border-2 border-dashed border-maroon-200 hover:border-maroon-700 bg-off-white/80 hover:bg-white rounded-xl flex flex-col items-center justify-center space-y-1 text-maroon-700 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {uploadMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-6 h-6 animate-spin text-maroon-700" />
+                        <span className="text-xs font-semibold">Uploading to Cloudinary...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-6 h-6 text-maroon-600" />
+                        <span className="text-xs font-semibold">Click to upload image</span>
+                        <span className="text-[10px] text-maroon-500">Supports PNG, JPG, WEBP (Max 5MB)</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
                   Category Name *
@@ -515,7 +682,7 @@ export default function AdminCategoriesPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={updateMutation.isPending}
+                  disabled={updateMutation.isPending || uploadMutation.isPending}
                   className="px-5 py-2 bg-maroon-900 hover:bg-maroon-800 text-white text-xs font-semibold rounded-md shadow-md transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-60"
                 >
                   {updateMutation.isPending ? (
@@ -533,6 +700,7 @@ export default function AdminCategoriesPage() {
         </div>
       )}
 
+      {/* DELETE MODAL */}
       {deletingCategory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
