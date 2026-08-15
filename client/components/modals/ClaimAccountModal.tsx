@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { Lock, Mail, Loader2, X, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -22,6 +22,12 @@ export function ClaimAccountModal({ isOpen, onClose, onSuccess }: ClaimAccountMo
     user?.email && !user.email.startsWith("guest_") ? user.email : ""
   );
   const [password, setPassword] = useState<string>("");
+
+  useEffect(() => {
+    if (isOpen && user?.email && !user.email.startsWith("guest_") && !email) {
+      setEmail(user.email);
+    }
+  }, [isOpen, user, email]);
 
   if (!isOpen) return null;
 

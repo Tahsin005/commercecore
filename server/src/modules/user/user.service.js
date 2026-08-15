@@ -94,6 +94,10 @@ export const claimAccountService = async (userId, { email, password }) => {
     throw new ApiError(404, 'User not found');
   }
 
+  if (user.password) {
+    throw new ApiError(400, 'Account already has a password set');
+  }
+
   if (email && email.trim() && email.trim().toLowerCase() !== user.email.toLowerCase()) {
     const cleanEmail = email.trim().toLowerCase();
     const existing = await User.findOne({ email: cleanEmail });

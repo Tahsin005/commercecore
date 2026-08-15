@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -39,6 +39,12 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
     user?.email && !user.email.startsWith("guest_") ? user.email : ""
   );
   const [claimPassword, setClaimPassword] = useState<string>("");
+
+  useEffect(() => {
+    if (user?.email && !user.email.startsWith("guest_") && !claimEmail) {
+      setClaimEmail(user.email);
+    }
+  }, [user, claimEmail]);
 
   // react Query hook for order receipt details
   const { data: response, isLoading, error } = useOrderDetailsQuery(orderNumber);
