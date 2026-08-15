@@ -20,6 +20,29 @@ export const bn = {
     cancel: "বাতিল",
   },
 
+  // Form Validation Messages
+  validation: {
+    nameMin: "নাম অন্তত ২ অক্ষরের হতে হবে",
+    emailInvalid: "একটি সঠিক ইমেইল ঠিকানা প্রদান করুন",
+    phoneMin: "ফোন নম্বর অন্তত ১১ ডিজিটের হতে হবে",
+    passwordMin: "পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে",
+    confirmPasswordRequired: "পাসওয়ার্ড নিশ্চিত করুন",
+    passwordsMatch: "পাসওয়ার্ড মেলেনি",
+    identifierRequired: "ইমেইল বা ফোন নম্বর আবশ্যক",
+    passwordRequired: "পাসওয়ার্ড আবশ্যক",
+    customerNameMin: "পূর্ণ নাম অন্তত ২ অক্ষরের হতে হবে",
+    addressMin: "ডেলিভারি ঠিকানা অন্তত ৫ অক্ষরের হতে হবে",
+    deliveryZoneRequired: "একটি ডেলিভারি এরিয়া নির্বাচন করুন",
+  },
+
+  // Auth & API Error Mappings
+  authErrors: {
+    invalidCredentials: "ইমেইল অথবা পাসওয়ার্ড সঠিক নয়",
+    alreadyExists: "এই ইমেইল বা ফোন নম্বর দিয়ে ইতিমধ্যেই অ্যাকাউন্ট তৈরি করা হয়েছে",
+    userNotFound: "ব্যবহারকারী খুঁজে পাওয়া যায়নি",
+    orderFailed: "অর্ডার প্রসেস করতে ব্যর্থ হয়েছে",
+  },
+
   // Navbar
   navbar: {
     home: "হোম",
@@ -123,6 +146,7 @@ export const bn = {
     placeOrder: "অর্ডার নিশ্চিত করুন (ক্যাশ অন ডেলিভারি)",
     processingOrder: "অর্ডার প্রসেস হচ্ছে...",
     orderSuccessToast: "আপনার অর্ডারটি সফলভাবে গৃহীত হয়েছে!",
+    accountRegisteredToast: (name: string) => `${name}-এর জন্য অ্যাকাউন্ট নিবন্ধিত ও লগইন হয়েছে!`,
   },
 
   // Login Page
@@ -145,6 +169,7 @@ export const bn = {
   signup: {
     title: "অ্যাকাউন্ট তৈরি করুন",
     subtitle: "সহজ কেনাকাটার জন্য আজই CommerceCore-এ যোগ দিন",
+    brandTag: "আজই যোগ দিন এবং কেনাকাটা শুরু করুন",
     nameLabel: "পূর্ণ নাম",
     namePlaceholder: "আপনার নাম",
     emailLabel: "ইমেইল ঠিকানা",
@@ -168,6 +193,7 @@ export const bn = {
     paymentMethod: "পেমেন্ট মাধ্যম",
     codLabel: "ক্যাশ অন ডেলিভারি",
     codNotice: "পণ্য গ্রহণের সময় মূল্য পরিশোধ করুন",
+    codNoticeAmount: (amount: string) => `পণ্য গ্রহণের সময় ৳${amount} পরিশোধ করুন`,
     customerDetails: "গ্রাহকের তথ্য",
     shippingAddress: "ডেলিভারি ঠিকানা",
     itemsSummary: "অর্ডারকৃত পণ্যের তালিকা",

@@ -126,7 +126,7 @@ export default function Home() {
         {error && (
           <div className="p-6 bg-maroon-100/60 border border-maroon-200 rounded-xl text-maroon-900 text-center space-y-2">
             <p className="font-semibold text-base font-serif">{t.home.unableToLoad}</p>
-            <p className="text-sm text-maroon-700">{error.message || t.home.unableToLoad}</p>
+            <p className="text-sm text-maroon-700">{t.home.unableToLoad}</p>
           </div>
         )}
 

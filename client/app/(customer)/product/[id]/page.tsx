@@ -59,7 +59,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
           <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md border border-maroon-100 text-center space-y-4">
             <Package className="w-12 h-12 text-maroon-300 mx-auto" />
             <h1 className="text-2xl font-serif font-bold text-maroon-900">{t.productDetails.notFoundTitle}</h1>
-            <p className="text-xs text-maroon-700">{error?.message || t.productDetails.notFoundDesc}</p>
+            <p className="text-xs text-maroon-700">{t.productDetails.notFoundDesc}</p>
             <Link
               href="/"
               className="inline-flex items-center space-x-2 px-5 py-2.5 bg-maroon-900 text-white font-medium text-xs rounded-md shadow hover:bg-maroon-800 transition-all"

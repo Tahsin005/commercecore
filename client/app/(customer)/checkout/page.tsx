@@ -27,7 +27,7 @@ import { useCart } from "@/hooks/useCart";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useAuth } from "@/hooks/useAuth";
 import { useCreateOrderMutation } from "@/hooks/useOrderQueries";
-import { checkoutSchema, CheckoutInput } from "@/lib/validations/order";
+import { getCheckoutSchema, CheckoutInput } from "@/lib/validations/order";
 import { CheckoutSkeleton, OrderSuccessSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
@@ -48,7 +48,7 @@ export default function CheckoutPage() {
     watch,
     formState: { errors },
   } = useForm<CheckoutInput>({
-    resolver: zodResolver(checkoutSchema),
+    resolver: zodResolver(getCheckoutSchema(t)),
     defaultValues: {
       customerName: user?.name || "",
       phone: user?.phone || "",
@@ -108,7 +108,7 @@ export default function CheckoutPage() {
         const { order, user: orderUser, token } = response.data;
 
         if (token && orderUser) {
-          toast.success(`${orderUser.name}-এর জন্য অ্যাকাউন্ট নিবন্ধিত ও লগইন হয়েছে!`);
+          toast.success(t.checkout.accountRegisteredToast(orderUser.name));
         } else {
           toast.success(t.checkout.orderSuccessToast);
         }
@@ -116,7 +116,17 @@ export default function CheckoutPage() {
         router.push(`/order-success/${order.orderNumber}`);
       },
       onError: (err) => {
-        toast.error(err.message || t.common.error);
+        const errorMsg = err?.message;
+        let message = t.common.error;
+        if (errorMsg) {
+          const lower = errorMsg.toLowerCase();
+          if (lower.includes("failed to place order") || lower.includes("order failed")) {
+            message = t.authErrors.orderFailed;
+          } else {
+            message = errorMsg;
+          }
+        }
+        toast.error(message);
       },
     });
   };

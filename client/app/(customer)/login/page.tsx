@@ -16,7 +16,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-import { loginSchema, LoginInput } from "@/lib/validations/auth";
+import { getLoginSchema, LoginInput } from "@/lib/validations/auth";
 import { useLoginMutation } from "@/hooks/useAuthMutations";
 import { useSyncCartMutation } from "@/hooks/useCartQueries";
 import { useSyncWishlistMutation } from "@/hooks/useWishlistQueries";
@@ -38,7 +38,7 @@ export default function LoginPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(getLoginSchema(t)),
     defaultValues: {
       identifier: "",
       password: "",
@@ -80,7 +80,20 @@ export default function LoginPage() {
         router.push("/");
       },
       onError: (error) => {
-        const message = error.message || t.common.error;
+        const errorMsg = error?.message;
+        let message = t.common.error;
+        if (errorMsg) {
+          const lower = errorMsg.toLowerCase();
+          if (lower.includes("invalid credential") || lower.includes("invalid email or password")) {
+            message = t.authErrors.invalidCredentials;
+          } else if (lower.includes("already exist") || lower.includes("already in use")) {
+            message = t.authErrors.alreadyExists;
+          } else if (lower.includes("not found")) {
+            message = t.authErrors.userNotFound;
+          } else {
+            message = errorMsg;
+          }
+        }
         toast.error(message);
       },
     });

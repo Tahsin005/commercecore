@@ -42,7 +42,7 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
           <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md border border-maroon-100 text-center space-y-4">
             <Package className="w-12 h-12 text-maroon-300 mx-auto" />
             <h1 className="text-2xl font-serif font-bold text-maroon-900">{t.orderSuccess.orderNotFound}</h1>
-            <p className="text-xs text-maroon-700">{error?.message || t.orderSuccess.orderNotFound}</p>
+            <p className="text-xs text-maroon-700">{t.orderSuccess.orderNotFound}</p>
             <Link
               href="/"
               className="inline-flex items-center space-x-2 px-5 py-2.5 bg-maroon-900 text-white font-medium text-xs rounded-md shadow hover:bg-maroon-800 transition-all"
@@ -79,7 +79,7 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-3 text-emerald-900 text-xs font-medium">
               <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
               <span>
-                {t.orderSuccess.paymentMethod}: <strong>{t.orderSuccess.codLabel}</strong> (ডেলিভারির সময় ৳{order.total.toFixed(2)} পরিশোধ করুন)
+                {t.orderSuccess.paymentMethod}: <strong>{t.orderSuccess.codLabel}</strong> ({t.orderSuccess.codNoticeAmount(order.total.toFixed(2))})
               </span>
             </div>
 

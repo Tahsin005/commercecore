@@ -18,7 +18,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-import { signupSchema, SignupInput } from "@/lib/validations/auth";
+import { getSignupSchema, SignupInput } from "@/lib/validations/auth";
 import { useSignupMutation } from "@/hooks/useAuthMutations";
 import { useSyncCartMutation } from "@/hooks/useCartQueries";
 import { useSyncWishlistMutation } from "@/hooks/useWishlistQueries";
@@ -41,7 +41,7 @@ export default function SignupPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<SignupInput>({
-    resolver: zodResolver(signupSchema),
+    resolver: zodResolver(getSignupSchema(t)),
     defaultValues: {
       name: "",
       email: "",
@@ -87,7 +87,18 @@ export default function SignupPage() {
         router.push("/");
       },
       onError: (error) => {
-        const message = error.message || t.common.error;
+        const errorMsg = error?.message;
+        let message = t.common.error;
+        if (errorMsg) {
+          const lower = errorMsg.toLowerCase();
+          if (lower.includes("already exist") || lower.includes("already in use")) {
+            message = t.authErrors.alreadyExists;
+          } else if (lower.includes("invalid credential") || lower.includes("invalid email or password")) {
+            message = t.authErrors.invalidCredentials;
+          } else {
+            message = errorMsg;
+          }
+        }
         toast.error(message);
       },
     });
@@ -112,7 +123,7 @@ export default function SignupPage() {
               {t.common.commerceCore}
             </h2>
             <p className="text-xs text-maroon-200 mt-2 max-w-xs leading-relaxed font-sans">
-              {t.signup.subtitle}
+              {t.signup.brandTag}
             </p>
           </div>
 
