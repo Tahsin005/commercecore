@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
@@ -18,6 +19,8 @@ import {
   Layers,
   Check,
   SlidersHorizontal,
+  ImageIcon,
+  UploadCloud,
 } from "lucide-react";
 
 import {
@@ -33,6 +36,7 @@ import {
   ProductVariant,
 } from "@/hooks/useProductQueries";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
+import { useUploadImageMutation } from "@/hooks/useUploadMutation";
 import { productSchema, variantSchema, ProductInput, VariantInput } from "@/lib/validations/product";
 
 const slugify = (text: string) => {
@@ -59,6 +63,11 @@ export default function AdminProductsPage() {
   const [deletingVariant, setDeletingVariant] = useState<ProductVariant | null>(null);
 
   const [selectedVariantIds, setSelectedVariantIds] = useState<string[]>([]);
+  const [createImages, setCreateImages] = useState<string[]>([]);
+  const [editImages, setEditImages] = useState<string[]>([]);
+
+  const fileInputRefCreate = useRef<HTMLInputElement>(null);
+  const fileInputRefEdit = useRef<HTMLInputElement>(null);
 
   const { data: productsRes, isLoading: isProductsLoading, error: productsError, refetch: refetchProducts } = useProductsQuery();
   const { data: categoriesRes } = useCategoriesQuery();
@@ -71,6 +80,7 @@ export default function AdminProductsPage() {
   const createProductMutation = useCreateProductMutation();
   const updateProductMutation = useUpdateProductMutation();
   const deleteProductMutation = useDeleteProductMutation();
+  const uploadMutation = useUploadImageMutation();
 
   const createVariantMutation = useCreateVariantMutation();
   const updateVariantMutation = useUpdateVariantMutation();
@@ -117,6 +127,7 @@ export default function AdminProductsPage() {
       isActive: true,
     });
     setSelectedVariantIds([]);
+    setCreateImages([]);
     setIsCreateModalOpen(true);
   };
 
@@ -124,6 +135,7 @@ export default function AdminProductsPage() {
     setEditingProduct(prod);
     const existingVariantIds = (prod.variants || []).map((v) => v.id);
     setSelectedVariantIds(existingVariantIds);
+    setEditImages(prod.images || []);
 
     editForm.reset({
       name: prod.name,
@@ -136,6 +148,52 @@ export default function AdminProductsPage() {
       isFeatured: prod.isFeatured || false,
       isActive: prod.isActive !== false,
     });
+  };
+
+  const handleImagesUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    formType: "create" | "edit"
+  ) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const inputTarget = e.currentTarget;
+    const editingProductId = editingProduct?.id;
+    const fileList = Array.from(files);
+
+    let successCount = 0;
+    for (const file of fileList) {
+      try {
+        const res = await uploadMutation.mutateAsync(file);
+        if (formType === "create" && !isCreateModalOpen) continue;
+        if (formType === "edit" && (!editingProduct || editingProduct.id !== editingProductId)) continue;
+
+        const url = res.data.url;
+        if (formType === "create") {
+          setCreateImages((prev) => [...prev, url]);
+        } else {
+          setEditImages((prev) => [...prev, url]);
+        }
+        successCount += 1;
+      } catch (err: any) {
+        if (formType === "create" && !isCreateModalOpen) continue;
+        if (formType === "edit" && (!editingProduct || editingProduct.id !== editingProductId)) continue;
+        toast.error(`Failed to upload ${file.name}: ${err.message || "Error"}`);
+      }
+    }
+
+    if (successCount > 0) {
+      toast.success("Product image(s) uploaded successfully!");
+    }
+    inputTarget.value = "";
+  };
+
+  const handleRemoveImage = (index: number, formType: "create" | "edit") => {
+    if (formType === "create") {
+      setCreateImages((prev) => prev.filter((_, i) => i !== index));
+    } else {
+      setEditImages((prev) => prev.filter((_, i) => i !== index));
+    }
   };
 
   const toggleVariantSelection = (variantId: string) => {
@@ -155,6 +213,7 @@ export default function AdminProductsPage() {
       quantity: data.quantity,
       isFeatured: data.isFeatured,
       isActive: data.isActive,
+      images: createImages,
       variantIds: selectedVariantIds,
     };
 
@@ -164,6 +223,7 @@ export default function AdminProductsPage() {
         setIsCreateModalOpen(false);
         createForm.reset();
         setSelectedVariantIds([]);
+        setCreateImages([]);
       },
       onError: (err) => {
         toast.error(err.message || "Failed to create product");
@@ -185,6 +245,7 @@ export default function AdminProductsPage() {
       quantity: data.quantity,
       isFeatured: data.isFeatured,
       isActive: data.isActive,
+      images: editImages,
       variantIds: selectedVariantIds,
     };
 
@@ -519,6 +580,7 @@ export default function AdminProductsPage() {
             <table className="w-full text-left text-xs text-maroon-900 font-sans">
               <thead className="bg-maroon-900 text-white font-serif uppercase tracking-wider text-[11px] border-b border-maroon-800">
                 <tr>
+                  <th className="py-3.5 px-6 font-semibold">Image</th>
                   <th className="py-3.5 px-6 font-semibold">Product Info</th>
                   <th className="py-3.5 px-6 font-semibold">Category</th>
                   <th className="py-3.5 px-6 font-semibold">Price</th>
@@ -531,6 +593,20 @@ export default function AdminProductsPage() {
               <tbody className="divide-y divide-maroon-100 bg-white">
                 {filteredProducts.map((prod) => (
                   <tr key={prod.id} className="hover:bg-maroon-50/50 transition-colors">
+                    <td className="py-3 px-6">
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-off-white border border-maroon-200 flex items-center justify-center shrink-0 relative">
+                        {prod.images && prod.images.length > 0 ? (
+                          <Image
+                            src={prod.images[0]}
+                            alt={prod.name}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <ImageIcon className="w-5 h-5 text-maroon-400" />
+                        )}
+                      </div>
+                    </td>
                     <td className="py-4 px-6">
                       <div className="space-y-0.5">
                         <div className="flex items-center space-x-2">
@@ -657,6 +733,70 @@ export default function AdminProductsPage() {
             </div>
 
             <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4" noValidate>
+              {/* Product Multi-Image Upload Dropzone */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
+                  Product Images
+                </label>
+
+                <input
+                  type="file"
+                  ref={fileInputRefCreate}
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => handleImagesUpload(e, "create")}
+                  className="hidden"
+                />
+
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRefCreate.current?.click()}
+                    disabled={uploadMutation.isPending}
+                    className="w-full h-24 border-2 border-dashed border-maroon-200 hover:border-maroon-700 bg-off-white/80 hover:bg-white rounded-xl flex flex-col items-center justify-center space-y-1 text-maroon-700 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {uploadMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-6 h-6 animate-spin text-maroon-700" />
+                        <span className="text-xs font-semibold">Uploading to Cloudinary...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-6 h-6 text-maroon-600" />
+                        <span className="text-xs font-semibold">Click to upload product image(s)</span>
+                        <span className="text-[10px] text-maroon-500">Supports JPG, JPEG, PNG, GIF, WEBP (Select multiple)</span>
+                      </>
+                    )}
+                  </button>
+
+                  {createImages.length > 0 && (
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                      {createImages.map((imgUrl, idx) => (
+                        <div
+                          key={idx}
+                          className="relative w-full h-16 rounded-lg overflow-hidden border border-maroon-200 bg-off-white group"
+                        >
+                          <Image src={imgUrl} alt={`Product ${idx + 1}`} fill className="object-cover" />
+                          {idx === 0 && (
+                            <span className="absolute bottom-0 inset-x-0 bg-emerald-600/90 text-white text-[9px] font-bold text-center py-0.5 uppercase tracking-wider">
+                              Cover
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(idx, "create")}
+                            className="absolute top-1 right-1 p-1 bg-red-600/90 hover:bg-red-700 text-white rounded-full transition-all cursor-pointer opacity-0 group-hover:opacity-100 shadow-xs"
+                            title="Remove Image"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
@@ -835,7 +975,7 @@ export default function AdminProductsPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={createProductMutation.isPending}
+                  disabled={createProductMutation.isPending || uploadMutation.isPending}
                   className="px-5 py-2 bg-maroon-900 hover:bg-maroon-800 text-white text-xs font-semibold rounded-md shadow-md transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-60"
                 >
                   {createProductMutation.isPending ? (
@@ -871,6 +1011,70 @@ export default function AdminProductsPage() {
             </div>
 
             <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4" noValidate>
+              {/* Product Multi-Image Upload Dropzone */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
+                  Product Images
+                </label>
+
+                <input
+                  type="file"
+                  ref={fileInputRefEdit}
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => handleImagesUpload(e, "edit")}
+                  className="hidden"
+                />
+
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRefEdit.current?.click()}
+                    disabled={uploadMutation.isPending}
+                    className="w-full h-24 border-2 border-dashed border-maroon-200 hover:border-maroon-700 bg-off-white/80 hover:bg-white rounded-xl flex flex-col items-center justify-center space-y-1 text-maroon-700 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {uploadMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-6 h-6 animate-spin text-maroon-700" />
+                        <span className="text-xs font-semibold">Uploading to Cloudinary...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-6 h-6 text-maroon-600" />
+                        <span className="text-xs font-semibold">Click to upload product image(s)</span>
+                        <span className="text-[10px] text-maroon-500">Supports JPG, JPEG, PNG, GIF, WEBP (Select multiple)</span>
+                      </>
+                    )}
+                  </button>
+
+                  {editImages.length > 0 && (
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                      {editImages.map((imgUrl, idx) => (
+                        <div
+                          key={idx}
+                          className="relative w-full h-16 rounded-lg overflow-hidden border border-maroon-200 bg-off-white group"
+                        >
+                          <Image src={imgUrl} alt={`Product ${idx + 1}`} fill className="object-cover" />
+                          {idx === 0 && (
+                            <span className="absolute bottom-0 inset-x-0 bg-emerald-600/90 text-white text-[9px] font-bold text-center py-0.5 uppercase tracking-wider">
+                              Cover
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(idx, "edit")}
+                            className="absolute top-1 right-1 p-1 bg-red-600/90 hover:bg-red-700 text-white rounded-full transition-all cursor-pointer opacity-0 group-hover:opacity-100 shadow-xs"
+                            title="Remove Image"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
@@ -1032,7 +1236,7 @@ export default function AdminProductsPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={updateProductMutation.isPending}
+                  disabled={updateProductMutation.isPending || uploadMutation.isPending}
                   className="px-5 py-2 bg-maroon-900 hover:bg-maroon-800 text-white text-xs font-semibold rounded-md shadow-md transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-60"
                 >
                   {updateProductMutation.isPending ? (

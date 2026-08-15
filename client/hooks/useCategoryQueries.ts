@@ -7,6 +7,7 @@ export interface Category {
   name: string;
   slug: string;
   isFeatured?: boolean;
+  imageUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -15,6 +16,7 @@ export interface CreateCategoryPayload {
   name: string;
   slug?: string;
   isFeatured?: boolean;
+  imageUrl?: string;
 }
 
 export interface UpdateCategoryPayload {
@@ -22,6 +24,7 @@ export interface UpdateCategoryPayload {
   name?: string;
   slug?: string;
   isFeatured?: boolean;
+  imageUrl?: string;
 }
 
 export function useCategoriesQuery(isFeatured?: boolean) {
