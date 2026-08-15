@@ -35,3 +35,12 @@ export const loginSchema = z.object({
       path: ['email'],
     }),
 });
+
+export const claimAccountSchema = z.object({
+  body: z.object({
+    email: z.string().trim().email('Invalid email address').optional(),
+    password: z
+      .string({ message: 'Password is required' })
+      .min(6, 'Password must be at least 6 characters'),
+  }),
+});

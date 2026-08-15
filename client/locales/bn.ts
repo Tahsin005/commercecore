@@ -207,6 +207,28 @@ export const bn = {
     continueShopping: "কেনাকাটা চালিয়ে যান",
     orderNotFound: "অর্ডারের রসিদ পাওয়া যায়নি",
   },
+
+  // Claim Account Card & Modal
+  claimAccount: {
+    title: "আপনার অ্যাকাউন্টটি সুরক্ষিত করুন!",
+    subtitle: "একটি পাসওয়ার্ড ও ইমেইল সেট করুন যেন পরবর্তীতে লগইন করে অর্ডারের ট্র্যাকিং ও ইতিহাস দেখতে পারেন।",
+    emailLabel: "ইমেইল ঠিকানা (ঐচ্ছিক)",
+    emailPlaceholder: "name@example.com",
+    passwordLabel: "নতুন পাসওয়ার্ড",
+    passwordPlaceholder: "কমপক্ষে ৬ অক্ষরের পাসওয়ার্ড",
+    submitBtn: "পাসওয়ার্ড সেট করুন",
+    submitting: "সংরক্ষণ করা হচ্ছে...",
+    successToast: "অ্যাকাউন্ট সফলভাবে সুরক্ষিত করা হয়েছে! এখন থেকে লগইন করতে পারবেন।",
+    claimedBadge: "অ্যাকাউন্ট সুরক্ষিত করা হয়েছে",
+  },
+
+  // Logout Warning Modal
+  logoutModal: {
+    title: "লগআউট করার আগে পাসওয়ার্ড সেট করবেন?",
+    description: "আপনি গেস্ট চেকআউটের মাধ্যমে এই অ্যাকাউন্টটি তৈরি করেছেন। পাসওয়ার্ড সেট না করে লগআউট করলে পরবর্তীতে অর্ডারের ইতিহাস দেখতে পারবেন না।",
+    setPasswordBtn: "পাসওয়ার্ড ও ইমেইল সেট করুন",
+    logoutAnywayBtn: "পাসওয়ার্ড ছাড়াই লগআউট করুন",
+  },
 };
 
 export type TranslationType = typeof bn;

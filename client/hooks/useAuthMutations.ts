@@ -9,6 +9,11 @@ interface AuthResponseData {
   token: string;
 }
 
+export interface ClaimAccountInput {
+  email?: string;
+  password: string;
+}
+
 export function useLoginMutation() {
   const setAuth = useAuthStore((state) => state.setAuth);
 
@@ -38,6 +43,23 @@ export function useSignupMutation() {
       apiClient<ApiResponse<AuthResponseData>>("/users/signup", {
         method: "POST",
         body: JSON.stringify(userData),
+      }),
+    onSuccess: (response) => {
+      if (response.data?.user && response.data?.token) {
+        setAuth(response.data.user, response.data.token);
+      }
+    },
+  });
+}
+
+export function useClaimAccountMutation() {
+  const setAuth = useAuthStore((state) => state.setAuth);
+
+  return useMutation<ApiResponse<AuthResponseData>, ApiError, ClaimAccountInput>({
+    mutationFn: (data) =>
+      apiClient<ApiResponse<AuthResponseData>>("/users/claim-account", {
+        method: "POST",
+        body: JSON.stringify(data),
       }),
     onSuccess: (response) => {
       if (response.data?.user && response.data?.token) {

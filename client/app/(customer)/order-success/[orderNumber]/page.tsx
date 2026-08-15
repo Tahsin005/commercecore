@@ -1,8 +1,9 @@
 "use client";
 
-import { use } from "react";
+import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import toast from "react-hot-toast";
 import {
   CheckCircle2,
   ArrowLeft,
@@ -12,11 +13,17 @@ import {
   User,
   ShoppingBag,
   ShieldCheck,
+  Lock,
+  Mail,
+  Loader2,
+  KeyRound,
 } from "lucide-react";
 
 import { useOrderDetailsQuery } from "@/hooks/useOrderQueries";
 import { OrderSuccessSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useAuth } from "@/hooks/useAuth";
+import { useClaimAccountMutation } from "@/hooks/useAuthMutations";
 
 interface OrderSuccessPageProps {
   params: Promise<{ orderNumber: string }>;
@@ -25,12 +32,50 @@ interface OrderSuccessPageProps {
 export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
   const { orderNumber } = use(params);
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const claimMutation = useClaimAccountMutation();
+
+  const [claimEmail, setClaimEmail] = useState<string>(
+    user?.email && !user.email.startsWith("guest_") ? user.email : ""
+  );
+  const [claimPassword, setClaimPassword] = useState<string>("");
+
+  useEffect(() => {
+    if (user?.email && !user.email.startsWith("guest_") && !claimEmail) {
+      setClaimEmail(user.email);
+    }
+  }, [user, claimEmail]);
 
   // react Query hook for order receipt details
   const { data: response, isLoading, error } = useOrderDetailsQuery(orderNumber);
 
   const order = response?.data?.order;
   const items = response?.data?.items || [];
+
+  const handleClaimAccount = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!claimPassword || claimPassword.length < 6) {
+      toast.error(t.validation.passwordMin);
+      return;
+    }
+
+    claimMutation.mutate(
+      {
+        email: claimEmail.trim() ? claimEmail.trim() : undefined,
+        password: claimPassword,
+      },
+      {
+        onSuccess: () => {
+          toast.success(t.claimAccount.successToast);
+          setClaimPassword("");
+        },
+        onError: (err) => {
+          toast.error(err.message || t.common.error);
+        },
+      }
+    );
+  };
 
   if (isLoading) {
     return <OrderSuccessSkeleton />;
@@ -83,6 +128,89 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
                 {t.orderSuccess.paymentMethod}: <strong>{t.orderSuccess.codLabel}</strong> ({t.orderSuccess.codNoticeAmount(order.total.toFixed(2))})
               </span>
             </div>
+
+            {/* Option 1: Claim Account Card for Guest Accounts */}
+            {user && user.hasPassword === false && (
+              <div className="p-6 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl shadow-sm space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="p-2 bg-amber-500 text-white rounded-xl shadow-xs shrink-0">
+                    <KeyRound className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-serif font-bold text-base text-maroon-900">
+                      {t.claimAccount.title}
+                    </h3>
+                    <p className="text-xs text-maroon-700 mt-0.5 leading-relaxed">
+                      {t.claimAccount.subtitle}
+                    </p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleClaimAccount} className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-maroon-900 mb-1">
+                      {t.claimAccount.emailLabel}
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-maroon-500">
+                        <Mail className="w-3.5 h-3.5" />
+                      </div>
+                      <input
+                        type="email"
+                        placeholder={t.claimAccount.emailPlaceholder}
+                        value={claimEmail}
+                        onChange={(e) => setClaimEmail(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 bg-white text-maroon-900 border border-maroon-200 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-maroon-700"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-maroon-900 mb-1">
+                      {t.claimAccount.passwordLabel} *
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-maroon-500">
+                        <Lock className="w-3.5 h-3.5" />
+                      </div>
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        placeholder={t.claimAccount.passwordPlaceholder}
+                        value={claimPassword}
+                        onChange={(e) => setClaimPassword(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 bg-white text-maroon-900 border border-maroon-200 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-maroon-700"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-2 pt-1">
+                    <button
+                      type="submit"
+                      disabled={claimMutation.isPending}
+                      className="w-full py-2.5 px-4 bg-maroon-900 hover:bg-maroon-800 text-white font-semibold text-xs rounded-md shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60"
+                    >
+                      {claimMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-cream" />
+                          <span>{t.claimAccount.submitting}</span>
+                        </>
+                      ) : (
+                        <span>{t.claimAccount.submitBtn}</span>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {user && user.hasPassword === true && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-2 text-emerald-900 text-xs font-semibold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>{t.claimAccount.claimedBadge}</span>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans">
               <div className="p-4 bg-off-white rounded-xl border border-maroon-100 space-y-2">

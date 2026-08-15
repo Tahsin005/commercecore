@@ -26,6 +26,10 @@ const userSchema = new mongoose.Schema(
       required: false, // nullable if account created via guest checkout without password initially
       select: false,
     },
+    hasPassword: {
+      type: Boolean,
+      default: false,
+    },
     isAdmin: {
       type: Boolean,
       default: false,
@@ -38,6 +42,11 @@ const userSchema = new mongoose.Schema(
       transform: (doc, ret) => {
         delete ret._id;
         delete ret.__v;
+        if (doc.password !== undefined) {
+          ret.hasPassword = Boolean(doc.password);
+        } else {
+          ret.hasPassword = Boolean(ret.hasPassword);
+        }
         delete ret.password;
         return ret;
       },
@@ -47,6 +56,11 @@ const userSchema = new mongoose.Schema(
       transform: (doc, ret) => {
         delete ret._id;
         delete ret.__v;
+        if (doc.password !== undefined) {
+          ret.hasPassword = Boolean(doc.password);
+        } else {
+          ret.hasPassword = Boolean(ret.hasPassword);
+        }
         delete ret.password;
         return ret;
       },
@@ -54,8 +68,14 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// pre-save hook to hash password if modified
+// pre-save hook to hash password if modified and track hasPassword state
 userSchema.pre('save', async function () {
+  if (this.password) {
+    this.hasPassword = true;
+  } else {
+    this.hasPassword = false;
+  }
+
   if (!this.isModified('password') || !this.password) {
     return;
   }

@@ -186,4 +186,22 @@ export const en: TranslationType = {
     continueShopping: "Continue Shopping",
     orderNotFound: "Order Not Found",
   },
+  claimAccount: {
+    title: "Secure Your Account!",
+    subtitle: "Set a password and email so you can log back in anytime to track your orders.",
+    emailLabel: "Email Address (Optional)",
+    emailPlaceholder: "name@example.com",
+    passwordLabel: "New Password",
+    passwordPlaceholder: "At least 6 characters",
+    submitBtn: "Save Credentials",
+    submitting: "Saving...",
+    successToast: "Account secured successfully! You can now log back in anytime.",
+    claimedBadge: "Account Secured",
+  },
+  logoutModal: {
+    title: "Set a password before logging out?",
+    description: "This account was automatically created during guest checkout. Without a password, you won't be able to log back in to view your order history.",
+    setPasswordBtn: "Set Password & Email",
+    logoutAnywayBtn: "Logout Anyway",
+  },
 };
