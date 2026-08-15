@@ -34,7 +34,9 @@ export default function AdminSettingsPage() {
   const queryClient = useQueryClient();
 
   const handleRefreshAll = () => {
-    queryClient.invalidateQueries();
+    queryClient.invalidateQueries({ queryKey: ["settings"] });
+    queryClient.invalidateQueries({ queryKey: ["cms"] });
+    queryClient.invalidateQueries({ queryKey: ["uploadConfigs"] });
   };
 
   const tabs: { id: ActiveTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -46,8 +48,12 @@ export default function AdminSettingsPage() {
     { id: "media_uploads", label: "Media Upload Endpoints", icon: Cloud },
   ];
 
+  const activeTabConfig = tabs.find((t) => t.id === activeTab) || tabs[0];
+  const ActiveIcon = activeTabConfig.icon;
+
   return (
     <div className="space-y-6 font-sans">
+      {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-maroon-100 shadow-sm">
         <div>
           <div className="flex items-center space-x-2 text-maroon-800">
@@ -70,11 +76,13 @@ export default function AdminSettingsPage() {
         </button>
       </div>
 
+      {/* --- MOBILE TAB SELECTOR --- */}
       <div className="sm:hidden">
         <div className="relative">
           <select
             value={activeTab}
             onChange={(e) => setActiveTab(e.target.value as ActiveTab)}
+            aria-label="Select Settings Tab"
             className="w-full pl-10 pr-10 py-3 bg-white text-maroon-900 font-bold text-xs border border-maroon-200 rounded-xl shadow-xs focus:outline-none focus:ring-2 focus:ring-maroon-700 appearance-none cursor-pointer"
           >
             {tabs.map((tab) => (
@@ -84,12 +92,7 @@ export default function AdminSettingsPage() {
             ))}
           </select>
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-700">
-            {activeTab === "site_settings" && <Truck className="w-4 h-4" />}
-            {activeTab === "banners" && <Megaphone className="w-4 h-4" />}
-            {activeTab === "contact_channels" && <PhoneCall className="w-4 h-4" />}
-            {activeTab === "content_blocks" && <FileText className="w-4 h-4" />}
-            {activeTab === "info_bullets" && <ListOrdered className="w-4 h-4" />}
-            {activeTab === "media_uploads" && <Cloud className="w-4 h-4" />}
+            <ActiveIcon className="w-4 h-4" />
           </div>
           <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-maroon-500">
             <ChevronDown className="w-4 h-4" />
@@ -97,7 +100,12 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      <div className="hidden sm:flex items-center gap-1.5 p-1.5 bg-maroon-50/80 rounded-2xl border border-maroon-100/90 shadow-inner overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      {/* --- DESKTOP SEGMENTED TAB BAR --- */}
+      <div
+        role="tablist"
+        aria-label="Admin Settings Navigation"
+        className="hidden sm:flex items-center gap-1.5 p-1.5 bg-maroon-50/80 rounded-2xl border border-maroon-100/90 shadow-inner overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+      >
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -105,6 +113,8 @@ export default function AdminSettingsPage() {
           return (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={isActive}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center space-x-2 whitespace-nowrap cursor-pointer shrink-0 ${
                 isActive
@@ -119,6 +129,7 @@ export default function AdminSettingsPage() {
         })}
       </div>
 
+      {/* Tab Panels */}
       {activeTab === "site_settings" && <SiteSettingsTab />}
       {activeTab === "banners" && <BannersTab />}
       {activeTab === "contact_channels" && <ContactChannelsTab />}

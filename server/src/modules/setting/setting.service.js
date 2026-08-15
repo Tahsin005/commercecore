@@ -1,6 +1,8 @@
 import SiteSetting from './siteSetting.model.js';
 
 let settingsCache = null;
+let lastCacheFetchTime = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes TTL
 
 export const DEFAULT_SETTINGS = {
   delivery_charge: {
@@ -26,21 +28,24 @@ export const DEFAULT_SETTINGS = {
 
 export const clearSettingsCache = () => {
   settingsCache = null;
+  lastCacheFetchTime = 0;
 };
 
 export const getSiteSettingsService = async () => {
-  if (settingsCache) {
+  const now = Date.now();
+  if (settingsCache && now - lastCacheFetchTime < CACHE_TTL_MS) {
     return settingsCache;
   }
 
   const settingsDocs = await SiteSetting.find({});
-  const result = { ...DEFAULT_SETTINGS };
+  const result = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
 
   settingsDocs.forEach((doc) => {
     result[doc.key] = doc.value;
   });
 
   settingsCache = result;
+  lastCacheFetchTime = now;
   return settingsCache;
 };
 
@@ -48,7 +53,7 @@ export const updateSiteSettingService = async (key, value) => {
   await SiteSetting.findOneAndUpdate(
     { key },
     { key, value },
-    { upsert: true, new: true, runValidators: true }
+    { upsert: true, returnDocument: 'after', runValidators: true }
   );
 
   clearSettingsCache();

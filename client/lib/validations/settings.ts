@@ -6,7 +6,7 @@ export const deliveryChargeSchema = z.object({
 });
 
 export const siteDiscountSchema = z.object({
-  discountPercentage: z.number().min(0, "Min 0%").max(100, "Max 100%"),
+  discountPercentage: z.number().min(0, "Discount percentage must be between 0 and 100").max(100, "Discount percentage must be between 0 and 100"),
   isActive: z.boolean(),
 });
 
@@ -28,7 +28,11 @@ export const bannerFormSchema = z.object({
 
 export const contactChannelFormSchema = z.object({
   label: z.string().trim().min(1, "Label is required"),
-  phoneNumber: z.string().trim().min(1, "Phone number is required"),
+  phoneNumber: z
+    .string()
+    .trim()
+    .min(1, "Phone number is required")
+    .regex(/^[+0-9\s-]{7,20}$/, "Invalid phone number format (e.g. 01700000000)"),
   type: z.enum(["call", "whatsapp", "bkash", "nagad"]),
   sortOrder: z.number().int().min(0),
 });

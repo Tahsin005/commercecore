@@ -22,9 +22,13 @@ import {
 } from './cms.controller.js';
 import {
   bannerSchema,
+  updateBannerSchema,
   contactChannelSchema,
+  updateContactChannelSchema,
   contentBlockSchema,
   productInfoBulletSchema,
+  updateProductInfoBulletSchema,
+  objectIdParamSchema,
 } from './cms.validation.js';
 import validate from '../../middlewares/validate.middleware.js';
 import { authenticateToken, requireAdmin } from '../../middlewares/auth.middleware.js';
@@ -43,14 +47,14 @@ router.use('/admin', authenticateToken, requireAdmin);
 // Banners
 router.get('/admin/banners', getAdminBanners);
 router.post('/admin/banners', validate(bannerSchema), createBanner);
-router.put('/admin/banners/:id', validate(bannerSchema), updateBanner);
-router.delete('/admin/banners/:id', deleteBanner);
+router.put('/admin/banners/:id', validate(updateBannerSchema), updateBanner);
+router.delete('/admin/banners/:id', validate(objectIdParamSchema), deleteBanner);
 
 // Contact Channels
 router.get('/admin/contact-channels', getAdminContactChannels);
 router.post('/admin/contact-channels', validate(contactChannelSchema), createContactChannel);
-router.put('/admin/contact-channels/:id', validate(contactChannelSchema), updateContactChannel);
-router.delete('/admin/contact-channels/:id', deleteContactChannel);
+router.put('/admin/contact-channels/:id', validate(updateContactChannelSchema), updateContactChannel);
+router.delete('/admin/contact-channels/:id', validate(objectIdParamSchema), deleteContactChannel);
 
 // Content Blocks
 router.get('/admin/content-blocks', getContentBlocks);
@@ -60,7 +64,7 @@ router.delete('/admin/content-blocks/:key', deleteContentBlock);
 // Product Info Bullets
 router.get('/admin/info-bullets', getAdminProductInfoBullets);
 router.post('/admin/info-bullets', validate(productInfoBulletSchema), createProductInfoBullet);
-router.put('/admin/info-bullets/:id', validate(productInfoBulletSchema), updateProductInfoBullet);
-router.delete('/admin/info-bullets/:id', deleteProductInfoBullet);
+router.put('/admin/info-bullets/:id', validate(updateProductInfoBulletSchema), updateProductInfoBullet);
+router.delete('/admin/info-bullets/:id', validate(objectIdParamSchema), deleteProductInfoBullet);
 
 export default router;

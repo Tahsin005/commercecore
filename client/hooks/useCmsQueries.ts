@@ -75,9 +75,9 @@ export function useUpdateBannerMutation() {
 
 export function useDeleteBannerMutation() {
   const queryClient = useQueryClient();
-  return useMutation<ApiResponse<any>, ApiError, string>({
+  return useMutation<ApiResponse<unknown>, ApiError, string>({
     mutationFn: (id) =>
-      apiClient<ApiResponse<any>>(`/cms/admin/banners/${id}`, {
+      apiClient<ApiResponse<unknown>>(`/cms/admin/banners/${id}`, {
         method: "DELETE",
       }),
     onSuccess: () => {
@@ -127,9 +127,9 @@ export function useUpdateContactChannelMutation() {
 
 export function useDeleteContactChannelMutation() {
   const queryClient = useQueryClient();
-  return useMutation<ApiResponse<any>, ApiError, string>({
+  return useMutation<ApiResponse<unknown>, ApiError, string>({
     mutationFn: (id) =>
-      apiClient<ApiResponse<any>>(`/cms/admin/contact-channels/${id}`, {
+      apiClient<ApiResponse<unknown>>(`/cms/admin/contact-channels/${id}`, {
         method: "DELETE",
       }),
     onSuccess: () => {
@@ -165,9 +165,9 @@ export function useUpsertContentBlockMutation() {
 
 export function useDeleteContentBlockMutation() {
   const queryClient = useQueryClient();
-  return useMutation<ApiResponse<any>, ApiError, string>({
+  return useMutation<ApiResponse<unknown>, ApiError, string>({
     mutationFn: (key) =>
-      apiClient<ApiResponse<any>>(`/cms/admin/content-blocks/${key}`, {
+      apiClient<ApiResponse<unknown>>(`/cms/admin/content-blocks/${key}`, {
         method: "DELETE",
       }),
     onSuccess: () => {
@@ -217,9 +217,9 @@ export function useUpdateProductBulletMutation() {
 
 export function useDeleteProductBulletMutation() {
   const queryClient = useQueryClient();
-  return useMutation<ApiResponse<any>, ApiError, string>({
+  return useMutation<ApiResponse<unknown>, ApiError, string>({
     mutationFn: (id) =>
-      apiClient<ApiResponse<any>>(`/cms/admin/info-bullets/${id}`, {
+      apiClient<ApiResponse<unknown>>(`/cms/admin/info-bullets/${id}`, {
         method: "DELETE",
       }),
     onSuccess: () => {

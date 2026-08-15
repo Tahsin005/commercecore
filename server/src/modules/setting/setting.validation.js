@@ -6,7 +6,10 @@ export const deliveryChargeSchema = z.object({
 });
 
 export const siteDiscountSchema = z.object({
-  discountPercentage: z.number().min(0).max(100, 'Discount percentage must be between 0 and 100'),
+  discountPercentage: z
+    .number()
+    .min(0, 'Discount percentage must be between 0 and 100')
+    .max(100, 'Discount percentage must be between 0 and 100'),
   startDate: z.string().nullable().optional(),
   endDate: z.string().nullable().optional(),
   isActive: z.boolean(),
@@ -35,6 +38,6 @@ export const updateSettingSchema = z.object({
     key: z.enum(['delivery_charge', 'site_discount', 'marquee', 'footer_settings']),
   }),
   body: z.object({
-    value: z.unknown(),
+    value: z.any().refine((val) => val !== undefined, { message: 'Value is required' }),
   }),
 });

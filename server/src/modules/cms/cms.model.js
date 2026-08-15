@@ -20,6 +20,7 @@ const bannerSchema = new mongoose.Schema(
     },
   }
 );
+bannerSchema.index({ isActive: 1, sortOrder: 1, createdAt: -1 });
 
 // 2. ContactChannel Model
 const contactChannelSchema = new mongoose.Schema(
@@ -46,6 +47,7 @@ const contactChannelSchema = new mongoose.Schema(
     },
   }
 );
+contactChannelSchema.index({ isActive: 1, sortOrder: 1, createdAt: -1 });
 
 // 3. ContentBlock Model
 const contentBlockSchema = new mongoose.Schema(
@@ -91,6 +93,7 @@ const productInfoBulletSchema = new mongoose.Schema(
     },
   }
 );
+productInfoBulletSchema.index({ isActive: 1, productId: 1, sortOrder: 1 });
 
 export const Banner = mongoose.model('Banner', bannerSchema);
 export const ContactChannel = mongoose.model('ContactChannel', contactChannelSchema);

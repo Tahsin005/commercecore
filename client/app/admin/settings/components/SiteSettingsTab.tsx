@@ -116,16 +116,35 @@ export function SiteSettingsTab() {
   };
 
   const onSaveFooter = (data: FooterSettingsInput) => {
+    const existingLinks = settings?.footer_settings?.socialLinks || [];
     updateSettingMutation.mutate(
-      { key: "footer_settings", value: { description: data.description?.trim() || "", helpline: data.helpline?.trim() || "", socialLinks: [] } },
+      { key: "footer_settings", value: { description: data.description?.trim() || "", helpline: data.helpline?.trim() || "", socialLinks: existingLinks } },
       { onSuccess: () => toast.success("Footer settings updated successfully!") }
     );
   };
 
   if (isLoading) {
     return (
-      <div className="p-12 text-center text-xs font-semibold text-maroon-700">
-        Loading site settings...
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="bg-white rounded-2xl p-6 border border-maroon-100 shadow-sm space-y-4">
+            <div className="flex items-center space-x-2 border-b border-maroon-100 pb-3">
+              <div className="w-5 h-5 bg-maroon-200/70 rounded-full" />
+              <div className="h-5 w-40 bg-maroon-200/70 rounded-md" />
+            </div>
+            <div className="space-y-3">
+              <div>
+                <div className="h-3 w-24 bg-maroon-100 rounded mb-1.5" />
+                <div className="h-9 w-full bg-maroon-100/60 rounded-lg" />
+              </div>
+              <div>
+                <div className="h-3 w-28 bg-maroon-100 rounded mb-1.5" />
+                <div className="h-9 w-full bg-maroon-100/60 rounded-lg" />
+              </div>
+            </div>
+            <div className="h-10 w-full bg-maroon-200/60 rounded-xl" />
+          </div>
+        ))}
       </div>
     );
   }

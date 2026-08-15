@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { getSiteSettingsService, updateSiteSettingService } from './setting.service.js';
 import {
   deliveryChargeSchema,
@@ -8,10 +9,25 @@ import {
 import ApiResponse from '../../utils/ApiResponse.js';
 import ApiError from '../../utils/ApiError.js';
 
+const PUBLIC_SETTING_KEYS = ['delivery_charge', 'site_discount', 'marquee', 'footer_settings'];
+
+const settingSchemaMap = {
+  delivery_charge: deliveryChargeSchema,
+  site_discount: siteDiscountSchema,
+  marquee: marqueeSchema,
+  footer_settings: footerSettingsSchema,
+};
+
 export const getSiteSettings = async (req, res, next) => {
   try {
     const settings = await getSiteSettingsService();
-    res.status(200).json(new ApiResponse(200, settings, 'Settings retrieved successfully'));
+    const publicSettings = {};
+    PUBLIC_SETTING_KEYS.forEach((key) => {
+      if (settings[key] !== undefined) {
+        publicSettings[key] = settings[key];
+      }
+    });
+    res.status(200).json(new ApiResponse(200, publicSettings, 'Settings retrieved successfully'));
   } catch (error) {
     next(error);
   }
@@ -22,22 +38,19 @@ export const updateSiteSetting = async (req, res, next) => {
     const { key } = req.params;
     const { value } = req.body;
 
-    let parsedValue = value;
-    if (key === 'delivery_charge') {
-      parsedValue = deliveryChargeSchema.parse(value);
-    } else if (key === 'site_discount') {
-      parsedValue = siteDiscountSchema.parse(value);
-    } else if (key === 'marquee') {
-      parsedValue = marqueeSchema.parse(value);
-    } else if (key === 'footer_settings') {
-      parsedValue = footerSettingsSchema.parse(value);
+    const schema = settingSchemaMap[key];
+    if (!schema) {
+      throw new ApiError(400, `Invalid or unsupported setting key '${key}'`);
     }
+
+    const parsedValue = schema.parse(value);
 
     const updatedSettings = await updateSiteSettingService(key, parsedValue);
     res.status(200).json(new ApiResponse(200, updatedSettings, `Setting '${key}' updated successfully`));
   } catch (error) {
-    if (error.name === 'ZodError') {
-      const fieldErrors = error.errors.map((e) => ({
+    if (error.name === 'ZodError' || error instanceof z.ZodError) {
+      const issues = error.issues || error.errors || [];
+      const fieldErrors = issues.map((e) => ({
         field: e.path.join('.'),
         message: e.message,
       }));
