@@ -1,5 +1,20 @@
 import { z } from 'zod';
 
+const objectIdString = z
+  .string()
+  .min(1, 'Identifier is required')
+  .regex(/^[0-9a-fA-F]{24}$/, 'Invalid MongoDB ObjectId');
+
+export const orderStatusEnum = z.enum([
+  'PENDING',
+  'CONFIRMED',
+  'PROCESSING',
+  'SHIPPED',
+  'DELIVERED',
+  'CANCELLED',
+  'RETURNED',
+]);
+
 export const placeOrderSchema = z.object({
   body: z.object({
     customerName: z.string().min(1, 'Customer name is required'),
@@ -10,8 +25,8 @@ export const placeOrderSchema = z.object({
     items: z
       .array(
         z.object({
-          productId: z.string().min(1, 'Product ID is required'),
-          productVariantId: z.string().nullable().optional(),
+          productId: objectIdString,
+          productVariantId: objectIdString.nullable().optional(),
           selectedVariantLabel: z.string().optional(),
           quantity: z.number().int().min(1, 'Quantity must be at least 1'),
         })
@@ -20,8 +35,8 @@ export const placeOrderSchema = z.object({
     guestCartItems: z
       .array(
         z.object({
-          productId: z.string().optional(),
-          productVariantId: z.string().nullable().optional(),
+          productId: objectIdString.optional(),
+          productVariantId: objectIdString.nullable().optional(),
           selectedVariantLabel: z.string().optional(),
           quantity: z.number().optional(),
         })
@@ -30,8 +45,8 @@ export const placeOrderSchema = z.object({
     guestWishlistItems: z
       .array(
         z.object({
-          productId: z.string().optional(),
-          productVariantId: z.string().optional(),
+          productId: objectIdString.optional(),
+          productVariantId: objectIdString.optional(),
         })
       )
       .optional(),
@@ -41,5 +56,36 @@ export const placeOrderSchema = z.object({
 export const getOrderDetailsSchema = z.object({
   params: z.object({
     orderNumber: z.string().min(1, 'Order number is required'),
+  }),
+});
+
+export const getAdminOrdersSchema = z.object({
+  query: z.object({
+    status: z.union([orderStatusEnum, z.literal('ALL')]).optional(),
+    search: z.string().optional(),
+    page: z.string().regex(/^\d+$/, 'Page must be a positive integer').optional(),
+    limit: z
+      .string()
+      .regex(/^\d+$/, 'Limit must be a positive integer')
+      .refine(
+        (val) => !val || (parseInt(val, 10) >= 1 && parseInt(val, 10) <= 100),
+        'Limit must be between 1 and 100'
+      )
+      .optional(),
+  }),
+});
+
+export const getAdminOrderByIdSchema = z.object({
+  params: z.object({
+    id: objectIdString,
+  }),
+});
+
+export const updateOrderStatusSchema = z.object({
+  params: z.object({
+    id: objectIdString,
+  }),
+  body: z.object({
+    status: orderStatusEnum,
   }),
 });

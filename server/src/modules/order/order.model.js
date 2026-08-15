@@ -95,6 +95,9 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
+orderSchema.index({ status: 1 });
+orderSchema.index({ createdAt: -1 });
+
 const orderItemSchema = new mongoose.Schema(
   {
     orderId: {

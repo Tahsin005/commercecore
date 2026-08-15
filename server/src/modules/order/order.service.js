@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Order, OrderItem } from './order.model.js';
 import Product, { ProductVariantLink } from '../product/product.model.js';
 import ProductVariant from '../product/productVariant.model.js';
@@ -5,6 +6,7 @@ import User from '../user/user.model.js';
 import { generateAuthToken } from '../user/user.service.js';
 import { syncGuestCartService, clearUserCartService } from '../cart/cart.service.js';
 import { syncGuestWishlistService } from '../wishlist/wishlist.service.js';
+import { orderStatusEnum } from './order.validation.js';
 import ApiError from '../../utils/ApiError.js';
 
 export const createOrderService = async (orderPayload, reqUser = null) => {
@@ -240,4 +242,147 @@ export const getOrderByNumberService = async (orderNumber) => {
     order: order.toJSON(),
     items,
   };
+};
+
+// Admin Services
+export const getAllOrdersAdminService = async (query = {}) => {
+  const { status, search, page = 1, limit = 50 } = query;
+  const filter = {};
+
+  if (status && status !== 'ALL') {
+    filter.status = status;
+  }
+
+  if (search && search.trim()) {
+    const trimmed = search.trim().slice(0, 100);
+    const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escaped, 'i');
+    filter.$or = [
+      { orderNumber: regex },
+      { customerName: regex },
+      { phone: regex },
+      { email: regex },
+    ];
+  }
+
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.max(1, parseInt(limit, 10) || 50);
+  const skip = (pageNum - 1) * limitNum;
+
+  const [orders, totalCount, [statsAggregate]] = await Promise.all([
+    Order.find(filter)
+      .populate('userId', 'name email phone')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum),
+    Order.countDocuments(filter),
+    Order.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalOrders: { $sum: 1 },
+          totalRevenue: {
+            $sum: {
+              $cond: [
+                { $in: ['$status', ['CANCELLED', 'RETURNED']] },
+                0,
+                '$total',
+              ],
+            },
+          },
+          pendingOrders: {
+            $sum: { $cond: [{ $eq: ['$status', 'PENDING'] }, 1, 0] },
+          },
+          deliveredOrders: {
+            $sum: { $cond: [{ $eq: ['$status', 'DELIVERED'] }, 1, 0] },
+          },
+          cancelledOrders: {
+            $sum: { $cond: [{ $eq: ['$status', 'CANCELLED'] }, 1, 0] },
+          },
+        },
+      },
+    ]),
+  ]);
+
+  const orderIds = orders.map((o) => o.id);
+  const allOrderItems = await OrderItem.find({ orderId: { $in: orderIds } })
+    .populate('productId', 'name slug code price defaultPrice')
+    .populate('productVariantId', 'label');
+
+  const itemsByOrderId = allOrderItems.reduce((acc, item) => {
+    const oid = item.orderId.toString();
+    if (!acc[oid]) acc[oid] = [];
+    acc[oid].push(item);
+    return acc;
+  }, {});
+
+  const stats = statsAggregate || {
+    totalOrders: 0,
+    totalRevenue: 0,
+    pendingOrders: 0,
+    deliveredOrders: 0,
+    cancelledOrders: 0,
+  };
+
+  const formattedOrders = orders.map((o) => ({
+    ...o.toJSON(),
+    items: itemsByOrderId[o.id] || [],
+  }));
+
+  return {
+    orders: formattedOrders,
+    pagination: {
+      total: totalCount,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(totalCount / limitNum),
+    },
+    stats: {
+      totalOrders: stats.totalOrders || 0,
+      totalRevenue: stats.totalRevenue || 0,
+      pendingOrders: stats.pendingOrders || 0,
+      deliveredOrders: stats.deliveredOrders || 0,
+      cancelledOrders: stats.cancelledOrders || 0,
+    },
+  };
+};
+
+export const getOrderByIdAdminService = async (orderId) => {
+  if (!orderId || !mongoose.Types.ObjectId.isValid(orderId)) {
+    throw new ApiError(400, 'Invalid Order ID');
+  }
+
+  const order = await Order.findById(orderId).populate('userId', 'name email phone');
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  const items = await OrderItem.find({ orderId: order.id })
+    .populate('productId', 'name slug code price defaultPrice')
+    .populate('productVariantId', 'label');
+
+  return {
+    order: order.toJSON(),
+    items,
+  };
+};
+
+export const updateOrderStatusService = async (orderId, newStatus) => {
+  if (!orderId || !mongoose.Types.ObjectId.isValid(orderId)) {
+    throw new ApiError(400, 'Invalid Order ID');
+  }
+
+  if (!orderStatusEnum.options.includes(newStatus)) {
+    throw new ApiError(400, 'Invalid status specified');
+  }
+
+  const order = await Order.findById(orderId);
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  order.status = newStatus;
+  await order.save();
+
+  return getOrderByIdAdminService(order.id);
 };
