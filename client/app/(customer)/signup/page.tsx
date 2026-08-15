@@ -18,16 +18,18 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-import { signupSchema, SignupInput } from "@/lib/validations/auth";
+import { getSignupSchema, SignupInput } from "@/lib/validations/auth";
 import { useSignupMutation } from "@/hooks/useAuthMutations";
 import { useSyncCartMutation } from "@/hooks/useCartQueries";
 import { useSyncWishlistMutation } from "@/hooks/useWishlistQueries";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { GuestGuard } from "@/components/guards/GuestGuard";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function SignupPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const signupMutation = useSignupMutation();
@@ -39,7 +41,7 @@ export default function SignupPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<SignupInput>({
-    resolver: zodResolver(signupSchema),
+    resolver: zodResolver(getSignupSchema(t)),
     defaultValues: {
       name: "",
       email: "",
@@ -53,7 +55,7 @@ export default function SignupPage() {
     const { confirmPassword, ...signupPayload } = data;
     signupMutation.mutate(signupPayload, {
       onSuccess: async () => {
-        toast.success("Account created successfully!");
+        toast.success(t.signup.signupSuccess);
         const guestCartItems = useCartStore.getState().items;
         if (guestCartItems.length > 0) {
           try {
@@ -85,7 +87,18 @@ export default function SignupPage() {
         router.push("/");
       },
       onError: (error) => {
-        const message = error.message || "Registration failed";
+        const errorMsg = error?.message;
+        let message = t.common.error;
+        if (errorMsg) {
+          const lower = errorMsg.toLowerCase();
+          if (lower.includes("already exist") || lower.includes("already in use")) {
+            message = t.authErrors.alreadyExists;
+          } else if (lower.includes("invalid credential") || lower.includes("invalid email or password")) {
+            message = t.authErrors.invalidCredentials;
+          } else {
+            message = errorMsg;
+          }
+        }
         toast.error(message);
       },
     });
@@ -107,20 +120,20 @@ export default function SignupPage() {
               />
             </div>
             <h2 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-wide">
-              CommerceCore
+              {t.common.commerceCore}
             </h2>
             <p className="text-xs text-maroon-200 mt-2 max-w-xs leading-relaxed font-sans">
-              Join Us Today &amp; Start Shopping
+              {t.signup.brandTag}
             </p>
           </div>
 
           <div className="w-full md:w-3/5 p-6 sm:p-10 flex flex-col justify-center order-2">
             <div className="mb-6">
               <h1 className="text-2xl sm:text-3xl font-serif font-bold text-maroon-900 tracking-tight">
-                Create Account
+                {t.signup.title}
               </h1>
               <p className="text-xs sm:text-sm text-maroon-700 mt-1">
-                Join CommerceCore to start shopping today
+                {t.signup.subtitle}
               </p>
             </div>
 
@@ -130,7 +143,7 @@ export default function SignupPage() {
                   htmlFor="name"
                   className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5"
                 >
-                  Full Name
+                  {t.signup.nameLabel}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
@@ -139,7 +152,7 @@ export default function SignupPage() {
                   <input
                     id="name"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder={t.signup.namePlaceholder}
                     {...register("name")}
                     className={`w-full pl-10 pr-3.5 py-2.5 bg-off-white text-maroon-900 border rounded-md text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 transition-all ${
                       errors.name ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
@@ -156,7 +169,7 @@ export default function SignupPage() {
                   htmlFor="email"
                   className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5"
                 >
-                  Email Address
+                  {t.signup.emailLabel}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
@@ -165,7 +178,7 @@ export default function SignupPage() {
                   <input
                     id="email"
                     type="email"
-                    placeholder="name@example.com"
+                    placeholder={t.signup.emailPlaceholder}
                     {...register("email")}
                     className={`w-full pl-10 pr-3.5 py-2.5 bg-off-white text-maroon-900 border rounded-md text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 transition-all ${
                       errors.email ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
@@ -182,7 +195,7 @@ export default function SignupPage() {
                   htmlFor="phone"
                   className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5"
                 >
-                  Phone Number
+                  {t.signup.phoneLabel}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
@@ -191,7 +204,7 @@ export default function SignupPage() {
                   <input
                     id="phone"
                     type="tel"
-                    placeholder="01700000000"
+                    placeholder={t.signup.phonePlaceholder}
                     {...register("phone")}
                     className={`w-full pl-10 pr-3.5 py-2.5 bg-off-white text-maroon-900 border rounded-md text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 transition-all ${
                       errors.phone ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
@@ -208,7 +221,7 @@ export default function SignupPage() {
                   htmlFor="password"
                   className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5"
                 >
-                  Password
+                  {t.signup.passwordLabel}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
@@ -241,7 +254,7 @@ export default function SignupPage() {
                   htmlFor="confirmPassword"
                   className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5"
                 >
-                  Confirm Password
+                  {t.signup.confirmPasswordLabel}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
@@ -277,11 +290,11 @@ export default function SignupPage() {
                 {signupMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-cream" />
-                    <span>Creating Account...</span>
+                    <span>{t.signup.creatingAccount}</span>
                   </>
                 ) : (
                   <>
-                    <span>Create Account</span>
+                    <span>{t.signup.createAccountBtn}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -290,12 +303,12 @@ export default function SignupPage() {
 
             <div className="mt-6 pt-4 text-center border-t border-maroon-100">
               <p className="text-xs text-maroon-700 font-sans">
-                Already have an account?{" "}
+                {t.signup.hasAccount}{" "}
                 <Link
                   href="/login"
                   className="font-semibold text-maroon-900 hover:underline transition-all"
                 >
-                  Sign In
+                  {t.signup.signInLink}
                 </Link>
               </p>
             </div>

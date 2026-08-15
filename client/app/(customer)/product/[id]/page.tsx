@@ -20,6 +20,7 @@ import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useProductDetailsQuery, ProductVariant } from "@/hooks/useProductQueries";
 import { ProductDetailsSkeleton } from "@/components/skeletons";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface ProductDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -28,6 +29,7 @@ interface ProductDetailsPageProps {
 export default function ProductDetailsPage({ params }: ProductDetailsPageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const { t } = useLanguage();
 
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
@@ -56,14 +58,14 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         <main className="flex-1 flex flex-col items-center justify-center p-4">
           <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md border border-maroon-100 text-center space-y-4">
             <Package className="w-12 h-12 text-maroon-300 mx-auto" />
-            <h1 className="text-2xl font-serif font-bold text-maroon-900">Product Not Found</h1>
-            <p className="text-xs text-maroon-700">{error?.message || "Requested product does not exist."}</p>
+            <h1 className="text-2xl font-serif font-bold text-maroon-900">{t.productDetails.notFoundTitle}</h1>
+            <p className="text-xs text-maroon-700">{t.productDetails.notFoundDesc}</p>
             <Link
               href="/"
               className="inline-flex items-center space-x-2 px-5 py-2.5 bg-maroon-900 text-white font-medium text-xs rounded-md shadow hover:bg-maroon-800 transition-all"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to Products</span>
+              <span>{t.common.backToShop}</span>
             </Link>
           </div>
         </main>
@@ -81,11 +83,11 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
 
   const handleAddToCart = () => {
     if (isOutOfStock) {
-      toast.error("Product is out of stock");
+      toast.error(t.productDetails.outOfStockMsg);
       return;
     }
 
-    const selectedLabel = selectedVariant?.label || selectedVariant?.size || "Standard";
+    const selectedLabel = selectedVariant?.label || selectedVariant?.size || t.common.standard;
 
     addToCart(
       {
@@ -98,15 +100,15 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
       },
       quantity
     );
-    toast.success(`Added ${quantity} x "${product.name}" (${selectedLabel}) to cart`);
+    toast.success(`${quantity} x "${product.name}" (${selectedLabel}) ${t.productDetails.addedToCart}`);
   };
 
   const handleToggleWishlist = () => {
     if (wishlisted) {
       removeFromWishlist(product.id);
-      toast.success(`Removed "${product.name}" from wishlist`);
+      toast.success(`"${product.name}" ${t.home.removeFromWishlist}`);
     } else {
-      const selectedLabel = selectedVariant?.label || selectedVariant?.size || "Standard";
+      const selectedLabel = selectedVariant?.label || selectedVariant?.size || t.common.standard;
       addToWishlist({
         productVariantId: selectedVariant?.id,
         productId: product.id,
@@ -115,17 +117,17 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         size: selectedLabel,
         price: currentPrice,
       });
-      toast.success(`Added "${product.name}" to wishlist`);
+      toast.success(`"${product.name}" ${t.home.addToWishlist}`);
     }
   };
 
   const handleOrderNow = () => {
     if (isOutOfStock) {
-      toast.error("Product is out of stock");
+      toast.error(t.productDetails.outOfStockMsg);
       return;
     }
 
-    const selectedLabel = selectedVariant?.label || selectedVariant?.size || "Standard";
+    const selectedLabel = selectedVariant?.label || selectedVariant?.size || t.common.standard;
 
     addToCart(
       {
@@ -150,7 +152,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
             className="inline-flex items-center space-x-2 text-maroon-800 hover:text-maroon-900 transition-colors text-xs font-semibold"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Products</span>
+            <span>{t.common.backToShop}</span>
           </Link>
         </div>
 
@@ -164,7 +166,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
             )}
             {product.code && (
               <span className="absolute top-6 right-6 font-mono text-[11px] text-maroon-500 bg-maroon-50 border border-maroon-200 px-2 py-0.5 rounded-sm">
-                Code: {product.code}
+                {t.common.code}: {product.code}
               </span>
             )}
           </div>
@@ -176,14 +178,14 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   {product.name}
                 </h1>
                 <p className="text-sm text-maroon-700/90 mt-2 leading-relaxed font-sans">
-                  {product.description || "High quality product with premium crafting."}
+                  {product.description || t.home.noDescription}
                 </p>
               </div>
 
               <div className="pt-4 border-t border-maroon-100 flex items-center justify-between">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-maroon-500 block">
-                    Price
+                    {t.common.price}
                   </span>
                   <span className="text-2xl sm:text-3xl font-bold font-mono text-maroon-900">
                     ৳{currentPrice.toFixed(2)}
@@ -194,12 +196,12 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   {!isOutOfStock ? (
                     <div className="flex items-center space-x-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-sm text-xs font-semibold">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>In Stock ({stockQuantity})</span>
+                      <span>{t.common.inStock} ({stockQuantity})</span>
                     </div>
                   ) : (
                     <div className="flex items-center space-x-1.5 text-red-700 bg-red-50 border border-red-200 px-3 py-1 rounded-sm text-xs font-semibold">
                       <XCircle className="w-3.5 h-3.5" />
-                      <span>Out of Stock</span>
+                      <span>{t.common.outOfStock}</span>
                     </div>
                   )}
                 </div>
@@ -209,12 +211,12 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
               {product.variants && product.variants.length > 0 && (
                 <div className="pt-2">
                   <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-2">
-                    Select Age Range
+                    {t.productDetails.selectAgeRange}
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {product.variants.map((variant) => {
                       const isSelected = selectedVariant?.id === variant.id;
-                      const label = variant.label || variant.size || "Standard";
+                      const label = variant.label || variant.size || t.common.standard;
 
                       return (
                         <button
@@ -240,7 +242,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
 
               <div className="pt-2">
                 <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-2">
-                  Select Quantity
+                  {t.productDetails.selectQuantity}
                 </label>
                 <div className="inline-flex items-center border border-maroon-200 rounded-md bg-off-white overflow-hidden shadow-sm">
                   <button
@@ -272,7 +274,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   className="py-3 px-4 bg-maroon-800 hover:bg-maroon-700 active:scale-[0.98] text-white font-semibold text-xs rounded-md transition-all flex items-center justify-center space-x-2 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ShoppingCart className="w-4 h-4 text-cream" />
-                  <span>Add to Cart</span>
+                  <span>{t.productDetails.addToCart}</span>
                 </button>
 
                 <button
@@ -284,7 +286,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   }`}
                 >
                   <Heart className={`w-4 h-4 ${wishlisted ? "fill-cream" : ""}`} />
-                  <span>{wishlisted ? "Wishlisted" : "Wishlist"}</span>
+                  <span>{wishlisted ? t.productDetails.wishlisted : t.productDetails.wishlist}</span>
                 </button>
               </div>
 
@@ -294,7 +296,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                 className="w-full py-3.5 px-4 bg-maroon-900 hover:bg-maroon-800 active:scale-[0.98] text-white font-semibold text-sm rounded-md transition-all flex items-center justify-center space-x-2 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ShoppingBag className="w-4 h-4 text-cream" />
-                <span>Order Now</span>
+                <span>{t.productDetails.orderNow}</span>
               </button>
             </div>
           </div>

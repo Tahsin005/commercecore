@@ -15,9 +15,11 @@ import { useWishlist } from "@/hooks/useWishlist";
 import { useProductsQuery, Product } from "@/hooks/useProductQueries";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const { t } = useLanguage();
 
   // react Query Hooks
   const { data: categoriesResponse, isLoading: isCategoriesLoading } = useCategoriesQuery();
@@ -37,17 +39,17 @@ export default function Home() {
 
     if (wishlisted) {
       removeFromWishlist(product.id);
-      toast.success(`Removed "${product.name}" from wishlist`);
+      toast.success(`"${product.name}" ${t.home.removeFromWishlist}`);
     } else {
       addToWishlist({
         productId: product.id,
         productVariantId: defaultVariant?.id,
         name: product.name,
         slug: product.slug,
-        size: defaultVariant?.label || defaultVariant?.size || "Standard",
+        size: defaultVariant?.label || defaultVariant?.size || t.common.standard,
         price,
       });
-      toast.success(`Added "${product.name}" to wishlist`);
+      toast.success(`"${product.name}" ${t.home.addToWishlist}`);
     }
   };
 
@@ -72,7 +74,7 @@ export default function Home() {
           <div className="space-y-2">
             <div className="flex items-center space-x-2 text-xs font-semibold text-maroon-800 uppercase tracking-wider mb-2">
               <Tag className="w-3.5 h-3.5" />
-              <span>Browse Categories</span>
+              <span>{t.home.browseCategories}</span>
             </div>
             <div className="flex flex-wrap gap-2 pb-2">
               <button
@@ -84,7 +86,7 @@ export default function Home() {
                     : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
                 }`}
               >
-                All Products
+                {t.home.allProducts}
               </button>
               {categories.map((cat) => (
                 <button
@@ -100,7 +102,7 @@ export default function Home() {
                   {cat.name}
                   {cat.isFeatured && (
                     <span className="ml-1 text-[9px] bg-cream text-maroon-900 px-1.5 py-0.2 rounded-full font-bold">
-                      Featured
+                      {t.common.featured}
                     </span>
                   )}
                 </button>
@@ -111,11 +113,11 @@ export default function Home() {
 
         <div className="flex items-center justify-between border-b border-maroon-100 pb-4">
           <div>
-            <h2 className="text-2xl font-serif font-bold text-maroon-900">Products Catalog</h2>
-            <p className="text-xs text-maroon-700">Browse curated items available for order</p>
+            <h2 className="text-2xl font-serif font-bold text-maroon-900">{t.home.productsCatalog}</h2>
+            <p className="text-xs text-maroon-700">{t.home.catalogDesc}</p>
           </div>
           <span className="text-xs font-semibold text-maroon-600 bg-maroon-100 px-3 py-1 rounded-sm">
-            {isLoading ? "..." : `${products.length} Items Available`}
+            {isLoading ? "..." : `${products.length} ${t.home.itemsAvailable}`}
           </span>
         </div>
 
@@ -123,8 +125,8 @@ export default function Home() {
 
         {error && (
           <div className="p-6 bg-maroon-100/60 border border-maroon-200 rounded-xl text-maroon-900 text-center space-y-2">
-            <p className="font-semibold text-base font-serif">Unable to load products</p>
-            <p className="text-sm text-maroon-700">{error.message || "Failed to load product catalog"}</p>
+            <p className="font-semibold text-base font-serif">{t.home.unableToLoad}</p>
+            <p className="text-sm text-maroon-700">{t.home.unableToLoad}</p>
           </div>
         )}
 
@@ -149,7 +151,7 @@ export default function Home() {
                           ? "bg-maroon-900 text-cream border-maroon-800"
                           : "bg-white text-maroon-600 border-maroon-200 hover:bg-maroon-50"
                       }`}
-                      title={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                      title={wishlisted ? t.home.removeFromWishlist : t.home.addToWishlist}
                     >
                       <Heart className={`w-4 h-4 ${wishlisted ? "fill-cream" : ""}`} />
                     </button>
@@ -162,7 +164,7 @@ export default function Home() {
 
                     {product.isFeatured && (
                       <span className="absolute top-3 left-3 bg-maroon-900 text-cream text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow">
-                        Featured
+                        {t.common.featured}
                       </span>
                     )}
                   </div>
@@ -173,14 +175,14 @@ export default function Home() {
                         {product.name}
                       </h3>
                       <p className="text-xs text-maroon-700/80 line-clamp-2 mt-1 font-sans">
-                        {product.description || "No description provided."}
+                        {product.description || t.home.noDescription}
                       </p>
                     </div>
 
                     <div className="pt-3 border-t border-maroon-100 flex items-center justify-between">
                       <div>
                         <span className="text-[10px] font-semibold text-maroon-500 uppercase tracking-wider block">
-                          Price
+                          {t.common.price}
                         </span>
                         <span className="text-lg font-bold font-mono text-maroon-900">
                           ৳{price.toFixed(2)}
@@ -190,10 +192,10 @@ export default function Home() {
                       <Link
                         href={`/product/${product.id}`}
                         className="px-3.5 py-2 bg-maroon-900 hover:bg-maroon-800 active:scale-95 text-white font-medium text-xs rounded-md transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer"
-                        title="View Product Details"
+                        title={t.common.viewDetails}
                       >
                         <Eye className="w-3.5 h-3.5 text-cream" />
-                        <span>View Details</span>
+                        <span>{t.common.viewDetails}</span>
                       </Link>
                     </div>
                   </div>

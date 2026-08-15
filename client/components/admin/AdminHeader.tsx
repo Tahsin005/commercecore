@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, ExternalLink, ShieldCheck, User } from "lucide-react";
+import { LogOut, ExternalLink, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export function AdminHeader() {

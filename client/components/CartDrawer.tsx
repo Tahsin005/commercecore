@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { useCart } from "@/hooks/useCart";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ interface CartDrawerProps {
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const router = useRouter();
   const { items, subtotal, updateQuantity, removeItem, clearCart, cartCount } = useCart();
+  const { t } = useLanguage();
 
   const drawerRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -135,14 +137,14 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         ref={drawerRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Shopping Cart"
+        aria-label={t.cartDrawer.title}
         tabIndex={-1}
         className="relative w-full max-w-md bg-white text-text-main h-full shadow-2xl z-10 flex flex-col justify-between animate-in slide-in-from-right duration-300 font-sans focus:outline-none"
       >
         <div className="bg-maroon-900 text-white p-5 flex items-center justify-between shadow-md">
           <div className="flex items-center space-x-2.5">
             <ShoppingCart className="w-5 h-5 text-cream" />
-            <h2 className="font-serif font-bold text-lg text-white">Your Shopping Cart</h2>
+            <h2 className="font-serif font-bold text-lg text-white">{t.cartDrawer.title}</h2>
             <span className="bg-maroon-800 border border-maroon-700 text-cream font-mono font-bold text-xs px-2 py-0.5 rounded-full">
               {cartCount}
             </span>
@@ -172,14 +174,14 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
               <div className="space-y-2 max-w-xs">
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-maroon-700 font-sans block">
-                  YOUR CART IS EMPTY
+                  {t.cartDrawer.emptyNotice}
                 </span>
                 <h3 className="font-serif font-bold text-xl text-maroon-900 tracking-tight">
-                  Your cart is waiting for you
+                  {t.cartDrawer.emptyTitle}
                 </h3>
                 <div className="w-8 h-0.5 bg-maroon-700/60 mx-auto my-1.5" />
                 <p className="text-xs text-maroon-700/80 leading-relaxed font-sans">
-                  Discover something you'll love and add it to your collection.
+                  {t.cartDrawer.emptyDesc}
                 </p>
               </div>
 
@@ -188,18 +190,18 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 className="px-6 py-3 bg-maroon-900 hover:bg-maroon-800 active:scale-[0.98] text-white font-semibold text-xs rounded-xl shadow-md transition-all flex items-center space-x-2 cursor-pointer group"
               >
                 <ArrowRight className="w-4 h-4 text-cream group-hover:translate-x-1 transition-transform" />
-                <span>Explore Products</span>
+                <span>{t.common.exploreProducts}</span>
               </button>
 
               <div className="pt-4 border-t border-maroon-100/80 w-full flex items-center justify-center space-x-4 text-[10px] text-maroon-600 font-medium">
                 <span className="flex items-center space-x-1">
                   <Truck className="w-3.5 h-3.5 text-maroon-500" />
-                  <span>Nationwide Shipping</span>
+                  <span>{t.cartDrawer.nationwideShipping}</span>
                 </span>
                 <span>&bull;</span>
                 <span className="flex items-center space-x-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-maroon-500" />
-                  <span>Cash on Delivery</span>
+                  <span>{t.cartDrawer.cashOnDelivery}</span>
                 </span>
               </div>
             </div>
@@ -262,7 +264,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         disabled={isPending}
                         onClick={() => handleRemoveItem(itemKey)}
                         className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                        title="Remove item"
+                        title={t.cartDrawer.removeItem}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -278,13 +280,13 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           <div className="p-5 bg-off-white border-t border-maroon-100 space-y-4">
             <div className="space-y-1.5 text-xs font-sans">
               <div className="flex items-center justify-between text-maroon-700">
-                <span>Subtotal</span>
+                <span>{t.cartDrawer.subtotal}</span>
                 <span className="font-mono font-bold text-sm text-maroon-900">
                   ৳{subtotal.toFixed(2)}
                 </span>
               </div>
               <p className="text-[11px] text-maroon-500">
-                Shipping &amp; taxes calculated at checkout.
+                {t.cartDrawer.shippingNotice}
               </p>
             </div>
 
@@ -293,7 +295,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 onClick={handleCheckout}
                 className="w-full py-3.5 px-4 bg-maroon-900 hover:bg-maroon-800 active:scale-[0.99] text-white font-semibold text-xs rounded-md transition-all flex items-center justify-center space-x-2 shadow-md cursor-pointer"
               >
-                <span>Proceed to Checkout</span>
+                <span>{t.cartDrawer.proceedToCheckout}</span>
                 <ArrowRight className="w-4 h-4 text-cream" />
               </button>
 
@@ -301,7 +303,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 onClick={clearCart}
                 className="w-full py-2 text-maroon-600 hover:text-red-700 text-[11px] font-medium transition-colors cursor-pointer text-center"
               >
-                Clear All Cart Items
+                {t.cartDrawer.clearCart}
               </button>
             </div>
           </div>
