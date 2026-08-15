@@ -1,8 +1,13 @@
 import { z } from 'zod';
 
+const objectIdString = z
+  .string()
+  .min(1, 'Identifier is required')
+  .regex(/^[0-9a-fA-F]{24}$/, 'Invalid MongoDB ObjectId');
+
 export const getProductsSchema = z.object({
   query: z.object({
-    categoryId: z.string().optional(),
+    categoryId: objectIdString.optional(),
     isFeatured: z.enum(['true', 'false']).optional(),
     isActive: z.enum(['true', 'false']).optional(),
   }),
@@ -10,7 +15,7 @@ export const getProductsSchema = z.object({
 
 export const getProductDetailsSchema = z.object({
   params: z.object({
-    id: z.string().min(1, 'Product ID is required'),
+    id: objectIdString,
   }),
 });
 
@@ -25,37 +30,37 @@ export const createProductSchema = z.object({
     name: z.string().trim().min(2, 'Product name must be at least 2 characters long'),
     slug: z.string().trim().optional(),
     code: z.string().trim().optional(),
-    categoryId: z.string().nullable().optional(),
+    categoryId: objectIdString.nullable().optional(),
     description: z.string().trim().optional(),
     price: z.number().min(0, 'Price cannot be negative'),
     quantity: z.number().int().min(0, 'Quantity cannot be negative'),
     isFeatured: z.boolean().optional(),
     isActive: z.boolean().optional(),
-    variantIds: z.array(z.string()).optional(),
+    variantIds: z.array(objectIdString).optional(),
   }),
 });
 
 export const updateProductSchema = z.object({
   params: z.object({
-    id: z.string().min(1, 'Product ID is required'),
+    id: objectIdString,
   }),
   body: z.object({
     name: z.string().trim().min(2, 'Product name must be at least 2 characters long').optional(),
     slug: z.string().trim().optional(),
     code: z.string().trim().optional(),
-    categoryId: z.string().nullable().optional(),
+    categoryId: objectIdString.nullable().optional(),
     description: z.string().trim().optional(),
     price: z.number().min(0, 'Price cannot be negative').optional(),
     quantity: z.number().int().min(0, 'Quantity cannot be negative').optional(),
     isFeatured: z.boolean().optional(),
     isActive: z.boolean().optional(),
-    variantIds: z.array(z.string()).optional(),
+    variantIds: z.array(objectIdString).optional(),
   }),
 });
 
 export const deleteProductSchema = z.object({
   params: z.object({
-    id: z.string().min(1, 'Product ID is required'),
+    id: objectIdString,
   }),
 });
 
@@ -69,7 +74,7 @@ export const createVariantSchema = z.object({
 
 export const updateVariantSchema = z.object({
   params: z.object({
-    id: z.string().min(1, 'Variant ID is required'),
+    id: objectIdString,
   }),
   body: z.object({
     label: z.string().trim().min(1, 'Variant label is required').optional(),
@@ -80,6 +85,6 @@ export const updateVariantSchema = z.object({
 
 export const deleteVariantSchema = z.object({
   params: z.object({
-    id: z.string().min(1, 'Variant ID is required'),
+    id: objectIdString,
   }),
 });

@@ -9,8 +9,13 @@ export const productSchema = z.object({
   code: z.string().trim().optional(),
   categoryId: z.string().nullable().optional(),
   description: z.string().trim().optional(),
-  price: z.number().min(0, { message: "Price cannot be negative" }),
-  quantity: z.number().int().min(0, { message: "Quantity cannot be negative" }),
+  price: z
+    .number({ message: "Price is required and must be a valid number" })
+    .min(0, { message: "Price cannot be negative" }),
+  quantity: z
+    .number({ message: "Quantity is required and must be a valid integer" })
+    .int({ message: "Quantity must be an integer" })
+    .min(0, { message: "Quantity cannot be negative" }),
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
   variantIds: z.array(z.string()).optional(),

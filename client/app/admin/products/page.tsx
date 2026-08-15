@@ -56,6 +56,7 @@ export default function AdminProductsPage() {
   const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
 
   const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(null);
+  const [deletingVariant, setDeletingVariant] = useState<ProductVariant | null>(null);
 
   const [selectedVariantIds, setSelectedVariantIds] = useState<string[]>([]);
 
@@ -303,15 +304,8 @@ export default function AdminProductsPage() {
     });
   };
 
-  const handleDeleteVariantClick = (variantId: string) => {
-    deleteVariantMutation.mutate(variantId, {
-      onSuccess: () => {
-        toast.success("Variant deleted successfully!");
-      },
-      onError: (err) => {
-        toast.error(err.message || "Failed to delete variant");
-      },
-    });
+  const handleDeleteVariantClick = (variant: ProductVariant) => {
+    setDeletingVariant(variant);
   };
 
   const filteredProducts = useMemo(() => {
@@ -668,16 +662,21 @@ export default function AdminProductsPage() {
                   <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
                     Product Name *
                   </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Royal Embroidered Panjabi"
-                    {...createForm.register("name")}
-                    onChange={(e) => {
-                      createForm.setValue("name", e.target.value);
-                      createForm.setValue("slug", slugify(e.target.value));
-                    }}
-                    className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
-                  />
+                  {(() => {
+                    const nameRegister = createForm.register("name");
+                    return (
+                      <input
+                        type="text"
+                        placeholder="e.g. Royal Embroidered Panjabi"
+                        {...nameRegister}
+                        onChange={(e) => {
+                          nameRegister.onChange(e);
+                          createForm.setValue("slug", slugify(e.target.value));
+                        }}
+                        className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
+                      />
+                    );
+                  })()}
                   {createForm.formState.errors.name && (
                     <p className="text-xs text-red-600 mt-1">{createForm.formState.errors.name.message}</p>
                   )}
@@ -1216,7 +1215,7 @@ export default function AdminProductsPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDeleteVariantClick(v.id)}
+                          onClick={() => handleDeleteVariantClick(v)}
                           className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
                           title="Delete Variant"
                         >
@@ -1227,6 +1226,65 @@ export default function AdminProductsPage() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE VARIANT CONFIRMATION MODAL */}
+      {deletingVariant && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setDeletingVariant(null)}
+          />
+          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-red-100 p-6 space-y-4 z-10 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center space-x-3 text-red-600">
+              <div className="p-2.5 bg-red-100 rounded-full shrink-0">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="font-serif font-bold text-lg text-maroon-900">Delete Variant</h3>
+            </div>
+
+            <p className="text-xs text-maroon-700 leading-relaxed font-sans">
+              Are you sure you want to delete the variant{" "}
+              <strong className="text-maroon-900 font-semibold">&quot;{deletingVariant.label || deletingVariant.size}&quot;</strong>?
+              This action cannot be undone.
+            </p>
+
+            <div className="pt-3 border-t border-maroon-100 flex items-center justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setDeletingVariant(null)}
+                className="px-4 py-2 bg-off-white hover:bg-maroon-100 border border-maroon-200 text-maroon-900 text-xs font-semibold rounded-md transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleteVariantMutation.isPending}
+                onClick={() => {
+                  deleteVariantMutation.mutate(deletingVariant.id, {
+                    onSuccess: () => {
+                      toast.success("Variant deleted successfully!");
+                      setDeletingVariant(null);
+                    },
+                    onError: (err) => {
+                      toast.error(err.message || "Failed to delete variant");
+                    },
+                  });
+                }}
+                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-md shadow-md transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-60"
+              >
+                {deleteVariantMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete Variant</span>
+                )}
+              </button>
             </div>
           </div>
         </div>

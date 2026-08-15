@@ -165,6 +165,7 @@ export function useCreateVariantMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["global-variants"] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
     },
   });
 }
@@ -181,6 +182,7 @@ export function useUpdateVariantMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["global-variants"] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
     },
   });
 }
@@ -196,6 +198,7 @@ export function useDeleteVariantMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["global-variants"] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
     },
   });
 }

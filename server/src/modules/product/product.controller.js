@@ -51,7 +51,8 @@ export const getProductVariants = async (req, res, next) => {
 
 export const getGlobalVariants = async (req, res, next) => {
   try {
-    const includeAll = req.query.includeAll === 'true' || req.query.includeAll === true;
+    const requestedIncludeAll = req.query.includeAll === 'true' || req.query.includeAll === true;
+    const includeAll = requestedIncludeAll && Boolean(req.user && req.user.isAdmin);
     const variants = await getGlobalVariantsService(includeAll);
     res.status(200).json(new ApiResponse(200, variants, 'Global variants retrieved successfully'));
   } catch (error) {

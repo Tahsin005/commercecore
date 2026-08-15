@@ -58,8 +58,8 @@ export const addToCartService = async (userId, productId, productVariantId = nul
   }
 
   const product = await Product.findById(pId);
-  if (!product) {
-    throw new ApiError(404, 'Product not found');
+  if (!product || product.isActive === false) {
+    throw new ApiError(404, 'Product not found or inactive');
   }
 
   if (productVariantId) {
@@ -121,6 +121,7 @@ export const updateCartQuantityService = async (userId, itemId, quantity) => {
     cartItem = await CartItem.findOne({
       cartId: cart.id,
       productId: itemId,
+      productVariantId: null,
     });
   }
 
@@ -160,6 +161,7 @@ export const removeFromCartService = async (userId, itemId) => {
     result = await CartItem.deleteOne({
       cartId: cart.id,
       productId: itemId,
+      productVariantId: null,
     });
   }
 

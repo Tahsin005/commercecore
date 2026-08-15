@@ -24,13 +24,13 @@ import {
   deleteVariantSchema,
 } from './product.validation.js';
 import validate from '../../middlewares/validate.middleware.js';
-import { authenticateToken, requireAdmin } from '../../middlewares/auth.middleware.js';
+import { authenticateToken, requireAdmin, optionalAuth } from '../../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
 // Public Endpoints
 router.get('/', validate(getProductsSchema), getProducts);
-router.get('/variants/all', getGlobalVariants);
+router.get('/variants/all', optionalAuth, getGlobalVariants);
 router.get('/slug/:slug', validate(getProductSlugSchema), getProductBySlug);
 router.get('/:id', validate(getProductDetailsSchema), getProductDetails);
 router.get('/:id/variants', validate(getProductDetailsSchema), getProductVariants);

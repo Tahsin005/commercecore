@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Product, { ProductVariant, ProductVariantLink } from './product.model.js';
 import Category from '../category/category.model.js';
 import { CartItem } from '../cart/cart.model.js';
@@ -12,6 +13,23 @@ const generateSlug = (text) => {
     .replace(/\s+/g, '-')
     .replace(/[^\w\-]+/g, '')
     .replace(/\-\-+/g, '-');
+};
+
+const validateAndVerifyVariantIds = async (variantIds = [], session = null) => {
+  if (!Array.isArray(variantIds) || variantIds.length === 0) return;
+  for (const vId of variantIds) {
+    if (!mongoose.Types.ObjectId.isValid(vId)) {
+      throw new ApiError(400, `Invalid variant ObjectId: ${vId}`);
+    }
+  }
+
+  const query = ProductVariant.find({ _id: { $in: variantIds } });
+  if (session) query.session(session);
+  const foundVariants = await query;
+
+  if (foundVariants.length !== variantIds.length) {
+    throw new ApiError(400, 'One or more referenced product variants do not exist');
+  }
 };
 
 const processAndSortVariants = (links) => {
@@ -145,6 +163,8 @@ export const createProductService = async ({
     throw new ApiError(400, 'Invalid product name or slug');
   }
 
+  await validateAndVerifyVariantIds(variantIds);
+
   const existing = await Product.findOne({ slug: finalSlug });
   if (existing) {
     throw new ApiError(400, 'Product with this slug already exists');
@@ -157,27 +177,58 @@ export const createProductService = async ({
     }
   }
 
-  const product = await Product.create({
-    name,
-    slug: finalSlug,
-    code,
-    categoryId: categoryId || null,
-    description,
-    price,
-    quantity,
-    isFeatured: Boolean(isFeatured),
-    isActive: Boolean(isActive),
-  });
-
-  if (Array.isArray(variantIds) && variantIds.length > 0) {
-    const linkDocs = variantIds.map((vId) => ({
-      productId: product.id,
-      productVariantId: vId,
-    }));
-    await ProductVariantLink.insertMany(linkDocs, { ordered: false }).catch(() => {});
+  let session = null;
+  let useTransaction = false;
+  try {
+    session = await mongoose.startSession();
+    session.startTransaction();
+    useTransaction = true;
+  } catch {
+    session = null;
+    useTransaction = false;
   }
 
-  return getProductByIdService(product.id);
+  try {
+    const opts = session ? { session } : {};
+    const [product] = await Product.create(
+      [
+        {
+          name,
+          slug: finalSlug,
+          code,
+          categoryId: categoryId || null,
+          description,
+          price,
+          quantity,
+          isFeatured: Boolean(isFeatured),
+          isActive: Boolean(isActive),
+        },
+      ],
+      opts
+    );
+
+    if (Array.isArray(variantIds) && variantIds.length > 0) {
+      const linkDocs = variantIds.map((vId) => ({
+        productId: product.id,
+        productVariantId: vId,
+      }));
+      await ProductVariantLink.insertMany(linkDocs, opts);
+    }
+
+    if (useTransaction && session) {
+      await session.commitTransaction();
+    }
+    return getProductByIdService(product.id);
+  } catch (error) {
+    if (useTransaction && session) {
+      await session.abortTransaction();
+    }
+    throw error;
+  } finally {
+    if (session) {
+      session.endSession();
+    }
+  }
 };
 
 export const updateProductService = async (
@@ -195,70 +246,126 @@ export const updateProductService = async (
     variantIds,
   }
 ) => {
-  const product = await Product.findById(id);
-  if (!product) {
-    throw new ApiError(404, 'Product not found');
-  }
-
-  if (name !== undefined) product.name = name;
-  if (code !== undefined) product.code = code;
-  if (description !== undefined) product.description = description;
-  if (price !== undefined) product.price = price;
-  if (quantity !== undefined) product.quantity = quantity;
-  if (isFeatured !== undefined) product.isFeatured = Boolean(isFeatured);
-  if (isActive !== undefined) product.isActive = Boolean(isActive);
-
-  if (categoryId !== undefined) {
-    if (categoryId) {
-      const categoryObj = await Category.findById(categoryId);
-      if (!categoryObj) {
-        throw new ApiError(404, 'Selected category does not exist');
-      }
-      product.categoryId = categoryId;
-    } else {
-      product.categoryId = null;
-    }
-  }
-
-  if (slug !== undefined || name !== undefined) {
-    const candidateSlug = generateSlug(slug || product.name);
-    if (candidateSlug !== product.slug) {
-      const existing = await Product.findOne({ slug: candidateSlug, _id: { $ne: id } });
-      if (existing) {
-        throw new ApiError(400, 'Product with this slug already exists');
-      }
-      product.slug = candidateSlug;
-    }
-  }
-
-  await product.save();
-
   if (Array.isArray(variantIds)) {
-    await ProductVariantLink.deleteMany({ productId: id });
-    if (variantIds.length > 0) {
-      const linkDocs = variantIds.map((vId) => ({
-        productId: id,
-        productVariantId: vId,
-      }));
-      await ProductVariantLink.insertMany(linkDocs, { ordered: false }).catch(() => {});
-    }
+    await validateAndVerifyVariantIds(variantIds);
   }
 
-  return getProductByIdService(id);
+  let session = null;
+  let useTransaction = false;
+  try {
+    session = await mongoose.startSession();
+    session.startTransaction();
+    useTransaction = true;
+  } catch {
+    session = null;
+    useTransaction = false;
+  }
+
+  try {
+    const opts = session ? { session } : {};
+    const product = await Product.findById(id).session(session || null);
+    if (!product) {
+      throw new ApiError(404, 'Product not found');
+    }
+
+    if (name !== undefined) product.name = name;
+    if (code !== undefined) product.code = code;
+    if (description !== undefined) product.description = description;
+    if (price !== undefined) product.price = price;
+    if (quantity !== undefined) product.quantity = quantity;
+    if (isFeatured !== undefined) product.isFeatured = Boolean(isFeatured);
+    if (isActive !== undefined) product.isActive = Boolean(isActive);
+
+    if (categoryId !== undefined) {
+      if (categoryId) {
+        const categoryObj = await Category.findById(categoryId).session(session || null);
+        if (!categoryObj) {
+          throw new ApiError(404, 'Selected category does not exist');
+        }
+        product.categoryId = categoryId;
+      } else {
+        product.categoryId = null;
+      }
+    }
+
+    if (slug !== undefined || name !== undefined) {
+      const candidateSlug = generateSlug(slug || product.name);
+      if (candidateSlug !== product.slug) {
+        const existing = await Product.findOne({ slug: candidateSlug, _id: { $ne: id } }).session(session || null);
+        if (existing) {
+          throw new ApiError(400, 'Product with this slug already exists');
+        }
+        product.slug = candidateSlug;
+      }
+    }
+
+    await product.save(opts);
+
+    if (Array.isArray(variantIds)) {
+      await ProductVariantLink.deleteMany({ productId: id }, opts);
+      if (variantIds.length > 0) {
+        const linkDocs = variantIds.map((vId) => ({
+          productId: id,
+          productVariantId: vId,
+        }));
+        await ProductVariantLink.insertMany(linkDocs, opts);
+      }
+    }
+
+    if (useTransaction && session) {
+      await session.commitTransaction();
+    }
+    return getProductByIdService(id);
+  } catch (error) {
+    if (useTransaction && session) {
+      await session.abortTransaction();
+    }
+    throw error;
+  } finally {
+    if (session) {
+      session.endSession();
+    }
+  }
 };
 
 export const deleteProductService = async (id) => {
-  const product = await Product.findById(id);
-  if (!product) {
-    throw new ApiError(404, 'Product not found');
+  let session = null;
+  let useTransaction = false;
+  try {
+    session = await mongoose.startSession();
+    session.startTransaction();
+    useTransaction = true;
+  } catch {
+    session = null;
+    useTransaction = false;
   }
 
-  await CartItem.deleteMany({ productId: id });
-  await WishlistItem.deleteMany({ productId: id });
-  await ProductVariantLink.deleteMany({ productId: id });
-  await Product.deleteOne({ _id: id });
+  try {
+    const opts = session ? { session } : {};
+    const product = await Product.findById(id).session(session || null);
+    if (!product) {
+      throw new ApiError(404, 'Product not found');
+    }
 
-  return product;
+    await CartItem.deleteMany({ productId: id }, opts);
+    await WishlistItem.deleteMany({ productId: id }, opts);
+    await ProductVariantLink.deleteMany({ productId: id }, opts);
+    await Product.deleteOne({ _id: id }, opts);
+
+    if (useTransaction && session) {
+      await session.commitTransaction();
+    }
+    return product;
+  } catch (error) {
+    if (useTransaction && session) {
+      await session.abortTransaction();
+    }
+    throw error;
+  } finally {
+    if (session) {
+      session.endSession();
+    }
+  }
 };
 
 // Global Product Variant Services
