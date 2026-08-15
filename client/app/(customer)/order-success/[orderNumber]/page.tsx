@@ -124,7 +124,7 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 rounded-lg overflow-hidden bg-white border border-maroon-200 flex items-center justify-center shrink-0 relative">
                           {imageUrl ? (
-                            <Image src={imageUrl} alt={item.productName} fill className="object-cover" />
+                            <Image src={imageUrl} alt={item.productName} fill sizes="40px" className="object-cover" />
                           ) : (
                             <Package className="w-5 h-5 text-maroon-300" />
                           )}

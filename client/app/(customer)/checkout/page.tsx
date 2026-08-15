@@ -380,7 +380,7 @@ export default function CheckoutPage() {
                       >
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-white border border-maroon-200 flex items-center justify-center shrink-0 relative mr-3">
                           {item.imageUrl ? (
-                            <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                            <Image src={item.imageUrl} alt={item.name} fill sizes="48px" className="object-cover" />
                           ) : (
                             <Package className="w-5 h-5 text-maroon-300" />
                           )}

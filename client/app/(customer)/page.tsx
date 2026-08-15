@@ -73,7 +73,7 @@ export default function Home() {
           <div className="space-y-4 pt-2">
             <div className="flex items-center justify-between">
               <h2 className="text-xl sm:text-2xl font-serif font-bold text-maroon-900 tracking-tight">
-                Category Items
+                {t.home.categoryItems}
               </h2>
               {selectedCategory !== "all" && (
                 <button
@@ -81,7 +81,7 @@ export default function Home() {
                   onClick={() => setSelectedCategory("all")}
                   className="text-xs font-semibold text-maroon-700 hover:text-maroon-900 underline cursor-pointer"
                 >
-                  Show All Categories
+                  {t.home.showAllCategories}
                 </button>
               )}
             </div>
@@ -99,7 +99,7 @@ export default function Home() {
                 <div className="relative w-full aspect-square bg-off-white rounded-xl overflow-hidden flex items-center justify-center p-3 border border-maroon-100/60">
                   <div className="w-full h-full rounded-lg bg-maroon-900 flex flex-col items-center justify-center text-white space-y-1 group-hover:scale-105 transition-transform duration-300">
                     <Tag className="w-8 h-8 text-cream" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-cream/90">All</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-cream/90">{t.home.all}</span>
                   </div>
                 </div>
                 <div className="pt-2.5 pb-1 px-1 text-center">
@@ -129,6 +129,7 @@ export default function Home() {
                           src={cat.imageUrl}
                           alt={cat.name}
                           fill
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
@@ -193,6 +194,7 @@ export default function Home() {
                         src={product.images![0]}
                         alt={product.name}
                         fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (

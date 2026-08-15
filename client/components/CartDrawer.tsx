@@ -221,7 +221,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   >
                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-white border border-maroon-200 flex items-center justify-center shrink-0 relative">
                       {item.imageUrl ? (
-                        <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                        <Image src={item.imageUrl} alt={item.name} fill sizes="48px" className="object-cover" />
                       ) : (
                         <Package className="w-6 h-6 text-maroon-300" />
                       )}

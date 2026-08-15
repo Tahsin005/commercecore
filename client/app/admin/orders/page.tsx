@@ -720,6 +720,7 @@ export default function AdminOrdersPage() {
                                         src={itemImg}
                                         alt={item.productName}
                                         fill
+                                        sizes="36px"
                                         className="object-cover"
                                       />
                                     ) : (

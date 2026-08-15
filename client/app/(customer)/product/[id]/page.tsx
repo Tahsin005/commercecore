@@ -193,6 +193,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                     src={currentImage}
                     alt={product.name}
                     fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
                     className={`object-contain transition-transform duration-150 ease-out ${
                       isZoomed ? "scale-250 cursor-zoom-in" : "scale-100"
                     }`}
@@ -208,7 +209,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                     }`}
                   >
                     <ZoomIn className="w-3 h-3 text-cream" />
-                    <span>Hover to zoom</span>
+                    <span>{t.productDetails.hoverToZoom}</span>
                   </div>
                 </div>
               ) : (
@@ -240,7 +241,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                         : "border-maroon-200 hover:border-maroon-500 opacity-70 hover:opacity-100"
                     }`}
                   >
-                    <Image src={imgUrl} alt={`${product.name} thumbnail ${idx + 1}`} fill className="object-cover" />
+                    <Image src={imgUrl} alt={`${product.name} thumbnail ${idx + 1}`} fill sizes="56px" className="object-cover" />
                   </button>
                 ))}
               </div>

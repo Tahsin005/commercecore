@@ -86,6 +86,9 @@ export const en: TranslationType = {
   },
   home: {
     browseCategories: "Browse Categories",
+    categoryItems: "Category Items",
+    showAllCategories: "Show All Categories",
+    all: "All",
     allProducts: "All Products",
     productsCatalog: "Products Catalog",
     catalogDesc: "Browse curated items available for order",
@@ -106,6 +109,7 @@ export const en: TranslationType = {
     orderNow: "Order Now",
     addedToCart: "Added to cart",
     outOfStockMsg: "Product is out of stock",
+    hoverToZoom: "Hover to zoom",
   },
   checkout: {
     title: "Order Checkout",
