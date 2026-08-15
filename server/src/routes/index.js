@@ -7,6 +7,8 @@ import cartRoutes from '../modules/cart/cart.routes.js';
 import wishlistRoutes from '../modules/wishlist/wishlist.routes.js';
 import orderRoutes from '../modules/order/order.routes.js';
 import uploadConfigRoutes from '../modules/upload/uploadConfig.routes.js';
+import settingRoutes from '../modules/setting/setting.routes.js';
+import cmsRoutes from '../modules/cms/cms.routes.js';
 
 const router = express.Router();
 
@@ -18,5 +20,7 @@ router.use('/cart', cartRoutes);
 router.use('/wishlist', wishlistRoutes);
 router.use('/orders', orderRoutes);
 router.use('/upload-configs', uploadConfigRoutes);
+router.use('/settings', settingRoutes);
+router.use('/cms', cmsRoutes);
 
 export default router;

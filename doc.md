@@ -128,64 +128,83 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 
 ### Admin-configurable content (site settings / CMS)
 
-### SiteDiscount
-| discountPercentage | int | |
-| startDate, endDate | timestamp | |
-| isActive | boolean | |
+Implemented using a **Hybrid Storage Architecture**:
 
-### DeliveryCharge
-| insideDhaka | decimal | |
-| outsideDhaka | decimal | |
+#### 1. Global Key-Value Store (`site_settings` collection)
+Stores single-row configuration objects in a polymorphic `{ key, value }` collection:
+- **`delivery_charge`**: `{ insideDhaka: number, outsideDhaka: number }`
+- **`site_discount`**: `{ discountPercentage: number, startDate: timestamp|null, endDate: timestamp|null, isActive: boolean }`
+- **`marquee`**: `{ text: string, isActive: boolean }`
+- **`footer_settings`**: `{ description: string, helpline: string, socialLinks: { platform: string, url: string }[] }`
 
-### Banner
-| id, imageUrl, link, order, isActive | | homepage slider |
+#### 2. Dedicated Multi-Row CMS Collections
 
-### Marquee
-| id, text, isActive | | single row is probably enough |
+##### `Banner` (Homepage Slider)
+| Field | Type | Notes |
+|---|---|---|
+| id | PK | |
+| imageUrl | string | Uploaded to Cloudinary |
+| title | string | Optional caption title |
+| sortOrder | int | Carousel display order |
+| isActive | boolean | Toggle banner visibility |
 
-### ContactChannel
-| id, label (e.g. "Bkash Personal"), phoneNumber, type (call/whatsapp/bkash/nagad), order | | powers both nav "Call Us" and the "have a question about this product" block |
+##### `ContactChannel` (Helplines & Payments)
+| Field | Type | Notes |
+|---|---|---|
+| id | PK | |
+| label | string | e.g. "Bkash Personal", "Customer Helpline" |
+| phoneNumber | string | Contact phone or account number |
+| type | enum | `call`, `whatsapp`, `bkash`, `nagad` |
+| sortOrder | int | Display sequence |
+| isActive | boolean | Active toggle |
 
-### ContentBlock
-| id, key (unique, e.g. `about_us`, `contact_us`, `how_to_buy`, `return_policy`), title, body (rich text) | generic reusable table instead of separate tables for each static page |
+##### `ContentBlock` (Static Content Pages)
+| Field | Type | Notes |
+|---|---|---|
+| id | PK | |
+| key | string (enum) | Fixed core keys: `about_us`, `contact_us`, `how_to_buy`, `return_policy` |
+| title | string | Page header title |
+| body | string | Rich text / markdown page content |
 
-### ProductInfoBullet
-| id, text, order, isActive | | the repeatable "Order today...", "COD available..." list — global by default; add `productId` nullable FK later if you ever need per-product overrides |
-
-### FooterSettings
-| description, socialLinks (json: {platform, url}[]) | |
+##### `ProductInfoBullet` (Product Highlight Bullets)
+| Field | Type | Notes |
+|---|---|---|
+| id | PK | |
+| text | string | e.g. "100% Authentic Quality Guaranteed" |
+| sortOrder | int | Display order |
+| isActive | boolean | Active toggle |
+| productId | FK → Product (nullable) | Optional per-product override (null = global default) |
 
 ---
 
 ## 2. Feature List
 
 ### Public storefront
-- Home: banners, marquee, featured categories, featured products
+- Home: banners slider, marquee ticker, featured categories, featured products
 - Category listing → product grid, filter by category
 - Product detail: images, age size selector (pulls linked global ProductVariants), product price & stock quantity, quantity selector, add to cart/wishlist, reviews list, product info bullets, "questions? call us" block
 - Reviews: submit (name, rating, description, optional image) → goes to pending queue
 - Cart: guest = localStorage, logged-in = DB-backed; merge localStorage cart into DB cart on login
 - Wishlist: same behavior as cart — guest = localStorage, logged-in = DB-backed, merge on login
-- Checkout: guest or logged-in, address entry, delivery zone selection, order summary with live discount applied
-- Order confirmation screen with order number
+- Checkout: guest or logged-in, address entry with optional order notes/instructions, delivery zone selection, order summary with live delivery rates
+- Order confirmation screen with order number & guest account claiming card
 - Public order tracking page (lookup by order number, no login)
-- About Us / Contact Us / How to Buy / Return Policy pages (driven by ContentBlock)
-- Account area (logged-in): profile, saved addresses, order history, wishlist
+- About Us / Contact Us / How to Buy / Return Policy pages (driven by ContentBlock CMS)
+- Account area (logged-in): profile, saved addresses, order history, wishlist, account claiming password setup
 
 ### Admin panel
 - Auth (separate admin role or `isAdmin` flag on User)
-- Category CRUD
+- Category CRUD (with Cloudinary image uploads)
 - Product CRUD (flat price, stock quantity, category, details)
 - Master Global Age Variant CRUD (standalone catalog: label, display order, active status)
 - Product-Variant Linker (attach/detach global age labels to products via ProductVariantLink)
 - Review moderation queue (approve/reject)
-- Order management: view, update status, view/edit shipping info manually
-- Site discount config (percentage + date range)
-- Delivery charge config
-- Banner management
-- Marquee text
-- Contact channels management
-- Content blocks editor (About/Contact/How to Buy/Return Policy)
-- Product info bullets editor
-- Footer settings (social links, description)
+- Order management: view, update status, view/edit shipping info manually, view order notes
+- Site Settings & Rates management (Delivery charges, Sitewide discount, Header marquee ticker, Footer info)
+- Homepage Banners manager (with Cloudinary image upload)
+- Contact Channels manager (Bkash, WhatsApp, Nagad, Call Us)
+- Content Pages editor (About Us, Contact Us, How to Buy, Return Policy)
+- Product Info Bullets manager
+- Media Upload Endpoints (Cloudinary accounts load balancer)
+
 
