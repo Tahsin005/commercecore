@@ -96,8 +96,14 @@ export default function AdminCategoriesPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const inputTarget = e.currentTarget;
+    const editingCategoryId = editingCategory?.id;
+
     uploadMutation.mutate(file, {
       onSuccess: (res) => {
+        if (formType === "create" && !isCreateModalOpen) return;
+        if (formType === "edit" && (!editingCategory || editingCategory.id !== editingCategoryId)) return;
+
         const uploadedUrl = res.data.url;
         if (formType === "create") {
           createForm.setValue("imageUrl", uploadedUrl, { shouldValidate: true });
@@ -107,9 +113,13 @@ export default function AdminCategoriesPage() {
         toast.success("Category image uploaded successfully!");
       },
       onError: (err) => {
+        if (formType === "create" && !isCreateModalOpen) return;
+        if (formType === "edit" && (!editingCategory || editingCategory.id !== editingCategoryId)) return;
         toast.error(err.message || "Failed to upload category image");
       },
     });
+
+    inputTarget.value = "";
   };
 
   const onCreateSubmit = (data: CategoryInput) => {

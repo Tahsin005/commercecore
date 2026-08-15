@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const urlOrCloudinaryRegex = /^(https?:\/\/|cloudinary:\/\/).+$/i;
+const cloudinaryUrlRegex = /^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/i;
 
 export const uploadConfigSchema = z.object({
   name: z.string().trim().optional(),
@@ -8,8 +8,8 @@ export const uploadConfigSchema = z.object({
     .string()
     .trim()
     .min(1, { message: "Upload URL is required" })
-    .regex(urlOrCloudinaryRegex, {
-      message: "Upload URL must start with http://, https://, or cloudinary://",
+    .regex(cloudinaryUrlRegex, {
+      message: "Upload URL must be in Cloudinary format (cloudinary://<api_key>:<api_secret>@<cloud_name>)",
     }),
   isActive: z.boolean().optional(),
 });

@@ -25,6 +25,18 @@ export const getProductSlugSchema = z.object({
   }),
 });
 
+const cloudinaryImageUrl = z
+  .string()
+  .trim()
+  .refine((url) => {
+    try {
+      const u = new URL(url);
+      return u.protocol === 'https:' && u.hostname === 'res.cloudinary.com';
+    } catch {
+      return false;
+    }
+  }, 'Must be a valid HTTPS Cloudinary URL (https://res.cloudinary.com/...)');
+
 export const createProductSchema = z.object({
   body: z.object({
     name: z.string().trim().min(2, 'Product name must be at least 2 characters long'),
@@ -36,7 +48,7 @@ export const createProductSchema = z.object({
     quantity: z.number().int().min(0, 'Quantity cannot be negative'),
     isFeatured: z.boolean().optional(),
     isActive: z.boolean().optional(),
-    images: z.array(z.string().trim()).optional(),
+    images: z.array(cloudinaryImageUrl).optional(),
     variantIds: z.array(objectIdString).optional(),
   }),
 });
@@ -55,7 +67,7 @@ export const updateProductSchema = z.object({
     quantity: z.number().int().min(0, 'Quantity cannot be negative').optional(),
     isFeatured: z.boolean().optional(),
     isActive: z.boolean().optional(),
-    images: z.array(z.string().trim()).optional(),
+    images: z.array(cloudinaryImageUrl).optional(),
     variantIds: z.array(objectIdString).optional(),
   }),
 });

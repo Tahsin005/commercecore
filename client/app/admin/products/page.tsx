@@ -157,22 +157,35 @@ export default function AdminProductsPage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    const inputTarget = e.currentTarget;
+    const editingProductId = editingProduct?.id;
     const fileList = Array.from(files);
+
+    let successCount = 0;
     for (const file of fileList) {
       try {
         const res = await uploadMutation.mutateAsync(file);
+        if (formType === "create" && !isCreateModalOpen) continue;
+        if (formType === "edit" && (!editingProduct || editingProduct.id !== editingProductId)) continue;
+
         const url = res.data.url;
         if (formType === "create") {
           setCreateImages((prev) => [...prev, url]);
         } else {
           setEditImages((prev) => [...prev, url]);
         }
+        successCount += 1;
       } catch (err: any) {
+        if (formType === "create" && !isCreateModalOpen) continue;
+        if (formType === "edit" && (!editingProduct || editingProduct.id !== editingProductId)) continue;
         toast.error(`Failed to upload ${file.name}: ${err.message || "Error"}`);
       }
     }
-    toast.success("Product image(s) uploaded successfully!");
-    if (e.target) e.target.value = "";
+
+    if (successCount > 0) {
+      toast.success("Product image(s) uploaded successfully!");
+    }
+    inputTarget.value = "";
   };
 
   const handleRemoveImage = (index: number, formType: "create" | "edit") => {
@@ -962,7 +975,7 @@ export default function AdminProductsPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={createProductMutation.isPending}
+                  disabled={createProductMutation.isPending || uploadMutation.isPending}
                   className="px-5 py-2 bg-maroon-900 hover:bg-maroon-800 text-white text-xs font-semibold rounded-md shadow-md transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-60"
                 >
                   {createProductMutation.isPending ? (
@@ -1223,7 +1236,7 @@ export default function AdminProductsPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={updateProductMutation.isPending}
+                  disabled={updateProductMutation.isPending || uploadMutation.isPending}
                   className="px-5 py-2 bg-maroon-900 hover:bg-maroon-800 text-white text-xs font-semibold rounded-md shadow-md transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-60"
                 >
                   {updateProductMutation.isPending ? (

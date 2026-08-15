@@ -4,8 +4,11 @@ import {
   createUploadConfigService,
   updateUploadConfigService,
   deleteUploadConfigService,
+  maskUploadUrl,
 } from './uploadConfig.service.js';
+import { uploadImageToCloudinaryService } from './upload.service.js';
 import ApiResponse from '../../utils/ApiResponse.js';
+import ApiError from '../../utils/ApiError.js';
 
 export const getUploadConfigs = async (req, res, next) => {
   try {
@@ -19,7 +22,9 @@ export const getUploadConfigs = async (req, res, next) => {
 export const getLeastLoadedUploadConfig = async (req, res, next) => {
   try {
     const result = await getLeastLoadedUploadConfigService();
-    res.status(200).json(new ApiResponse(200, result, 'Least loaded active upload config retrieved'));
+    const doc = result.toJSON ? result.toJSON() : { ...result };
+    doc.uploadUrl = maskUploadUrl(doc.uploadUrl);
+    res.status(200).json(new ApiResponse(200, doc, 'Least loaded active upload config retrieved'));
   } catch (error) {
     next(error);
   }
@@ -43,8 +48,6 @@ export const updateUploadConfig = async (req, res, next) => {
   }
 };
 
-import { uploadImageToCloudinaryService } from './upload.service.js';
-
 export const deleteUploadConfig = async (req, res, next) => {
   try {
     const result = await deleteUploadConfigService(req.params.id);
@@ -57,7 +60,7 @@ export const deleteUploadConfig = async (req, res, next) => {
 export const uploadImage = async (req, res, next) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No image file provided' });
+      throw new ApiError(400, 'No image file provided');
     }
     const result = await uploadImageToCloudinaryService(req.file.buffer, req.file.originalname);
     res.status(200).json(new ApiResponse(200, result, 'Image uploaded successfully'));

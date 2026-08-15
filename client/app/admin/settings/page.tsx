@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -30,10 +30,18 @@ import {
   Zap,
 } from "lucide-react";
 
+const maskUploadUrl = (url: string = "") => {
+  if (!url) return "";
+  return url.replace(/^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/i, "cloudinary://$1:***@$3");
+};
+
 export default function AdminSettingsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingConfig, setEditingConfig] = useState<UploadConfig | null>(null);
   const [deletingConfig, setDeletingConfig] = useState<UploadConfig | null>(null);
+
+  const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
+  const initialInputRef = useRef<HTMLInputElement | null>(null);
 
   const {
     data: configsRes,
@@ -75,7 +83,29 @@ export default function AdminSettingsPage() {
     },
   });
 
-  const openCreateModal = () => {
+  const { ref: nameRegisterRef, ...nameRegisterProps } = register("name");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (isCreateOpen) setIsCreateOpen(false);
+        if (deletingConfig) setDeletingConfig(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isCreateOpen, deletingConfig]);
+
+  useEffect(() => {
+    if (isCreateOpen) {
+      setTimeout(() => initialInputRef.current?.focus(), 50);
+    } else {
+      triggerButtonRef.current?.focus();
+    }
+  }, [isCreateOpen]);
+
+  const openCreateModal = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (e?.currentTarget) triggerButtonRef.current = e.currentTarget;
     reset({
       name: "",
       uploadUrl: "",
@@ -85,7 +115,8 @@ export default function AdminSettingsPage() {
     setIsCreateOpen(true);
   };
 
-  const openEditModal = (config: UploadConfig) => {
+  const openEditModal = (config: UploadConfig, e: React.MouseEvent<HTMLButtonElement>) => {
+    triggerButtonRef.current = e.currentTarget;
     reset({
       name: config.name || "",
       uploadUrl: config.uploadUrl,
@@ -93,6 +124,11 @@ export default function AdminSettingsPage() {
     });
     setEditingConfig(config);
     setIsCreateOpen(true);
+  };
+
+  const openDeleteModal = (config: UploadConfig, e: React.MouseEvent<HTMLButtonElement>) => {
+    triggerButtonRef.current = e.currentTarget;
+    setDeletingConfig(config);
   };
 
   const onSubmit = (data: UploadConfigInput) => {
@@ -302,7 +338,7 @@ export default function AdminSettingsPage() {
                       </td>
 
                       <td className="py-3.5 px-4 font-mono text-[11px] text-maroon-800 max-w-[320px] truncate">
-                        {config.uploadUrl}
+                        {maskUploadUrl(config.uploadUrl)}
                       </td>
 
                       <td className="py-3.5 px-4 text-center font-mono font-bold text-maroon-900">
@@ -329,14 +365,14 @@ export default function AdminSettingsPage() {
                       <td className="py-3.5 px-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end space-x-2">
                           <button
-                            onClick={() => openEditModal(config)}
+                            onClick={(e) => openEditModal(config, e)}
                             className="p-1.5 text-maroon-700 hover:text-maroon-900 hover:bg-maroon-100 rounded-lg transition-colors cursor-pointer"
                             title="Edit Configuration"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => setDeletingConfig(config)}
+                            onClick={(e) => openDeleteModal(config, e)}
                             className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                             title="Delete Configuration"
                           >
@@ -354,7 +390,12 @@ export default function AdminSettingsPage() {
       </div>
 
       {isCreateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="upload-config-modal-title"
+        >
           <div
             className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
             onClick={() => setIsCreateOpen(false)}
@@ -364,12 +405,13 @@ export default function AdminSettingsPage() {
             <div className="flex items-center justify-between border-b border-maroon-100 pb-4">
               <div className="flex items-center space-x-2">
                 <Cloud className="w-5 h-5 text-maroon-700" />
-                <h3 className="font-serif font-bold text-lg text-maroon-900">
+                <h3 id="upload-config-modal-title" className="font-serif font-bold text-lg text-maroon-900">
                   {editingConfig ? "Edit Upload Config" : "Add Upload Config"}
                 </h3>
               </div>
               <button
                 onClick={() => setIsCreateOpen(false)}
+                aria-label="Close modal"
                 className="p-1 text-maroon-500 hover:text-maroon-800 rounded-md transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -383,7 +425,11 @@ export default function AdminSettingsPage() {
                 </label>
                 <input
                   type="text"
-                  {...register("name")}
+                  {...nameRegisterProps}
+                  ref={(e) => {
+                    nameRegisterRef(e);
+                    initialInputRef.current = e;
+                  }}
                   placeholder="e.g. Cloudinary Free Tier Account 1"
                   className="w-full px-3 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all placeholder:text-maroon-400"
                 />
@@ -446,7 +492,12 @@ export default function AdminSettingsPage() {
       )}
 
       {deletingConfig && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-config-modal-title"
+        >
           <div
             className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
             onClick={() => setDeletingConfig(null)}
@@ -458,7 +509,7 @@ export default function AdminSettingsPage() {
                 <AlertTriangle className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <h3 className="font-serif font-bold text-base text-maroon-900">
+                <h3 id="delete-config-modal-title" className="font-serif font-bold text-base text-maroon-900">
                   Delete Upload Config
                 </h3>
                 <p className="text-xs text-maroon-600 mt-0.5">
@@ -472,7 +523,7 @@ export default function AdminSettingsPage() {
                 Name: <span className="font-bold text-maroon-900">{deletingConfig.name || "Default Account"}</span>
               </div>
               <div className="font-mono text-[11px] text-maroon-700 truncate">
-                {deletingConfig.uploadUrl}
+                {maskUploadUrl(deletingConfig.uploadUrl)}
               </div>
             </div>
 

@@ -1,5 +1,8 @@
 import { v2 as cloudinary } from 'cloudinary';
-import { getLeastLoadedUploadConfigService } from './uploadConfig.service.js';
+import {
+  getLeastLoadedUploadConfigService,
+  releaseUploadConfigLoadService,
+} from './uploadConfig.service.js';
 import ApiError from '../../utils/ApiError.js';
 
 export const uploadImageToCloudinaryService = async (fileBuffer, originalname = '') => {
@@ -12,6 +15,7 @@ export const uploadImageToCloudinaryService = async (fileBuffer, originalname = 
 
   const match = config.uploadUrl.match(/^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/i);
   if (!match) {
+    await releaseUploadConfigLoadService(config._id);
     throw new ApiError(400, 'Invalid Cloudinary connection URL format in upload configuration');
   }
 
@@ -30,9 +34,14 @@ export const uploadImageToCloudinaryService = async (fileBuffer, originalname = 
         folder: 'commercecore',
         resource_type: 'image',
       },
-      (error, result) => {
+      async (error, result) => {
         if (error) {
+          await releaseUploadConfigLoadService(config._id);
           return reject(new ApiError(500, `Cloudinary upload failed: ${error.message || 'Unknown error'}`));
+        }
+        if (!result || !result.secure_url) {
+          await releaseUploadConfigLoadService(config._id);
+          return reject(new ApiError(502, 'Cloudinary response missing secure image URL'));
         }
         resolve({
           url: result.secure_url,

@@ -44,6 +44,7 @@ const imageFileFilter = (req, file, cb) => {
 
 const upload = multer({
   storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB safety limit
   fileFilter: imageFileFilter,
 });
 
@@ -51,6 +52,7 @@ const upload = multer({
 router.post(
   '/image',
   authenticateToken,
+  requireAdmin,
   (req, res, next) => {
     upload.single('image')(req, res, (err) => {
       if (err) {
@@ -63,7 +65,7 @@ router.post(
 );
 
 // least loaded active config endpoint for uploads
-router.get('/least-loaded', authenticateToken, getLeastLoadedUploadConfig);
+router.get('/least-loaded', authenticateToken, requireAdmin, getLeastLoadedUploadConfig);
 
 // admin upload configurations CRUD
 router.get('/', authenticateToken, requireAdmin, getUploadConfigs);

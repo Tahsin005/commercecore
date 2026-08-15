@@ -1,5 +1,17 @@
 import { z } from "zod";
 
+const cloudinaryImageUrl = z
+  .string()
+  .trim()
+  .refine((url) => {
+    try {
+      const u = new URL(url);
+      return u.protocol === "https:" && u.hostname === "res.cloudinary.com";
+    } catch {
+      return false;
+    }
+  }, { message: "Must be a valid HTTPS Cloudinary URL (https://res.cloudinary.com/...)" });
+
 export const productSchema = z.object({
   name: z
     .string()
@@ -18,7 +30,7 @@ export const productSchema = z.object({
     .min(0, { message: "Quantity cannot be negative" }),
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
-  images: z.array(z.string()).optional(),
+  images: z.array(cloudinaryImageUrl).optional(),
   variantIds: z.array(z.string()).optional(),
 });
 

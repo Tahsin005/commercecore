@@ -2,9 +2,14 @@ import mongoose from 'mongoose';
 import UploadConfig from './uploadConfig.model.js';
 import ApiError from '../../utils/ApiError.js';
 
+export const maskUploadUrl = (url = '') => {
+  if (!url) return '';
+  return url.replace(/^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/i, 'cloudinary://$1:***@$3');
+};
+
 export const getAllUploadConfigsService = async () => {
   const configs = await UploadConfig.find({}).sort({ load: 1, createdAt: -1 });
-  
+
   const stats = configs.reduce(
     (acc, cfg) => {
       acc.totalConfigs += 1;
@@ -15,8 +20,14 @@ export const getAllUploadConfigsService = async () => {
     { totalConfigs: 0, activeConfigs: 0, totalLoad: 0 }
   );
 
+  const maskedConfigs = configs.map((cfg) => {
+    const doc = cfg.toJSON ? cfg.toJSON() : { ...cfg };
+    doc.uploadUrl = maskUploadUrl(doc.uploadUrl);
+    return doc;
+  });
+
   return {
-    configs,
+    configs: maskedConfigs,
     stats,
   };
 };
@@ -35,6 +46,14 @@ export const getLeastLoadedUploadConfigService = async () => {
   return config;
 };
 
+export const releaseUploadConfigLoadService = async (configId) => {
+  if (!configId) return;
+  await UploadConfig.updateOne(
+    { _id: configId, load: { $gt: 0 } },
+    { $inc: { load: -1 } }
+  );
+};
+
 export const createUploadConfigService = async ({
   name = '',
   uploadUrl,
@@ -47,7 +66,9 @@ export const createUploadConfigService = async ({
     isActive: Boolean(isActive),
   });
 
-  return config;
+  const doc = config.toJSON ? config.toJSON() : { ...config };
+  doc.uploadUrl = maskUploadUrl(doc.uploadUrl);
+  return doc;
 };
 
 export const updateUploadConfigService = async (id, payload) => {
@@ -68,7 +89,10 @@ export const updateUploadConfigService = async (id, payload) => {
   if (isActive !== undefined) config.isActive = Boolean(isActive);
 
   await config.save();
-  return config;
+
+  const doc = config.toJSON ? config.toJSON() : { ...config };
+  doc.uploadUrl = maskUploadUrl(doc.uploadUrl);
+  return doc;
 };
 
 export const deleteUploadConfigService = async (id) => {
@@ -76,11 +100,12 @@ export const deleteUploadConfigService = async (id) => {
     throw new ApiError(400, 'Invalid Upload Config ID');
   }
 
-  const config = await UploadConfig.findById(id);
+  const config = await UploadConfig.findByIdAndDelete(id);
   if (!config) {
     throw new ApiError(404, 'Upload configuration not found');
   }
 
-  await UploadConfig.deleteOne({ _id: id });
-  return config;
+  const doc = config.toJSON ? config.toJSON() : { ...config };
+  doc.uploadUrl = maskUploadUrl(doc.uploadUrl);
+  return doc;
 };
