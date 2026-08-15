@@ -29,10 +29,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCreateOrderMutation } from "@/hooks/useOrderQueries";
 import { checkoutSchema, CheckoutInput } from "@/lib/validations/order";
 import { CheckoutSkeleton, OrderSuccessSkeleton } from "@/components/skeletons";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { user, isAuthenticated, isHydrated } = useAuth();
+  const { t } = useLanguage();
 
   const { items: cartItems, subtotal, updateQuantity, removeItem, isLoading: isCartLoading } = useCart();
   const wishlistItems = useWishlistStore((state) => state.items);
@@ -71,7 +73,7 @@ export default function CheckoutPage() {
 
   const onSubmit = (data: CheckoutInput) => {
     if (cartItems.length === 0) {
-      toast.error("Your cart is empty");
+      toast.error(t.checkout.emptyTitle);
       return;
     }
 
@@ -106,15 +108,15 @@ export default function CheckoutPage() {
         const { order, user: orderUser, token } = response.data;
 
         if (token && orderUser) {
-          toast.success(`Account registered & logged in for ${orderUser.name}!`);
+          toast.success(`${orderUser.name}-এর জন্য অ্যাকাউন্ট নিবন্ধিত ও লগইন হয়েছে!`);
         } else {
-          toast.success("Order placed successfully!");
+          toast.success(t.checkout.orderSuccessToast);
         }
 
         router.push(`/order-success/${order.orderNumber}`);
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to place order");
+        toast.error(err.message || t.common.error);
       },
     });
   };
@@ -151,14 +153,14 @@ export default function CheckoutPage() {
               <div className="lg:col-span-7 space-y-6 text-center lg:text-left order-2 lg:order-2 flex flex-col items-center lg:items-start">
                 <div className="space-y-3">
                   <span className="text-xs font-bold uppercase tracking-[0.25em] text-maroon-700 font-sans block">
-                    YOUR CART IS EMPTY
+                    {t.cartDrawer.emptyNotice}
                   </span>
                   <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-maroon-900 tracking-tight leading-[1.15]">
-                    Your cart is <br className="hidden sm:inline" /> waiting for you
+                    {t.checkout.emptyTitle}
                   </h1>
                   <div className="w-12 h-0.5 bg-maroon-700/60 mx-auto lg:mx-0 my-2" />
                   <p className="text-xs sm:text-sm text-maroon-700/85 max-w-md font-sans leading-relaxed">
-                    Looks like you haven't added anything to your cart yet. Discover something you'll love and add it to your collection.
+                    {t.checkout.emptyDesc}
                   </p>
                 </div>
 
@@ -168,7 +170,7 @@ export default function CheckoutPage() {
                     className="inline-flex items-center space-x-2.5 px-7 py-3.5 bg-maroon-900 hover:bg-maroon-800 active:scale-[0.98] text-white font-semibold text-xs sm:text-sm rounded-xl shadow-md transition-all cursor-pointer group"
                   >
                     <ArrowRight className="w-4 h-4 text-cream group-hover:translate-x-1 transition-transform" />
-                    <span>Explore Products</span>
+                    <span>{t.common.exploreProducts}</span>
                   </Link>
                 </div>
               </div>
@@ -180,8 +182,8 @@ export default function CheckoutPage() {
                   <Truck className="w-5 h-5 text-maroon-800" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-maroon-900 font-sans">Nationwide Delivery</h4>
-                  <p className="text-[11px] text-maroon-700/80 mt-0.5">Fast and reliable shipping</p>
+                  <h4 className="text-xs font-bold text-maroon-900 font-sans">{t.footer.fastDeliveryTitle}</h4>
+                  <p className="text-[11px] text-maroon-700/80 mt-0.5">{t.footer.fastDeliveryDesc}</p>
                 </div>
               </div>
 
@@ -190,8 +192,8 @@ export default function CheckoutPage() {
                   <CreditCard className="w-5 h-5 text-maroon-800" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-maroon-900 font-sans">Cash on Delivery</h4>
-                  <p className="text-[11px] text-maroon-700/80 mt-0.5">Pay when you receive</p>
+                  <h4 className="text-xs font-bold text-maroon-900 font-sans">{t.footer.codTitle}</h4>
+                  <p className="text-[11px] text-maroon-700/80 mt-0.5">{t.footer.codDesc}</p>
                 </div>
               </div>
 
@@ -200,8 +202,8 @@ export default function CheckoutPage() {
                   <ShieldCheck className="w-5 h-5 text-maroon-800" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-maroon-900 font-sans">Secure Checkout</h4>
-                  <p className="text-[11px] text-maroon-700/80 mt-0.5">Your data is protected</p>
+                  <h4 className="text-xs font-bold text-maroon-900 font-sans">{t.footer.qualityTitle}</h4>
+                  <p className="text-[11px] text-maroon-700/80 mt-0.5">{t.footer.qualityDesc}</p>
                 </div>
               </div>
             </div>
@@ -211,18 +213,18 @@ export default function CheckoutPage() {
             <div className="lg:col-span-7 space-y-6">
               <div className="bg-white rounded-2xl shadow-md border border-maroon-100 p-6 sm:p-8 space-y-6">
                 <div className="border-b border-maroon-100 pb-4">
-                  <h2 className="text-xl font-serif font-bold text-maroon-900">Customer &amp; Shipping Details</h2>
+                  <h2 className="text-xl font-serif font-bold text-maroon-900">{t.checkout.customerDetailsTitle}</h2>
                   <p className="text-xs text-maroon-700 mt-0.5">
                     {isAuthenticated
-                      ? "Confirm your shipping information"
-                      : "Enter your contact details (an account will be automatically set up)"}
+                      ? t.checkout.customerDetailsAuth
+                      : t.checkout.customerDetailsGuest}
                   </p>
                 </div>
 
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="customerName" className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
-                      Full Name *
+                      {t.checkout.fullName}
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
@@ -231,7 +233,7 @@ export default function CheckoutPage() {
                       <input
                         id="customerName"
                         type="text"
-                        placeholder="John Doe"
+                        placeholder={t.checkout.fullNamePlaceholder}
                         {...register("customerName")}
                         className="w-full pl-10 pr-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
                       />
@@ -243,7 +245,7 @@ export default function CheckoutPage() {
 
                   <div>
                     <label htmlFor="phone" className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
-                      Mobile Number *
+                      {t.checkout.mobileNumber}
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
@@ -252,7 +254,7 @@ export default function CheckoutPage() {
                       <input
                         id="phone"
                         type="tel"
-                        placeholder="01700000000"
+                        placeholder={t.checkout.mobilePlaceholder}
                         {...register("phone")}
                         className="w-full pl-10 pr-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
                       />
@@ -264,7 +266,7 @@ export default function CheckoutPage() {
 
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-2">
-                      Delivery Area *
+                      {t.checkout.deliveryArea}
                     </label>
                     <div className="grid grid-cols-2 gap-3">
                       <label
@@ -281,7 +283,7 @@ export default function CheckoutPage() {
                             {...register("deliveryZone")}
                             className="sr-only"
                           />
-                          <span className="text-xs font-bold">Inside Dhaka</span>
+                          <span className="text-xs font-bold">{t.checkout.insideDhaka}</span>
                         </div>
                         <span className={`text-xs font-mono font-bold ${deliveryZone === "inside_dhaka" ? "text-cream" : "text-maroon-700"}`}>
                           ৳60
@@ -302,7 +304,7 @@ export default function CheckoutPage() {
                             {...register("deliveryZone")}
                             className="sr-only"
                           />
-                          <span className="text-xs font-bold">Outside Dhaka</span>
+                          <span className="text-xs font-bold">{t.checkout.outsideDhaka}</span>
                         </div>
                         <span className={`text-xs font-mono font-bold ${deliveryZone === "outside_dhaka" ? "text-cream" : "text-maroon-700"}`}>
                           ৳120
@@ -316,7 +318,7 @@ export default function CheckoutPage() {
 
                   <div>
                     <label htmlFor="shippingAddress" className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
-                      Shipping Address *
+                      {t.checkout.shippingAddress}
                     </label>
                     <div className="relative">
                       <div className="absolute top-3 left-3.5 text-maroon-500 pointer-events-none">
@@ -325,7 +327,7 @@ export default function CheckoutPage() {
                       <textarea
                         id="shippingAddress"
                         rows={3}
-                        placeholder="House no, Road no, Area details..."
+                        placeholder={t.checkout.addressPlaceholder}
                         {...register("shippingAddress")}
                         className="w-full pl-10 pr-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all resize-none"
                       />
@@ -342,8 +344,8 @@ export default function CheckoutPage() {
               <div className="bg-white rounded-2xl shadow-md border border-maroon-100 p-6 sm:p-8 space-y-6">
                 <div className="border-b border-maroon-100 pb-4 flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-serif font-bold text-maroon-900">Order Summary</h2>
-                    <p className="text-xs text-maroon-700 mt-0.5">{cartItems.length} Unique Item(s)</p>
+                    <h2 className="text-xl font-serif font-bold text-maroon-900">{t.checkout.orderSummaryTitle}</h2>
+                    <p className="text-xs text-maroon-700 mt-0.5">{cartItems.length} {t.checkout.uniqueItemCount}</p>
                   </div>
                   <ShoppingBag className="w-5 h-5 text-maroon-700" />
                 </div>
@@ -394,7 +396,7 @@ export default function CheckoutPage() {
                             type="button"
                             onClick={() => removeItem(itemKey)}
                             className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                            title="Remove item"
+                            title={t.cartDrawer.removeItem}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -406,17 +408,17 @@ export default function CheckoutPage() {
 
                 <div className="pt-4 border-t border-maroon-100 space-y-2.5 text-xs font-sans">
                   <div className="flex items-center justify-between text-maroon-700">
-                    <span>Subtotal</span>
+                    <span>{t.checkout.subtotal}</span>
                     <span className="font-mono font-semibold">৳{subtotal.toFixed(2)}</span>
                   </div>
 
                   <div className="flex items-center justify-between text-maroon-700">
-                    <span>Delivery Charge ({deliveryZone === "inside_dhaka" ? "Inside Dhaka" : "Outside Dhaka"})</span>
+                    <span>{t.checkout.deliveryCharge} ({deliveryZone === "inside_dhaka" ? t.checkout.insideDhaka : t.checkout.outsideDhaka})</span>
                     <span className="font-mono font-semibold">৳{deliveryCharge.toFixed(2)}</span>
                   </div>
 
                   <div className="pt-3 border-t border-maroon-100 flex items-center justify-between text-sm font-bold text-maroon-900">
-                    <span>Total Amount</span>
+                    <span>{t.checkout.totalAmount}</span>
                     <span className="text-xl font-mono text-maroon-900">৳{totalAmount.toFixed(2)}</span>
                   </div>
                 </div>
@@ -429,12 +431,12 @@ export default function CheckoutPage() {
                   {createOrderMutation.isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin text-cream" />
-                      <span>Processing Order...</span>
+                      <span>{t.checkout.processingOrder}</span>
                     </>
                   ) : (
                     <>
                       <CheckCircle2 className="w-4 h-4 text-cream" />
-                      <span>Place Order (Cash on Delivery)</span>
+                      <span>{t.checkout.placeOrder}</span>
                     </>
                   )}
                 </button>

@@ -23,9 +23,11 @@ import { useSyncWishlistMutation } from "@/hooks/useWishlistQueries";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { GuestGuard } from "@/components/guards/GuestGuard";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const loginMutation = useLoginMutation();
   const syncCartMutation = useSyncCartMutation();
@@ -46,7 +48,7 @@ export default function LoginPage() {
   const onSubmit = (data: LoginInput) => {
     loginMutation.mutate(data, {
       onSuccess: async () => {
-        toast.success("Welcome back! Login successful.");
+        toast.success(t.login.welcomeSuccess);
         const guestCartItems = useCartStore.getState().items;
         if (guestCartItems.length > 0) {
           try {
@@ -78,7 +80,7 @@ export default function LoginPage() {
         router.push("/");
       },
       onError: (error) => {
-        const message = error.message || "Invalid credentials";
+        const message = error.message || t.common.error;
         toast.error(message);
       },
     });
@@ -91,10 +93,10 @@ export default function LoginPage() {
           <div className="w-full md:w-3/5 p-6 sm:p-10 flex flex-col justify-center order-2 md:order-1">
             <div className="mb-6">
               <h1 className="text-2xl sm:text-3xl font-serif font-bold text-maroon-900 tracking-tight">
-                Welcome Back
+                {t.login.title}
               </h1>
               <p className="text-xs sm:text-sm text-maroon-700 mt-1">
-                Sign in to access your CommerceCore account
+                {t.login.subtitle}
               </p>
             </div>
 
@@ -104,7 +106,7 @@ export default function LoginPage() {
                   htmlFor="identifier"
                   className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5"
                 >
-                  Email or Phone Number
+                  {t.login.identifierLabel}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
@@ -113,7 +115,7 @@ export default function LoginPage() {
                   <input
                     id="identifier"
                     type="text"
-                    placeholder="name@example.com or +123456789"
+                    placeholder={t.login.identifierPlaceholder}
                     {...register("identifier")}
                     className={`w-full pl-10 pr-3.5 py-2.5 bg-off-white text-maroon-900 border rounded-md text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 transition-all ${
                       errors.identifier ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
@@ -130,7 +132,7 @@ export default function LoginPage() {
                   htmlFor="password"
                   className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5"
                 >
-                  Password
+                  {t.login.passwordLabel}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
@@ -139,7 +141,7 @@ export default function LoginPage() {
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder={t.login.passwordPlaceholder}
                     {...register("password")}
                     className={`w-full pl-10 pr-10 py-2.5 bg-off-white text-maroon-900 border rounded-md text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 transition-all ${
                       errors.password ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
@@ -166,11 +168,11 @@ export default function LoginPage() {
                 {loginMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-cream" />
-                    <span>Signing In...</span>
+                    <span>{t.login.signingIn}</span>
                   </>
                 ) : (
                   <>
-                    <span>Sign In</span>
+                    <span>{t.login.signInBtn}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -179,12 +181,12 @@ export default function LoginPage() {
 
             <div className="mt-6 pt-4 text-center border-t border-maroon-100">
               <p className="text-xs text-maroon-700 font-sans">
-                Don&apos;t have an account?{" "}
+                {t.login.noAccount}{" "}
                 <Link
                   href="/signup"
                   className="font-semibold text-maroon-900 hover:underline transition-all"
                 >
-                  Sign Up
+                  {t.login.signUpLink}
                 </Link>
               </p>
             </div>
@@ -202,10 +204,10 @@ export default function LoginPage() {
               />
             </div>
             <h2 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-wide">
-              CommerceCore
+              {t.common.commerceCore}
             </h2>
             <p className="text-xs text-maroon-200 mt-2 max-w-xs leading-relaxed font-sans">
-              Elevating Modern E-Commerce Experiences
+              {t.login.brandTag}
             </p>
           </div>
         </main>

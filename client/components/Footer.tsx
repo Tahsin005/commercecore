@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -7,8 +9,11 @@ import {
   Heart,
   ArrowRight,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function Footer() {
+  const { t } = useLanguage();
+
   return (
     <footer className="bg-maroon-900 text-white border-t border-maroon-800 font-sans mt-auto">
       <div className="border-b border-maroon-800/80 bg-maroon-900/80 py-6">
@@ -18,8 +23,8 @@ export function Footer() {
               <Truck className="w-5 h-5 text-cream" />
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white">Fast Nationwide Delivery</h4>
-              <p className="text-[11px] text-maroon-200 mt-0.5">Inside Dhaka ৳60 &bull; Outside Dhaka ৳120</p>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white">{t.footer.fastDeliveryTitle}</h4>
+              <p className="text-[11px] text-maroon-200 mt-0.5">{t.footer.fastDeliveryDesc}</p>
             </div>
           </div>
 
@@ -28,8 +33,8 @@ export function Footer() {
               <CreditCard className="w-5 h-5 text-cream" />
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white">Cash on Delivery</h4>
-              <p className="text-[11px] text-maroon-200 mt-0.5">Pay safely when you receive your package</p>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white">{t.footer.codTitle}</h4>
+              <p className="text-[11px] text-maroon-200 mt-0.5">{t.footer.codDesc}</p>
             </div>
           </div>
 
@@ -38,8 +43,8 @@ export function Footer() {
               <ShieldCheck className="w-5 h-5 text-cream" />
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white">100% Authentic Quality</h4>
-              <p className="text-[11px] text-maroon-200 mt-0.5">Curated premium fabrics &amp; products</p>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white">{t.footer.qualityTitle}</h4>
+              <p className="text-[11px] text-maroon-200 mt-0.5">{t.footer.qualityDesc}</p>
             </div>
           </div>
         </div>
@@ -60,41 +65,41 @@ export function Footer() {
               />
             </div>
             <span className="font-serif text-2xl font-bold tracking-tight text-white group-hover:text-cream transition-colors">
-              CommerceCore
+              {t.common.commerceCore}
             </span>
           </Link>
 
           <p className="text-xs text-maroon-200 leading-relaxed max-w-sm font-sans">
-            CommerceCore is a premium full-stack e-commerce platform delivering high quality collections, seamless variant ordering, and fast Cash-on-Delivery nationwide.
+            {t.footer.brandDesc}
           </p>
         </div>
 
         {/* Quick Navigation Links */}
         <div className="md:col-span-3 space-y-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-cream font-serif">Quick Navigation</h4>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-cream font-serif">{t.footer.quickNav}</h4>
           <ul className="space-y-2.5 text-xs text-maroon-200 font-sans">
             <li>
               <Link href="/" className="hover:text-white transition-colors flex items-center space-x-1.5">
                 <ArrowRight className="w-3 h-3 text-cream/70 shrink-0" />
-                <span>Shop Products</span>
+                <span>{t.footer.shopProducts}</span>
               </Link>
             </li>
             <li>
               <Link href="/checkout" className="hover:text-white transition-colors flex items-center space-x-1.5">
                 <ArrowRight className="w-3 h-3 text-cream/70 shrink-0" />
-                <span>View Checkout</span>
+                <span>{t.footer.viewCheckout}</span>
               </Link>
             </li>
             <li>
               <Link href="/login" className="hover:text-white transition-colors flex items-center space-x-1.5">
                 <ArrowRight className="w-3 h-3 text-cream/70 shrink-0" />
-                <span>Account Login</span>
+                <span>{t.footer.accountLogin}</span>
               </Link>
             </li>
             <li>
               <Link href="/signup" className="hover:text-white transition-colors flex items-center space-x-1.5">
                 <ArrowRight className="w-3 h-3 text-cream/70 shrink-0" />
-                <span>Register Account</span>
+                <span>{t.footer.registerAccount}</span>
               </Link>
             </li>
           </ul>
@@ -102,13 +107,13 @@ export function Footer() {
 
         {/* Customer Support & Shipping info */}
         <div className="md:col-span-4 space-y-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-cream font-serif">Delivery &amp; Support</h4>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-cream font-serif">{t.footer.deliverySupport}</h4>
           <p className="text-xs text-maroon-200 leading-relaxed font-sans">
-            Need help with your order? Our support team ensures quick dispatch and real-time order receipts upon checkout.
+            {t.footer.supportDesc}
           </p>
           <div className="pt-1">
             <span className="inline-block text-[11px] font-semibold text-cream bg-maroon-800 border border-maroon-700 px-3 py-1.5 rounded-md shadow-xs">
-              Order Helpline: Support Active 24/7
+              {t.footer.helpline}
             </span>
           </div>
         </div>
@@ -117,11 +122,11 @@ export function Footer() {
       {/* Bottom Copyright Strip */}
       <div className="border-t border-maroon-800/80 bg-maroon-900 py-4 text-xs text-maroon-200 font-sans">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-          <p>&copy; {new Date().getFullYear()} CommerceCore. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {t.common.commerceCore}। {t.footer.copyright}</p>
           <p className="flex items-center justify-center space-x-1 text-[11px] text-maroon-200">
-            <span>Crafted with</span>
+            <span>{t.footer.craftedWith}</span>
             <Heart className="w-3 h-3 text-red-500 fill-red-500" />
-            <span>for seamless e-commerce</span>
+            <span>{t.footer.forEcommerce}</span>
           </p>
         </div>
       </div>

@@ -4,17 +4,17 @@ export const checkoutSchema = z.object({
   customerName: z
     .string()
     .trim()
-    .min(2, { message: "Full name must be at least 2 characters long" }),
+    .min(2, { message: "পূর্ণ নাম অন্তত ২ অক্ষরের হতে হবে" }),
   phone: z
     .string()
     .trim()
-    .min(11, { message: "Phone number must be at least 11 digits" }),
+    .min(11, { message: "মোবাইল নম্বর অন্তত ১১ ডিজিটের হতে হবে" }),
   shippingAddress: z
     .string()
     .trim()
-    .min(5, { message: "Shipping address must be at least 5 characters long" }),
+    .min(5, { message: "ডেলিভারি ঠিকানা অন্তত ৫ অক্ষরের হতে হবে" }),
   deliveryZone: z.enum(["inside_dhaka", "outside_dhaka"], {
-    message: "Please select a delivery area",
+    message: "একটি ডেলিভারি এরিয়া নির্বাচন করুন",
   }),
 });
 

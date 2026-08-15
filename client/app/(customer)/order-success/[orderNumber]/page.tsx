@@ -15,6 +15,7 @@ import {
 
 import { useOrderDetailsQuery } from "@/hooks/useOrderQueries";
 import { OrderSuccessSkeleton } from "@/components/skeletons";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface OrderSuccessPageProps {
   params: Promise<{ orderNumber: string }>;
@@ -22,6 +23,7 @@ interface OrderSuccessPageProps {
 
 export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
   const { orderNumber } = use(params);
+  const { t } = useLanguage();
 
   // react Query hook for order receipt details
   const { data: response, isLoading, error } = useOrderDetailsQuery(orderNumber);
@@ -39,14 +41,14 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
         <main className="flex-1 flex flex-col items-center justify-center p-4">
           <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md border border-maroon-100 text-center space-y-4">
             <Package className="w-12 h-12 text-maroon-300 mx-auto" />
-            <h1 className="text-2xl font-serif font-bold text-maroon-900">Order Not Found</h1>
-            <p className="text-xs text-maroon-700">{error?.message || "Could not retrieve order receipt."}</p>
+            <h1 className="text-2xl font-serif font-bold text-maroon-900">{t.orderSuccess.orderNotFound}</h1>
+            <p className="text-xs text-maroon-700">{error?.message || t.orderSuccess.orderNotFound}</p>
             <Link
               href="/"
               className="inline-flex items-center space-x-2 px-5 py-2.5 bg-maroon-900 text-white font-medium text-xs rounded-md shadow hover:bg-maroon-800 transition-all"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Return to Shop</span>
+              <span>{t.common.backToShop}</span>
             </Link>
           </div>
         </main>
@@ -63,13 +65,13 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
               <CheckCircle2 className="w-8 h-8 text-cream" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
-              Order Confirmed!
+              {t.orderSuccess.confirmedTitle}
             </h1>
             <p className="text-xs text-maroon-200 font-sans max-w-md mx-auto">
-              Thank you for your purchase. Your order has been placed successfully and is being processed.
+              {t.orderSuccess.confirmedDesc}
             </p>
             <div className="inline-block bg-maroon-800 border border-maroon-700 px-4 py-1.5 rounded-full text-xs font-mono font-bold text-cream tracking-wide">
-              Order #{order.orderNumber}
+              {t.orderSuccess.orderNumber} #{order.orderNumber}
             </div>
           </div>
 
@@ -77,7 +79,7 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-3 text-emerald-900 text-xs font-medium">
               <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
               <span>
-                Payment Method: <strong>Cash on Delivery</strong> (Pay ৳{order.total.toFixed(2)} upon delivery)
+                {t.orderSuccess.paymentMethod}: <strong>{t.orderSuccess.codLabel}</strong> (ডেলিভারির সময় ৳{order.total.toFixed(2)} পরিশোধ করুন)
               </span>
             </div>
 
@@ -85,7 +87,7 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
               <div className="p-4 bg-off-white rounded-xl border border-maroon-100 space-y-2">
                 <h3 className="font-semibold text-maroon-900 border-b border-maroon-200/60 pb-1 flex items-center space-x-1.5">
                   <User className="w-3.5 h-3.5 text-maroon-700" />
-                  <span>Customer Details</span>
+                  <span>{t.orderSuccess.customerDetails}</span>
                 </h3>
                 <p className="text-maroon-800 font-medium">{order.customerName}</p>
                 <p className="text-maroon-700 flex items-center space-x-1">
@@ -97,11 +99,11 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
               <div className="p-4 bg-off-white rounded-xl border border-maroon-100 space-y-2">
                 <h3 className="font-semibold text-maroon-900 border-b border-maroon-200/60 pb-1 flex items-center space-x-1.5">
                   <MapPin className="w-3.5 h-3.5 text-maroon-700" />
-                  <span>Shipping Address</span>
+                  <span>{t.orderSuccess.shippingAddress}</span>
                 </h3>
                 <p className="text-maroon-800 font-medium leading-relaxed">{order.shippingAddress}</p>
                 <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-maroon-600 bg-white px-2 py-0.5 rounded border border-maroon-200">
-                  {order.deliveryZone === "inside_dhaka" ? "Inside Dhaka" : "Outside Dhaka"}
+                  {order.deliveryZone === "inside_dhaka" ? t.checkout.insideDhaka : t.checkout.outsideDhaka}
                 </span>
               </div>
             </div>
@@ -109,7 +111,7 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
             <div className="space-y-3">
               <h3 className="font-serif font-bold text-base text-maroon-900 flex items-center space-x-2">
                 <ShoppingBag className="w-4 h-4 text-maroon-700" />
-                <span>Order Summary Items</span>
+                <span>{t.orderSuccess.itemsSummary}</span>
               </h3>
 
               <div className="divide-y divide-maroon-100 border border-maroon-100 rounded-xl overflow-hidden bg-off-white/50">
@@ -138,15 +140,15 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
 
             <div className="p-4 bg-off-white rounded-xl border border-maroon-100 space-y-2 text-xs font-sans">
               <div className="flex justify-between text-maroon-700">
-                <span>Items Subtotal</span>
+                <span>{t.orderSuccess.itemsSubtotal}</span>
                 <span className="font-mono font-semibold">৳{order.subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-maroon-700">
-                <span>Delivery Charge</span>
+                <span>{t.orderSuccess.deliveryCharge}</span>
                 <span className="font-mono font-semibold">৳{order.deliveryCharge.toFixed(2)}</span>
               </div>
               <div className="pt-2 border-t border-maroon-200/60 flex justify-between text-sm font-bold text-maroon-900">
-                <span>Grand Total</span>
+                <span>{t.orderSuccess.grandTotal}</span>
                 <span className="font-mono text-base text-maroon-900">৳{order.total.toFixed(2)}</span>
               </div>
             </div>
@@ -157,7 +159,7 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
                 className="inline-flex items-center space-x-2 px-6 py-3 bg-maroon-900 hover:bg-maroon-800 text-white text-xs font-semibold rounded-md shadow transition-all cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4 text-cream" />
-                <span>Continue Shopping</span>
+                <span>{t.orderSuccess.continueShopping}</span>
               </Link>
             </div>
           </div>

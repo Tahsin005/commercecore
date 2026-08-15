@@ -13,17 +13,20 @@ import {
   Home as HomeIcon,
   ShoppingBag,
   LayoutDashboard,
+  Globe,
 } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { CartDrawer } from "@/components/CartDrawer";
 
 export function Navbar() {
   const { user, isAuthenticated, logout, isHydrated } = useAuth();
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
+  const { t, language, setLanguage } = useLanguage();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
@@ -31,6 +34,10 @@ export function Navbar() {
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
   const openCartDrawer = () => setCartDrawerOpen(true);
   const closeCartDrawer = () => setCartDrawerOpen(false);
+
+  const toggleLanguage = () => {
+    setLanguage(language === "bn" ? "en" : "bn");
+  };
 
   return (
     <>
@@ -48,7 +55,7 @@ export function Navbar() {
               />
             </div>
             <span className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-white group-hover:text-cream transition-colors whitespace-nowrap">
-              CommerceCore
+              {t.common.commerceCore}
             </span>
           </Link>
 
@@ -59,14 +66,14 @@ export function Navbar() {
               className="text-xs font-semibold uppercase tracking-wider text-cream/90 hover:text-white transition-colors flex items-center space-x-1.5 whitespace-nowrap"
             >
               <HomeIcon className="w-3.5 h-3.5" />
-              <span>Home</span>
+              <span>{t.navbar.home}</span>
             </Link>
             <Link
               href="/checkout"
               className="text-xs font-semibold uppercase tracking-wider text-cream/90 hover:text-white transition-colors flex items-center space-x-1.5 whitespace-nowrap"
             >
               <ShoppingBag className="w-3.5 h-3.5" />
-              <span>Checkout</span>
+              <span>{t.navbar.checkout}</span>
             </Link>
 
             {/* Admin Panel Badge Link for Logged-In Admins */}
@@ -76,21 +83,31 @@ export function Navbar() {
                 className="px-3 py-1.5 bg-cream text-maroon-900 hover:bg-white font-bold text-xs rounded-md shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap"
               >
                 <LayoutDashboard className="w-3.5 h-3.5 text-maroon-900" />
-                <span>Admin Panel</span>
+                <span>{t.navbar.adminPanel}</span>
               </Link>
             )}
           </nav>
 
           {/* Desktop Action Controls (Visible on lg screens 1024px+) */}
-          <div className="hidden lg:flex items-center space-x-3.5">
+          <div className="hidden lg:flex items-center space-x-3">
+            {/* Language Toggle Button */}
+            <button
+              onClick={toggleLanguage}
+              className="px-2.5 py-1.5 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white font-semibold text-xs rounded-md transition-all flex items-center space-x-1.5 cursor-pointer shadow-xs"
+              title={language === "bn" ? "Switch to English" : "বাংলায় পরিবর্তন করুন"}
+            >
+              <Globe className="w-3.5 h-3.5 text-cream" />
+              <span className="font-mono uppercase">{language === "bn" ? "EN" : "বাংলা"}</span>
+            </button>
+
             {/* Cart Drawer Trigger */}
             <button
               onClick={openCartDrawer}
               className="px-3.5 py-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white font-medium text-xs rounded-md transition-all flex items-center space-x-2 cursor-pointer shadow-sm whitespace-nowrap"
-              title="Open Cart"
+              title={t.navbar.openCart}
             >
               <ShoppingCart className="w-4 h-4 text-cream" />
-              <span>Cart</span>
+              <span>{t.navbar.cart}</span>
               {!isHydrated ? (
                 <span className="bg-maroon-700/80 w-4 h-4 rounded-full animate-pulse" />
               ) : (
@@ -103,10 +120,10 @@ export function Navbar() {
             {/* Wishlist Indicator */}
             <div
               className="px-3.5 py-2 bg-maroon-800 border border-maroon-700 text-cream font-medium text-xs rounded-md flex items-center space-x-2 shadow-sm whitespace-nowrap"
-              title="Wishlist Items"
+              title={t.navbar.wishlist}
             >
               <Heart className={`w-4 h-4 text-cream ${wishlistCount > 0 ? "fill-cream" : ""}`} />
-              <span>Wishlist</span>
+              <span>{t.navbar.wishlist}</span>
               {!isHydrated ? (
                 <span className="bg-maroon-700/80 w-4 h-4 rounded-full animate-pulse" />
               ) : wishlistCount > 0 ? (
@@ -126,12 +143,12 @@ export function Navbar() {
                 {isAuthenticated && user ? (
                   <div className="flex items-center space-x-2.5 pl-2 border-l border-maroon-700">
                     <span className="text-xs font-medium text-cream truncate max-w-[110px]" title={user.name}>
-                      Hi, {user.name}
+                      {t.navbar.hi}, {user.name}
                     </span>
                     <button
                       onClick={logout}
                       className="p-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white rounded-md text-xs transition-all flex items-center space-x-1 cursor-pointer"
-                      title="Logout"
+                      title={t.navbar.signOut}
                     >
                       <LogOut className="w-4 h-4" />
                     </button>
@@ -142,7 +159,7 @@ export function Navbar() {
                     className="px-3.5 py-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white font-medium text-xs rounded-md transition-all flex items-center space-x-1.5 whitespace-nowrap"
                   >
                     <LogIn className="w-3.5 h-3.5" />
-                    <span>Sign In</span>
+                    <span>{t.navbar.signIn}</span>
                   </Link>
                 )}
               </div>
@@ -155,9 +172,19 @@ export function Navbar() {
 
           {/* Tablet & Mobile Header Controls (Visible on screens < 1024px) */}
           <div className="flex items-center space-x-2 lg:hidden">
+            {/* Mobile Language Switcher */}
+            <button
+              onClick={toggleLanguage}
+              className="p-2 bg-maroon-800 border border-maroon-700 rounded-md text-cream font-bold text-xs flex items-center space-x-1"
+              title={language === "bn" ? "Switch to English" : "বাংলায় পরিবর্তন করুন"}
+            >
+              <Globe className="w-4 h-4 text-cream" />
+              <span className="font-mono uppercase">{language === "bn" ? "EN" : "বাং"}</span>
+            </button>
+
             <div
               className="relative p-2 bg-maroon-800 border border-maroon-700 rounded-md text-cream flex items-center justify-center"
-              title="Wishlist Items"
+              title={t.navbar.wishlist}
             >
               <Heart className={`w-4 h-4 text-cream ${wishlistCount > 0 ? "fill-cream" : ""}`} />
               {!isHydrated ? (
@@ -172,7 +199,7 @@ export function Navbar() {
             <button
               onClick={openCartDrawer}
               className="relative p-2 bg-maroon-800 border border-maroon-700 rounded-md text-cream flex items-center justify-center cursor-pointer"
-              title="Open Cart Drawer"
+              title={t.navbar.openCart}
             >
               <ShoppingCart className="w-4 h-4" />
               {!isHydrated ? (
@@ -187,7 +214,7 @@ export function Navbar() {
             <button
               onClick={toggleMobileMenu}
               className="p-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 rounded-md text-cream hover:text-white transition-all cursor-pointer"
-              aria-label="Toggle Navigation Menu"
+              aria-label={t.navbar.toggleMenu}
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -203,7 +230,7 @@ export function Navbar() {
               className="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-maroon-800 text-cream text-xs font-semibold uppercase tracking-wider"
             >
               <HomeIcon className="w-4 h-4" />
-              <span>Home</span>
+              <span>{t.navbar.home}</span>
             </Link>
             <Link
               href="/checkout"
@@ -211,7 +238,7 @@ export function Navbar() {
               className="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-maroon-800 text-cream text-xs font-semibold uppercase tracking-wider"
             >
               <ShoppingBag className="w-4 h-4" />
-              <span>Checkout</span>
+              <span>{t.navbar.checkout}</span>
             </Link>
 
             {isHydrated && isAuthenticated && user?.isAdmin && (
@@ -221,7 +248,7 @@ export function Navbar() {
                 className="flex items-center space-x-2 px-3 py-2 rounded-md bg-cream text-maroon-900 font-bold text-xs uppercase tracking-wider shadow-sm"
               >
                 <LayoutDashboard className="w-4 h-4 text-maroon-900" />
-                <span>Admin Panel</span>
+                <span>{t.navbar.adminPanel}</span>
               </Link>
             )}
 
@@ -229,7 +256,7 @@ export function Navbar() {
               {isHydrated ? (
                 isAuthenticated && user ? (
                   <div className="flex items-center justify-between w-full">
-                    <span className="text-xs text-cream font-medium">Hi, {user.name}</span>
+                    <span className="text-xs text-cream font-medium">{t.navbar.hi}, {user.name}</span>
                     <button
                       onClick={() => {
                         logout();
@@ -238,7 +265,7 @@ export function Navbar() {
                       className="px-3 py-1.5 bg-maroon-800 border border-maroon-700 text-cream rounded-md text-xs font-medium flex items-center space-x-1 cursor-pointer"
                     >
                       <LogOut className="w-3.5 h-3.5" />
-                      <span>Sign Out</span>
+                      <span>{t.navbar.signOut}</span>
                     </button>
                   </div>
                 ) : (
@@ -248,7 +275,7 @@ export function Navbar() {
                     className="w-full py-2 bg-maroon-800 border border-maroon-700 text-cream text-center rounded-md text-xs font-medium flex items-center justify-center space-x-1.5"
                   >
                     <LogIn className="w-3.5 h-3.5" />
-                    <span>Sign In</span>
+                    <span>{t.navbar.signIn}</span>
                   </Link>
                 )
               ) : (
