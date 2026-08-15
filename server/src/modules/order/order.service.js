@@ -6,6 +6,7 @@ import User from '../user/user.model.js';
 import { generateAuthToken } from '../user/user.service.js';
 import { syncGuestCartService, clearUserCartService } from '../cart/cart.service.js';
 import { syncGuestWishlistService } from '../wishlist/wishlist.service.js';
+import { orderStatusEnum } from './order.validation.js';
 import ApiError from '../../utils/ApiError.js';
 
 export const createOrderService = async (orderPayload, reqUser = null) => {
@@ -253,7 +254,9 @@ export const getAllOrdersAdminService = async (query = {}) => {
   }
 
   if (search && search.trim()) {
-    const regex = new RegExp(search.trim(), 'i');
+    const trimmed = search.trim().slice(0, 100);
+    const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escaped, 'i');
     filter.$or = [
       { orderNumber: regex },
       { customerName: regex },
@@ -266,13 +269,39 @@ export const getAllOrdersAdminService = async (query = {}) => {
   const limitNum = Math.max(1, parseInt(limit, 10) || 50);
   const skip = (pageNum - 1) * limitNum;
 
-  const [orders, totalCount] = await Promise.all([
+  const [orders, totalCount, [statsAggregate]] = await Promise.all([
     Order.find(filter)
       .populate('userId', 'name email phone')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum),
     Order.countDocuments(filter),
+    Order.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalOrders: { $sum: 1 },
+          totalRevenue: {
+            $sum: {
+              $cond: [
+                { $in: ['$status', ['CANCELLED', 'RETURNED']] },
+                0,
+                '$total',
+              ],
+            },
+          },
+          pendingOrders: {
+            $sum: { $cond: [{ $eq: ['$status', 'PENDING'] }, 1, 0] },
+          },
+          deliveredOrders: {
+            $sum: { $cond: [{ $eq: ['$status', 'DELIVERED'] }, 1, 0] },
+          },
+          cancelledOrders: {
+            $sum: { $cond: [{ $eq: ['$status', 'CANCELLED'] }, 1, 0] },
+          },
+        },
+      },
+    ]),
   ]);
 
   const orderIds = orders.map((o) => o.id);
@@ -287,21 +316,13 @@ export const getAllOrdersAdminService = async (query = {}) => {
     return acc;
   }, {});
 
-  // Real-time Analytics Statistics
-  const allOrdersForStats = await Order.find({}, 'total status');
-  let totalRevenue = 0;
-  let pendingCount = 0;
-  let deliveredCount = 0;
-  let cancelledCount = 0;
-
-  for (const o of allOrdersForStats) {
-    if (o.status !== 'CANCELLED' && o.status !== 'RETURNED') {
-      totalRevenue += o.total || 0;
-    }
-    if (o.status === 'PENDING') pendingCount++;
-    if (o.status === 'DELIVERED') deliveredCount++;
-    if (o.status === 'CANCELLED') cancelledCount++;
-  }
+  const stats = statsAggregate || {
+    totalOrders: 0,
+    totalRevenue: 0,
+    pendingOrders: 0,
+    deliveredOrders: 0,
+    cancelledOrders: 0,
+  };
 
   const formattedOrders = orders.map((o) => ({
     ...o.toJSON(),
@@ -317,11 +338,11 @@ export const getAllOrdersAdminService = async (query = {}) => {
       totalPages: Math.ceil(totalCount / limitNum),
     },
     stats: {
-      totalOrders: allOrdersForStats.length,
-      totalRevenue,
-      pendingOrders: pendingCount,
-      deliveredOrders: deliveredCount,
-      cancelledOrders: cancelledCount,
+      totalOrders: stats.totalOrders || 0,
+      totalRevenue: stats.totalRevenue || 0,
+      pendingOrders: stats.pendingOrders || 0,
+      deliveredOrders: stats.deliveredOrders || 0,
+      cancelledOrders: stats.cancelledOrders || 0,
     },
   };
 };
@@ -351,16 +372,7 @@ export const updateOrderStatusService = async (orderId, newStatus) => {
     throw new ApiError(400, 'Invalid Order ID');
   }
 
-  const validStatuses = [
-    'PENDING',
-    'CONFIRMED',
-    'PROCESSING',
-    'SHIPPED',
-    'DELIVERED',
-    'CANCELLED',
-    'RETURNED',
-  ];
-  if (!validStatuses.includes(newStatus)) {
+  if (!orderStatusEnum.options.includes(newStatus)) {
     throw new ApiError(400, 'Invalid status specified');
   }
 

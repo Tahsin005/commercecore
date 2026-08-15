@@ -61,10 +61,17 @@ export const getOrderDetailsSchema = z.object({
 
 export const getAdminOrdersSchema = z.object({
   query: z.object({
-    status: z.string().optional(),
+    status: z.union([orderStatusEnum, z.literal('ALL')]).optional(),
     search: z.string().optional(),
-    page: z.string().optional(),
-    limit: z.string().optional(),
+    page: z.string().regex(/^\d+$/, 'Page must be a positive integer').optional(),
+    limit: z
+      .string()
+      .regex(/^\d+$/, 'Limit must be a positive integer')
+      .refine(
+        (val) => !val || (parseInt(val, 10) >= 1 && parseInt(val, 10) <= 100),
+        'Limit must be between 1 and 100'
+      )
+      .optional(),
   }),
 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   useAdminOrdersQuery,
   useAdminOrderDetailQuery,
@@ -27,15 +27,14 @@ import {
   MapPin,
   Calendar,
   DollarSign,
-  ChevronRight,
-  ChevronLeft,
   RotateCcw,
   Loader2,
+  LucideIcon,
 } from "lucide-react";
 
 const STATUS_CONFIG: Record<
   OrderStatus,
-  { label: string; bg: string; text: string; border: string; icon: any }
+  { label: string; bg: string; text: string; border: string; icon: LucideIcon }
 > = {
   PENDING: {
     label: "Pending",
@@ -91,8 +90,34 @@ const STATUS_CONFIG: Record<
 export default function AdminOrdersPage() {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Debounce search query input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Modal Escape key dismissal & Focus management
+  useEffect(() => {
+    if (!selectedOrderId) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedOrderId(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    if (modalRef.current) {
+      modalRef.current.focus();
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedOrderId]);
 
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
@@ -107,11 +132,11 @@ export default function AdminOrdersPage() {
   const filters = useMemo(
     () => ({
       status: statusFilter,
-      search: searchQuery,
+      search: debouncedSearch,
       page,
       limit: 15,
     }),
-    [statusFilter, searchQuery, page]
+    [statusFilter, debouncedSearch, page]
   );
 
   const {
@@ -122,8 +147,12 @@ export default function AdminOrdersPage() {
     isRefetching,
   } = useAdminOrdersQuery(filters);
 
-  const { data: detailRes, isLoading: isDetailLoading } =
-    useAdminOrderDetailQuery(selectedOrderId);
+  const {
+    data: detailRes,
+    isLoading: isDetailLoading,
+    error: detailError,
+    refetch: refetchDetail,
+  } = useAdminOrderDetailQuery(selectedOrderId);
 
   const updateStatusMutation = useUpdateOrderStatusMutation();
 
@@ -174,8 +203,23 @@ export default function AdminOrdersPage() {
     }
   };
 
+  // Generate bounded page numbers for pagination bar
+  const getPageNumbers = (current: number, total: number) => {
+    if (total <= 5) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    if (current <= 3) {
+      return [1, 2, 3, 4, total];
+    }
+    if (current >= total - 2) {
+      return [1, total - 3, total - 2, total - 1, total];
+    }
+    return [1, current - 1, current, current + 1, total];
+  };
+
   return (
     <div className="space-y-6 font-sans">
+      {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-maroon-100 shadow-sm">
         <div>
           <div className="flex items-center space-x-2 text-maroon-800">
@@ -199,6 +243,7 @@ export default function AdminOrdersPage() {
         </button>
       </div>
 
+      {/* Summary Analytics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 bg-white rounded-2xl border border-maroon-100 shadow-sm flex items-center justify-between">
           <div>
@@ -253,6 +298,7 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
+      {/* Filter & Search Bar */}
       <div className="bg-white p-4 rounded-2xl border border-maroon-100 shadow-sm space-y-4">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="relative w-full lg:w-96">
@@ -306,6 +352,7 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
+      {/* Orders Table */}
       <div className="bg-white rounded-2xl border border-maroon-100 shadow-md overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-maroon-700 flex flex-col items-center justify-center space-y-3">
@@ -318,7 +365,7 @@ export default function AdminOrdersPage() {
             <p className="text-xs font-semibold">Failed to load orders.</p>
             <button
               onClick={() => refetch()}
-              className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 rounded-md text-xs font-semibold transition-colors"
+              className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 rounded-md text-xs font-semibold transition-colors cursor-pointer"
             >
               Try Again
             </button>
@@ -349,6 +396,9 @@ export default function AdminOrdersPage() {
                 {orders.map((ord: AdminOrder) => {
                   const cfg = STATUS_CONFIG[ord.status] || STATUS_CONFIG.PENDING;
                   const Icon = cfg.icon;
+                  const isItemUpdating =
+                    updateStatusMutation.isPending &&
+                    updateStatusMutation.variables?.id === ord.id;
 
                   return (
                     <tr key={ord.id} className="hover:bg-maroon-50/40 transition-colors">
@@ -408,11 +458,12 @@ export default function AdminOrdersPage() {
 
                           <select
                             value={ord.status}
-                            disabled={updateStatusMutation.isPending}
+                            aria-label={`Update order status for ${ord.orderNumber}`}
+                            disabled={isItemUpdating}
                             onChange={(e) =>
                               handleStatusChange(ord.id, e.target.value as OrderStatus)
                             }
-                            className="text-[11px] bg-off-white hover:bg-white text-maroon-900 border border-maroon-200 rounded-md px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-maroon-700 cursor-pointer"
+                            className="text-[11px] bg-off-white hover:bg-white text-maroon-900 border border-maroon-200 rounded-md px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-maroon-700 cursor-pointer disabled:opacity-50"
                           >
                             <option value="PENDING">Set Pending</option>
                             <option value="CONFIRMED">Set Confirmed</option>
@@ -442,6 +493,7 @@ export default function AdminOrdersPage() {
           </div>
         )}
 
+        {/* Bounded Window Pagination Bar */}
         {pagination.totalPages > 1 && (
           <div className="p-4 bg-off-white border-t border-maroon-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-sans">
             <div className="text-maroon-700">
@@ -459,7 +511,7 @@ export default function AdminOrdersPage() {
                 Previous
               </button>
 
-              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((pNum) => (
+              {getPageNumbers(pagination.page, pagination.totalPages).map((pNum) => (
                 <button
                   key={pNum}
                   onClick={() => setPage(pNum)}
@@ -485,18 +537,26 @@ export default function AdminOrdersPage() {
         )}
       </div>
 
+      {/* Accessible Order Receipt Modal */}
       {selectedOrderId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
             onClick={() => setSelectedOrderId(null)}
           />
 
-          <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-maroon-100 p-6 space-y-6 z-10 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+          <div
+            ref={modalRef}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="order-modal-title"
+            className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-maroon-100 p-6 space-y-6 z-10 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 focus:outline-none font-sans"
+          >
             <div className="flex items-center justify-between border-b border-maroon-100 pb-4">
               <div>
                 <div className="flex items-center space-x-2">
-                  <h3 className="font-serif font-bold text-xl text-maroon-900">
+                  <h3 id="order-modal-title" className="font-serif font-bold text-xl text-maroon-900">
                     Order Receipt Summary
                   </h3>
                   {selectedOrder && (
@@ -516,13 +576,27 @@ export default function AdminOrdersPage() {
                 <button
                   onClick={() => setSelectedOrderId(null)}
                   className="p-1.5 text-maroon-500 hover:text-maroon-800 rounded-md transition-colors cursor-pointer"
+                  aria-label="Close dialog"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            {isDetailLoading || !selectedOrder ? (
+            {detailError ? (
+              <div className="p-8 text-center text-red-600 space-y-3 bg-red-50/50 rounded-xl border border-red-100">
+                <AlertTriangle className="w-8 h-8 mx-auto text-red-600" />
+                <p className="text-xs font-semibold">
+                  {detailError.message || "Failed to load order receipt details."}
+                </p>
+                <button
+                  onClick={() => refetchDetail()}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : isDetailLoading || !selectedOrder ? (
               <div className="p-12 text-center text-maroon-700 flex flex-col items-center justify-center space-y-3">
                 <Loader2 className="w-8 h-8 animate-spin text-maroon-700" />
                 <p className="text-xs font-medium">Fetching order receipt details...</p>

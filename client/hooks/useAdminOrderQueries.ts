@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { ApiResponse } from "@/types/api";
 
@@ -97,6 +97,7 @@ export function useAdminOrdersQuery(filters: AdminOrderFilters = {}) {
   return useQuery<ApiResponse<AdminOrdersResponse>, ApiError>({
     queryKey: [...ADMIN_ORDERS_QUERY_KEY, filters],
     queryFn: () => apiClient<ApiResponse<AdminOrdersResponse>>(endpoint),
+    placeholderData: keepPreviousData,
   });
 }
 
