@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Order, OrderItem } from './order.model.js';
 import Product, { ProductVariantLink } from '../product/product.model.js';
 import ProductVariant from '../product/productVariant.model.js';
@@ -240,4 +241,136 @@ export const getOrderByNumberService = async (orderNumber) => {
     order: order.toJSON(),
     items,
   };
+};
+
+// Admin Services
+export const getAllOrdersAdminService = async (query = {}) => {
+  const { status, search, page = 1, limit = 50 } = query;
+  const filter = {};
+
+  if (status && status !== 'ALL') {
+    filter.status = status;
+  }
+
+  if (search && search.trim()) {
+    const regex = new RegExp(search.trim(), 'i');
+    filter.$or = [
+      { orderNumber: regex },
+      { customerName: regex },
+      { phone: regex },
+      { email: regex },
+    ];
+  }
+
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.max(1, parseInt(limit, 10) || 50);
+  const skip = (pageNum - 1) * limitNum;
+
+  const [orders, totalCount] = await Promise.all([
+    Order.find(filter)
+      .populate('userId', 'name email phone')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum),
+    Order.countDocuments(filter),
+  ]);
+
+  const orderIds = orders.map((o) => o.id);
+  const allOrderItems = await OrderItem.find({ orderId: { $in: orderIds } })
+    .populate('productId', 'name slug code price defaultPrice')
+    .populate('productVariantId', 'label');
+
+  const itemsByOrderId = allOrderItems.reduce((acc, item) => {
+    const oid = item.orderId.toString();
+    if (!acc[oid]) acc[oid] = [];
+    acc[oid].push(item);
+    return acc;
+  }, {});
+
+  // Real-time Analytics Statistics
+  const allOrdersForStats = await Order.find({}, 'total status');
+  let totalRevenue = 0;
+  let pendingCount = 0;
+  let deliveredCount = 0;
+  let cancelledCount = 0;
+
+  for (const o of allOrdersForStats) {
+    if (o.status !== 'CANCELLED' && o.status !== 'RETURNED') {
+      totalRevenue += o.total || 0;
+    }
+    if (o.status === 'PENDING') pendingCount++;
+    if (o.status === 'DELIVERED') deliveredCount++;
+    if (o.status === 'CANCELLED') cancelledCount++;
+  }
+
+  const formattedOrders = orders.map((o) => ({
+    ...o.toJSON(),
+    items: itemsByOrderId[o.id] || [],
+  }));
+
+  return {
+    orders: formattedOrders,
+    pagination: {
+      total: totalCount,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(totalCount / limitNum),
+    },
+    stats: {
+      totalOrders: allOrdersForStats.length,
+      totalRevenue,
+      pendingOrders: pendingCount,
+      deliveredOrders: deliveredCount,
+      cancelledOrders: cancelledCount,
+    },
+  };
+};
+
+export const getOrderByIdAdminService = async (orderId) => {
+  if (!orderId || !mongoose.Types.ObjectId.isValid(orderId)) {
+    throw new ApiError(400, 'Invalid Order ID');
+  }
+
+  const order = await Order.findById(orderId).populate('userId', 'name email phone');
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  const items = await OrderItem.find({ orderId: order.id })
+    .populate('productId', 'name slug code price defaultPrice')
+    .populate('productVariantId', 'label');
+
+  return {
+    order: order.toJSON(),
+    items,
+  };
+};
+
+export const updateOrderStatusService = async (orderId, newStatus) => {
+  if (!orderId || !mongoose.Types.ObjectId.isValid(orderId)) {
+    throw new ApiError(400, 'Invalid Order ID');
+  }
+
+  const validStatuses = [
+    'PENDING',
+    'CONFIRMED',
+    'PROCESSING',
+    'SHIPPED',
+    'DELIVERED',
+    'CANCELLED',
+    'RETURNED',
+  ];
+  if (!validStatuses.includes(newStatus)) {
+    throw new ApiError(400, 'Invalid status specified');
+  }
+
+  const order = await Order.findById(orderId);
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  order.status = newStatus;
+  await order.save();
+
+  return getOrderByIdAdminService(order.id);
 };
