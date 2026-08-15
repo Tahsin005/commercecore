@@ -4,6 +4,7 @@ import {
   getProductDetails,
   getProductBySlug,
   getProductVariants,
+  getGlobalVariants,
 } from './product.controller.js';
 import {
   getProductsSchema,
@@ -15,6 +16,7 @@ import validate from '../../middlewares/validate.middleware.js';
 const router = express.Router();
 
 router.get('/', validate(getProductsSchema), getProducts);
+router.get('/variants/all', getGlobalVariants);
 router.get('/slug/:slug', validate(getProductSlugSchema), getProductBySlug);
 router.get('/:id', validate(getProductDetailsSchema), getProductDetails);
 router.get('/:id/variants', validate(getProductDetailsSchema), getProductVariants);

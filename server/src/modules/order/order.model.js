@@ -12,7 +12,7 @@ const orderSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      default: null, // nullable for guest checkout before user conversion
+      default: null,
     },
     customerName: {
       type: String,
@@ -103,14 +103,24 @@ const orderItemSchema = new mongoose.Schema(
       required: [true, 'Order ID is required'],
       index: true,
     },
+    productId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+      required: [true, 'Product ID is required'],
+    },
     productVariantId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ProductVariant',
-      required: [true, 'Product Variant ID is required'],
+      default: null,
     },
     productName: {
       type: String,
       required: [true, 'Product name is required'],
+    },
+    selectedVariantLabel: {
+      type: String,
+      default: '',
+      trim: true,
     },
     size: {
       type: String,

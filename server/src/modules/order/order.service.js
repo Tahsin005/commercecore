@@ -1,5 +1,5 @@
 import { Order, OrderItem } from './order.model.js';
-import Product from '../product/product.model.js';
+import Product, { ProductVariantLink } from '../product/product.model.js';
 import ProductVariant from '../product/productVariant.model.js';
 import User from '../user/user.model.js';
 import { generateAuthToken } from '../user/user.service.js';
@@ -32,26 +32,22 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
       throw new ApiError(400, 'Phone number is required for guest checkout');
     }
 
-    // check if account already exists with phone number
     user = await User.findOne({ phone: phone.trim() });
 
     if (!user) {
-      // create new user account for guest
       const userEmail = email && email.trim() ? email.trim().toLowerCase() : `guest_${Date.now()}@commercecore.com`;
 
       user = await User.create({
         name: customerName.trim(),
         phone: phone.trim(),
         email: userEmail,
-        password: null, // guest checkout account without initial password
+        password: null,
         isAdmin: false,
       });
     }
 
-    // generate JWT token to log the guest user in seamlessly
     token = generateAuthToken(user);
 
-    // sync guest localStorage cart & wishlist to newly linked account in DB
     if (guestCartItems.length > 0) {
       await syncGuestCartService(user.id, guestCartItems);
     }
@@ -60,53 +56,140 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
     }
   }
 
-  // delivery charge calculation: Inside Dhaka = 60 Taka, Outside Dhaka = 120 Taka
   const deliveryCharge = deliveryZone === 'outside_dhaka' ? 120 : 60;
 
-  // process order items & snapshot prices
+  const variantIds = items.map((i) => i.productVariantId).filter(Boolean);
+  const rawProductIds = items.map((i) => i.productId).filter(Boolean);
+
+  const variants = variantIds.length > 0
+    ? await ProductVariant.find({ _id: { $in: variantIds } })
+    : [];
+  const variantMap = new Map(variants.map((v) => [v.id.toString(), v]));
+
+  const missingProductIdVariantIds = items
+    .filter((i) => !i.productId && i.productVariantId)
+    .map((i) => i.productVariantId);
+
+  let variantLinks = [];
+  if (missingProductIdVariantIds.length > 0) {
+    variantLinks = await ProductVariantLink.find({
+      productVariantId: { $in: missingProductIdVariantIds },
+    });
+  }
+  const variantLinkMap = new Map(variantLinks.map((l) => [l.productVariantId.toString(), l.productId.toString()]));
+
+  const allProductIds = new Set(rawProductIds);
+  for (const item of items) {
+    if (!item.productId && item.productVariantId) {
+      const v = variantMap.get(item.productVariantId.toString());
+      if (v && v.productId) {
+        allProductIds.add(v.productId.toString());
+      } else {
+        const pIdFromLink = variantLinkMap.get(item.productVariantId.toString());
+        if (pIdFromLink) allProductIds.add(pIdFromLink);
+      }
+    }
+  }
+
+  const products = allProductIds.size > 0
+    ? await Product.find({ _id: { $in: Array.from(allProductIds) } })
+    : [];
+  const productMap = new Map(products.map((p) => [p.id.toString(), p]));
+
+  const allVariantLinks = (allProductIds.size > 0 && variantIds.length > 0)
+    ? await ProductVariantLink.find({
+        productId: { $in: Array.from(allProductIds) },
+        productVariantId: { $in: variantIds },
+      }).populate('productVariantId')
+    : [];
+  const productVariantLinkSet = new Set(
+    allVariantLinks
+      .filter((l) => l.productVariantId && l.productVariantId.isActive === true)
+      .map((l) => `${l.productId.toString()}_${l.productVariantId.id ? l.productVariantId.id.toString() : l.productVariantId.toString()}`)
+  );
+
   let subtotal = 0;
   const processedItems = [];
 
   for (const item of items) {
-    const variant = await ProductVariant.findById(item.productVariantId);
-    if (!variant) {
-      throw new ApiError(404, `Product variant with ID ${item.productVariantId} not found`);
+    let pId = item.productId;
+    let pvId = item.productVariantId;
+
+    if (!pId && pvId) {
+      const v = variantMap.get(pvId.toString());
+      if (v && v.productId) pId = v.productId.toString();
+      else {
+        const linkPId = variantLinkMap.get(pvId.toString());
+        if (linkPId) pId = linkPId;
+      }
     }
 
-    const product = await Product.findById(variant.productId);
+    if (!pId) {
+      throw new ApiError(400, 'Product ID is required for order items');
+    }
+
+    const product = productMap.get(pId.toString());
     if (!product) {
-      throw new ApiError(404, `Product for variant ${item.productVariantId} not found`);
+      throw new ApiError(404, `Product with ID ${pId} not found`);
+    }
+
+    let variant = null;
+    let selectedVariantLabel = '';
+    if (pvId) {
+      const isValidLink = productVariantLinkSet.has(`${pId.toString()}_${pvId.toString()}`);
+      if (!isValidLink) {
+        throw new ApiError(400, `Invalid product variant for product "${product.name}"`);
+      }
+      variant = variantMap.get(pvId.toString());
+      selectedVariantLabel = variant ? variant.label : '';
     }
 
     const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
 
-    // Check if variant has sufficient stock
-    if (variant.quantity < qty) {
-      throw new ApiError(
-        400,
-        `Insufficient stock for "${product.name}" (${variant.size}). Only ${variant.quantity} available.`
-      );
-    }
-
-    // price override on variant takes priority; fallback to product defaultPrice
-    const unitPrice = variant.price !== null && variant.price !== undefined ? variant.price : product.defaultPrice;
+    const unitPrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
     const itemSubtotal = unitPrice * qty;
     subtotal += itemSubtotal;
 
     processedItems.push({
-      variant,
-      productVariantId: variant.id,
+      product,
+      productId: product.id,
+      productVariantId: variant ? variant.id : null,
       productName: product.name,
-      size: variant.size,
+      selectedVariantLabel: selectedVariantLabel || 'Standard',
+      size: selectedVariantLabel || 'Standard',
       unitPrice,
       quantity: qty,
     });
   }
 
+  // Atomic stock deduction before persisting order records
+  const deductedProducts = [];
+  try {
+    for (const item of processedItems) {
+      const updatedProduct = await Product.findOneAndUpdate(
+        { _id: item.productId, quantity: { $gte: item.quantity } },
+        { $inc: { quantity: -item.quantity } },
+        { new: true }
+      );
+
+      if (!updatedProduct) {
+        throw new ApiError(
+          400,
+          `Insufficient stock for "${item.productName}" (${item.selectedVariantLabel}).`
+        );
+      }
+      deductedProducts.push({ productId: item.productId, quantity: item.quantity });
+    }
+  } catch (error) {
+    for (const dp of deductedProducts) {
+      await Product.updateOne({ _id: dp.productId }, { $inc: { quantity: dp.quantity } });
+    }
+    throw error;
+  }
+
   const discountAmount = 0;
   const total = subtotal + deliveryCharge - discountAmount;
 
-  // Generate date-based unique order number
   const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   const randomSeq = Math.floor(1000 + Math.random() * 9000);
   const orderNumber = `CC-${dateStr}-${randomSeq}`;
@@ -126,28 +209,20 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
     status: 'PENDING',
   });
 
-  // Create OrderItems records
   const orderItems = await OrderItem.insertMany(
-    processedItems.map(({ variant, ...item }) => ({
+    processedItems.map(({ product, ...item }) => ({
       ...item,
       orderId: order.id,
     }))
   );
 
-  // Deduct stock for ordered variants
-  for (const item of processedItems) {
-    item.variant.quantity -= item.quantity;
-    await item.variant.save();
-  }
-
-  // Automatically clear user DB cart upon successful order placement
   await clearUserCartService(user.id);
 
   return {
     order: order.toJSON(),
     items: orderItems,
     user: user.toJSON(),
-    token, // returned for guest checkout to authenticate client seamlessly
+    token,
   };
 };
 
@@ -157,13 +232,9 @@ export const getOrderByNumberService = async (orderNumber) => {
     throw new ApiError(404, 'Order not found');
   }
 
-  const items = await OrderItem.find({ orderId: order.id }).populate({
-    path: 'productVariantId',
-    populate: {
-      path: 'productId',
-      select: 'name slug code defaultPrice',
-    },
-  });
+  const items = await OrderItem.find({ orderId: order.id })
+    .populate('productId', 'name slug code price defaultPrice')
+    .populate('productVariantId', 'label');
 
   return {
     order: order.toJSON(),

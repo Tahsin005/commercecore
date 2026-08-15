@@ -19,7 +19,7 @@ import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons"
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  // React Query Hooks
+  // react Query Hooks
   const { data: categoriesResponse, isLoading: isCategoriesLoading } = useCategoriesQuery();
   const categories = categoriesResponse?.data || [];
 
@@ -31,31 +31,23 @@ export default function Home() {
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
 
   const handleToggleWishlist = (product: Product) => {
-    if (!product.variants || product.variants.length === 0) {
-      toast.error(`No variants available for "${product.name}"`);
-      return;
-    }
-
-    const defaultVariant = product.variants[0];
-    const wishlisted = isInWishlist(defaultVariant.id);
-
-    const price = defaultVariant.price !== null && defaultVariant.price !== undefined
-      ? defaultVariant.price
-      : product.defaultPrice;
+    const wishlisted = isInWishlist(product.id);
+    const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+    const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
 
     if (wishlisted) {
-      removeFromWishlist(defaultVariant.id);
+      removeFromWishlist(product.id);
       toast.success(`Removed "${product.name}" from wishlist`);
     } else {
       addToWishlist({
-        productVariantId: defaultVariant.id,
         productId: product.id,
+        productVariantId: defaultVariant?.id,
         name: product.name,
         slug: product.slug,
-        size: defaultVariant.size,
+        size: defaultVariant?.label || defaultVariant?.size || "Standard",
         price,
       });
-      toast.success(`Added "${product.name}" (${defaultVariant.size}) to wishlist`);
+      toast.success(`Added "${product.name}" to wishlist`);
     }
   };
 
@@ -139,8 +131,8 @@ export default function Home() {
         {!isLoading && !error && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product) => {
-              const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
-              const wishlisted = defaultVariant ? isInWishlist(defaultVariant.id) : false;
+              const wishlisted = isInWishlist(product.id);
+              const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
 
               return (
                 <div
@@ -191,7 +183,7 @@ export default function Home() {
                           Price
                         </span>
                         <span className="text-lg font-bold font-mono text-maroon-900">
-                          ৳{product.defaultPrice.toFixed(2)}
+                          ৳{price.toFixed(2)}
                         </span>
                       </div>
 

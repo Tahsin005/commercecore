@@ -17,8 +17,8 @@ export const getWishlist = async (req, res, next) => {
 
 export const addToWishlist = async (req, res, next) => {
   try {
-    const { productVariantId } = req.body;
-    const wishlist = await addToWishlistService(req.user.id, productVariantId);
+    const { productId, productVariantId } = req.body;
+    const wishlist = await addToWishlistService(req.user.id, productId, productVariantId);
     res.status(200).json(new ApiResponse(200, wishlist, 'Item added to wishlist successfully'));
   } catch (error) {
     next(error);
@@ -27,8 +27,8 @@ export const addToWishlist = async (req, res, next) => {
 
 export const removeFromWishlist = async (req, res, next) => {
   try {
-    const { productVariantId } = req.params;
-    const wishlist = await removeFromWishlistService(req.user.id, productVariantId);
+    const { id } = req.params;
+    const wishlist = await removeFromWishlistService(req.user.id, id);
     res.status(200).json(new ApiResponse(200, wishlist, 'Item removed from wishlist successfully'));
   } catch (error) {
     next(error);

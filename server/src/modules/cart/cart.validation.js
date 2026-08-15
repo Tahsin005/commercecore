@@ -1,22 +1,29 @@
 import { z } from 'zod';
 
 export const addToCartSchema = z.object({
-  body: z.object({
-    productVariantId: z.string().min(1, 'Product Variant ID is required'),
-    quantity: z.number().int().min(1, 'Quantity must be at least 1').optional(),
-  }),
+  body: z
+    .object({
+      productId: z.string().optional(),
+      productVariantId: z.string().optional(),
+      quantity: z.number().int().min(1, 'Quantity must be at least 1').optional(),
+    })
+    .refine((data) => data.productId || data.productVariantId, {
+      message: 'Either productId or productVariantId must be provided',
+    }),
 });
 
 export const updateCartQuantitySchema = z.object({
   body: z.object({
-    productVariantId: z.string().min(1, 'Product Variant ID is required'),
-    quantity: z.number().int().min(0, 'Quantity cannot be negative'),
+    id: z.string().optional(),
+    productId: z.string().optional(),
+    productVariantId: z.string().optional(),
+    quantity: z.number().int().min(1, 'Quantity must be at least 1'),
   }),
 });
 
 export const removeFromCartSchema = z.object({
   params: z.object({
-    productVariantId: z.string().min(1, 'Product Variant ID is required'),
+    id: z.string().min(1, 'Cart item ID is required'),
   }),
 });
 
@@ -24,7 +31,8 @@ export const syncCartSchema = z.object({
   body: z.object({
     items: z.array(
       z.object({
-        productVariantId: z.string().min(1, 'Product Variant ID is required'),
+        productId: z.string().optional(),
+        productVariantId: z.string().optional(),
         quantity: z.number().int().min(1, 'Quantity must be at least 1').optional(),
       })
     ),

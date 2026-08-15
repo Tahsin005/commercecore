@@ -39,9 +39,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   // Set default selected variant when product data loads
   useEffect(() => {
     if (product && product.variants && product.variants.length > 0) {
-      // Pick first in-stock variant or fallback to first variant
-      const defaultVar = product.variants.find((v) => v.quantity > 0) || product.variants[0];
-      setSelectedVariant(defaultVar);
+      setSelectedVariant(product.variants[0]);
     }
   }, [product]);
 
@@ -73,75 +71,69 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
     );
   }
 
-  const currentPrice = selectedVariant?.price !== null && selectedVariant?.price !== undefined
-    ? selectedVariant.price
-    : product.defaultPrice;
+  const currentPrice = product.price !== undefined && product.price !== null
+    ? product.price
+    : (product.defaultPrice || 0);
 
-  const isOutOfStock = !selectedVariant || selectedVariant.quantity <= 0;
-  const wishlisted = selectedVariant ? isInWishlist(selectedVariant.id) : false;
+  const stockQuantity = product.quantity !== undefined ? product.quantity : 0;
+  const isOutOfStock = stockQuantity <= 0;
+  const wishlisted = isInWishlist(product.id);
 
   const handleAddToCart = () => {
-    if (!selectedVariant) {
-      toast.error("Please select a variant size");
+    if (isOutOfStock) {
+      toast.error("Product is out of stock");
       return;
     }
 
-    if (isOutOfStock) {
-      toast.error("Selected size is out of stock");
-      return;
-    }
+    const selectedLabel = selectedVariant?.label || selectedVariant?.size || "Standard";
 
     addToCart(
       {
-        productVariantId: selectedVariant.id,
+        productVariantId: selectedVariant?.id,
         productId: product.id,
         name: product.name,
         slug: product.slug,
-        size: selectedVariant.size,
+        size: selectedLabel,
         price: currentPrice,
       },
       quantity
     );
-    toast.success(`Added ${quantity} x "${product.name}" (${selectedVariant.size}) to cart`);
+    toast.success(`Added ${quantity} x "${product.name}" (${selectedLabel}) to cart`);
   };
 
   const handleToggleWishlist = () => {
-    if (!selectedVariant) return;
-
     if (wishlisted) {
-      removeFromWishlist(selectedVariant.id);
-      toast.success(`Removed "${product.name}" (${selectedVariant.size}) from wishlist`);
+      removeFromWishlist(product.id);
+      toast.success(`Removed "${product.name}" from wishlist`);
     } else {
+      const selectedLabel = selectedVariant?.label || selectedVariant?.size || "Standard";
       addToWishlist({
-        productVariantId: selectedVariant.id,
+        productVariantId: selectedVariant?.id,
         productId: product.id,
         name: product.name,
         slug: product.slug,
-        size: selectedVariant.size,
+        size: selectedLabel,
         price: currentPrice,
       });
-      toast.success(`Added "${product.name}" (${selectedVariant.size}) to wishlist`);
+      toast.success(`Added "${product.name}" to wishlist`);
     }
   };
 
   const handleOrderNow = () => {
-    if (!selectedVariant) {
-      toast.error("Please select a variant size");
+    if (isOutOfStock) {
+      toast.error("Product is out of stock");
       return;
     }
 
-    if (isOutOfStock) {
-      toast.error("Selected size is out of stock");
-      return;
-    }
+    const selectedLabel = selectedVariant?.label || selectedVariant?.size || "Standard";
 
     addToCart(
       {
-        productVariantId: selectedVariant.id,
+        productVariantId: selectedVariant?.id,
         productId: product.id,
         name: product.name,
         slug: product.slug,
-        size: selectedVariant.size,
+        size: selectedLabel,
         price: currentPrice,
       },
       quantity
@@ -202,7 +194,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   {!isOutOfStock ? (
                     <div className="flex items-center space-x-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-sm text-xs font-semibold">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>In Stock ({selectedVariant?.quantity})</span>
+                      <span>In Stock ({stockQuantity})</span>
                     </div>
                   ) : (
                     <div className="flex items-center space-x-1.5 text-red-700 bg-red-50 border border-red-200 px-3 py-1 rounded-sm text-xs font-semibold">
@@ -213,16 +205,16 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                 </div>
               </div>
 
-              {/* Variant Selector */}
+              {/* Age Variant Selector */}
               {product.variants && product.variants.length > 0 && (
                 <div className="pt-2">
                   <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-2">
-                    Select Size Variant *
+                    Select Age Range
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {product.variants.map((variant) => {
                       const isSelected = selectedVariant?.id === variant.id;
-                      const outOfStock = variant.quantity <= 0;
+                      const label = variant.label || variant.size || "Standard";
 
                       return (
                         <button
@@ -232,20 +224,13 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                             setSelectedVariant(variant);
                             setQuantity(1);
                           }}
-                          className={`px-3.5 py-2 rounded-md border text-xs font-bold font-mono transition-all cursor-pointer ${
+                          className={`px-3.5 py-2 rounded-md border text-xs font-bold transition-all cursor-pointer ${
                             isSelected
                               ? "bg-maroon-900 text-cream border-maroon-900 shadow-md ring-2 ring-maroon-700"
-                              : outOfStock
-                              ? "bg-off-white text-maroon-400 border-maroon-200 opacity-60"
                               : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
                           }`}
                         >
-                          <span>{variant.size}</span>
-                          {variant.price !== null && variant.price !== undefined && (
-                            <span className="text-[10px] ml-1 text-cream/90 font-normal">
-                              (৳{variant.price})
-                            </span>
-                          )}
+                          <span>{label}</span>
                         </button>
                       );
                     })}
@@ -270,7 +255,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   </span>
                   <button
                     onClick={() => setQuantity((q) => q + 1)}
-                    disabled={isOutOfStock || (selectedVariant ? quantity >= selectedVariant.quantity : false)}
+                    disabled={isOutOfStock || quantity >= stockQuantity}
                     className="p-2.5 hover:bg-maroon-100 text-maroon-800 transition-colors cursor-pointer disabled:opacity-40"
                   >
                     <Plus className="w-4 h-4" />

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useAuthStore, User } from "@/store/useAuthStore";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export function useAuth() {
   const [isHydrated, setIsHydrated] = useState(false);
@@ -7,11 +8,17 @@ export function useAuth() {
   const token = useAuthStore((state) => state.token);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const setAuth = useAuthStore((state) => state.setAuth);
-  const logout = useAuthStore((state) => state.logout);
+  const storeLogout = useAuthStore((state) => state.logout);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setIsHydrated(true);
   }, []);
+
+  const logout = () => {
+    storeLogout();
+    queryClient.clear();
+  };
 
   return {
     user: isHydrated ? user : null,

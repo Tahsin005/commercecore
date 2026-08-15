@@ -81,17 +81,21 @@ export default function CheckoutPage() {
       shippingAddress: data.shippingAddress.trim(),
       deliveryZone: data.deliveryZone,
       items: cartItems.map((item) => ({
+        productId: item.productId,
         productVariantId: item.productVariantId,
+        selectedVariantLabel: item.size,
         quantity: item.quantity,
       })),
       guestCartItems: !isAuthenticated
         ? cartItems.map((item) => ({
+            productId: item.productId,
             productVariantId: item.productVariantId,
             quantity: item.quantity,
           }))
         : [],
       guestWishlistItems: !isAuthenticated
         ? wishlistItems.map((item) => ({
+            productId: item.productId,
             productVariantId: item.productVariantId,
           }))
         : [],
@@ -345,55 +349,59 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
-                  {cartItems.map((item) => (
-                    <div
-                      key={item.productVariantId}
-                      className="flex items-center justify-between p-3.5 bg-off-white rounded-xl border border-maroon-100"
-                    >
-                      <div className="flex-1 space-y-0.5 pr-2">
-                        <div className="flex items-center space-x-1.5">
-                          <h4 className="font-semibold text-xs text-maroon-900 line-clamp-1">{item.name}</h4>
-                          <span className="text-[10px] font-bold font-mono text-maroon-700 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm shrink-0">
-                            {item.size}
+                  {cartItems.map((item) => {
+                    const itemKey = item.productVariantId || item.productId;
+                    return (
+                      <div
+                        key={itemKey}
+                        className="flex items-center justify-between p-3.5 bg-off-white rounded-xl border border-maroon-100"
+                      >
+                        <div className="flex-1 space-y-0.5 pr-2">
+                          <div className="flex items-center space-x-1.5">
+                            <h4 className="font-semibold text-xs text-maroon-900 line-clamp-1">{item.name}</h4>
+                            <span className="text-[10px] font-bold font-mono text-maroon-700 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm shrink-0">
+                              {item.size}
+                            </span>
+                          </div>
+                          <span className="text-xs font-mono text-maroon-700 block">
+                            ৳{item.price.toFixed(2)} × {item.quantity}
                           </span>
                         </div>
-                        <span className="text-xs font-mono text-maroon-700 block">
-                          ৳{item.price.toFixed(2)} × {item.quantity}
-                        </span>
-                      </div>
 
-                      <div className="flex items-center space-x-3">
-                        <div className="inline-flex items-center border border-maroon-200 rounded-md bg-white overflow-hidden shadow-xs">
+                        <div className="flex items-center space-x-3">
+                          <div className="inline-flex items-center border border-maroon-200 rounded-md bg-white overflow-hidden shadow-xs">
+                            <button
+                              type="button"
+                              disabled={item.quantity <= 1}
+                              onClick={() => updateQuantity(itemKey, item.quantity - 1)}
+                              className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="w-7 text-center font-bold font-mono text-xs text-maroon-900">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(itemKey, item.quantity + 1)}
+                              className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
                           <button
                             type="button"
-                            onClick={() => updateQuantity(item.productVariantId, item.quantity - 1)}
-                            className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer"
+                            onClick={() => removeItem(itemKey)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                            title="Remove item"
                           >
-                            <Minus className="w-3.5 h-3.5" />
-                          </button>
-                          <span className="w-7 text-center font-bold font-mono text-xs text-maroon-900">
-                            {item.quantity}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => updateQuantity(item.productVariantId, item.quantity + 1)}
-                            className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
-
-                        <button
-                          type="button"
-                          onClick={() => removeItem(item.productVariantId)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                          title="Remove item"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="pt-4 border-t border-maroon-100 space-y-2.5 text-xs font-sans">

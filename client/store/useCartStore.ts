@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 export interface CartItem {
-  productVariantId: string;
+  productVariantId?: string;
   productId: string;
   name: string;
   slug: string;
@@ -15,17 +15,17 @@ interface GuestCartState {
   items: CartItem[];
   addItem: (
     item: {
-      productVariantId: string;
+      productVariantId?: string;
       productId: string;
       name: string;
       slug: string;
-      size: string;
+      size?: string;
       price: number;
     },
     quantity?: number
   ) => void;
-  removeItem: (productVariantId: string) => void;
-  updateQuantity: (productVariantId: string, quantity: number) => void;
+  removeItem: (id: string) => void;
+  updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   getCartSubtotal: () => number;
   getCartCount: () => number;
@@ -38,9 +38,14 @@ export const useCartStore = create<GuestCartState>()(
 
       addItem: (item, quantity = 1) => {
         const { items } = get();
-        const existingIndex = items.findIndex(
-          (i) => i.productVariantId === item.productVariantId
-        );
+        const pId = item.productId || item.productVariantId;
+        const pvId = item.productVariantId || item.productId;
+        if (!pId) return;
+
+        const existingIndex = items.findIndex((i) => {
+          const iKey = i.productVariantId || i.productId;
+          return iKey === pvId || (i.productId === pId && i.productVariantId === item.productVariantId);
+        });
 
         if (existingIndex > -1) {
           const updatedItems = items.map((cartItem, idx) =>
@@ -54,11 +59,11 @@ export const useCartStore = create<GuestCartState>()(
             items: [
               ...items,
               {
-                productVariantId: item.productVariantId,
-                productId: item.productId,
+                productVariantId: pvId,
+                productId: pId,
                 name: item.name,
                 slug: item.slug,
-                size: item.size,
+                size: item.size || "Standard",
                 price: item.price,
                 quantity,
               },
@@ -67,19 +72,29 @@ export const useCartStore = create<GuestCartState>()(
         }
       },
 
-      removeItem: (productVariantId: string) => {
-        set({ items: get().items.filter((i) => i.productVariantId !== productVariantId) });
+      removeItem: (id: string) => {
+        set({
+          items: get().items.filter(
+            (i) => i.productVariantId !== id && i.productId !== id && (i.productId || i.productVariantId) !== id
+          ),
+        });
       },
 
-      updateQuantity: (productVariantId: string, quantity: number) => {
+      updateQuantity: (id: string, quantity: number) => {
         if (quantity <= 0) {
-          set({ items: get().items.filter((i) => i.productVariantId !== productVariantId) });
+          set({
+            items: get().items.filter(
+              (i) => i.productVariantId !== id && i.productId !== id && (i.productId || i.productVariantId) !== id
+            ),
+          });
           return;
         }
 
         set({
           items: get().items.map((i) =>
-            i.productVariantId === productVariantId ? { ...i, quantity } : i
+            i.productVariantId === id || i.productId === id || (i.productId || i.productVariantId) === id
+              ? { ...i, quantity }
+              : i
           ),
         });
       },

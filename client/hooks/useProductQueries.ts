@@ -4,10 +4,10 @@ import { ApiResponse } from "@/types/api";
 
 export interface ProductVariant {
   id: string;
-  productId: string;
-  size: string;
-  price: number | null;
-  quantity: number;
+  label?: string;
+  size?: string;
+  order?: number;
+  isActive?: boolean;
 }
 
 export interface Product {
@@ -17,7 +17,10 @@ export interface Product {
   slug: string;
   code?: string;
   description: string;
-  defaultPrice: number;
+  price: number;
+  defaultPrice?: number;
+  quantity?: number;
+  images?: string[];
   isFeatured?: boolean;
   isActive?: boolean;
   variants?: ProductVariant[];
