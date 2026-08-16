@@ -43,10 +43,10 @@ export function AdminSidebar({ collapsed, onToggleCollapse }: AdminSidebarProps)
 
       <div className={`shrink-0 transition-all duration-300 ${collapsed ? "w-16" : "w-16 lg:w-64"}`}>
         <aside
-          className={`bg-maroon-900 text-white border-r border-maroon-800 transition-all duration-300 flex flex-col justify-between h-screen sticky top-0 ${
+          className={`bg-maroon-900 text-white border-r border-maroon-800 transition-all duration-300 flex flex-col justify-between h-screen fixed top-0 left-0 overflow-hidden ${
             collapsed
               ? "w-16 z-30"
-              : "fixed inset-y-0 left-0 z-50 w-64 shadow-2xl lg:sticky lg:z-30 lg:w-64"
+              : "z-50 w-64 shadow-2xl lg:z-30 lg:w-64"
           }`}
         >
           <div>

@@ -43,13 +43,13 @@ export default function CustomerProfilePage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8 font-sans">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8 font-sans w-full overflow-hidden">
       <ProfileHeader user={user} onEditProfileClick={() => setActiveTab("info")} />
 
-      <div className="flex flex-wrap items-center gap-2 border-b border-maroon-200/80 pb-3">
+      <div className="flex items-center gap-2 border-b border-maroon-200/80 pb-3 overflow-x-auto max-w-full w-full">
         <button
           onClick={() => setActiveTab("orders")}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === "orders"
               ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
               : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"
@@ -61,7 +61,7 @@ export default function CustomerProfilePage() {
 
         <button
           onClick={() => setActiveTab("addresses")}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === "addresses"
               ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
               : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"
@@ -73,7 +73,7 @@ export default function CustomerProfilePage() {
 
         <button
           onClick={() => setActiveTab("info")}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === "info"
               ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
               : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"
@@ -85,7 +85,7 @@ export default function CustomerProfilePage() {
 
         <button
           onClick={() => setActiveTab("security")}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === "security"
               ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
               : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"

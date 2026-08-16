@@ -72,10 +72,10 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-maroon-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-maroon-900 border-collapse">
+    <div className="space-y-4 max-w-full">
+      <div className="bg-white rounded-2xl border border-maroon-100 shadow-sm overflow-hidden w-full max-w-full">
+        <div className="overflow-x-auto w-full max-w-full">
+          <table className="w-full text-left text-xs text-maroon-900 border-collapse min-w-[650px]">
             <thead>
               <tr className="bg-maroon-900 text-cream text-[11px] font-bold uppercase tracking-wider">
                 <th className="py-3.5 px-4">Order Info</th>

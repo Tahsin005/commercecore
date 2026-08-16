@@ -60,7 +60,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-maroon-900 text-white shadow-lg border-b border-maroon-800 font-sans">
+      <header className="sticky top-0 z-40 bg-maroon-900 text-white shadow-lg border-b border-maroon-800 font-sans relative">
         <MarqueeBanner />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-3 shrink-0 group mr-4">
@@ -239,7 +239,7 @@ export function Navbar() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-maroon-800 bg-maroon-900 px-4 py-4 space-y-3 animate-in slide-in-from-top duration-200">
+          <div className="lg:hidden absolute top-full left-0 right-0 z-50 border-t border-b border-maroon-800 bg-maroon-900/95 backdrop-blur-md px-4 py-4 space-y-3 animate-in slide-in-from-top-2 duration-200 shadow-2xl">
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}

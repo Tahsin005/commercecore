@@ -404,7 +404,7 @@ export default function AdminReviewsPage() {
         {previewImage && (
           <div className="space-y-4">
             <div className="w-full h-80 relative rounded-xl overflow-hidden border border-maroon-100 bg-black/5 flex items-center justify-center">
-              <Image src={previewImage} alt="Review attachment" fill className="object-contain" />
+              <Image src={previewImage} alt="Review attachment" fill sizes="(max-width: 768px) 100vw, 800px" className="object-contain" />
             </div>
             <div className="flex justify-end">
               <button

@@ -600,6 +600,7 @@ export default function AdminProductsPage() {
                             src={prod.images[0]}
                             alt={prod.name}
                             fill
+                            sizes="40px"
                             className="object-cover"
                           />
                         ) : (
@@ -775,7 +776,7 @@ export default function AdminProductsPage() {
                           key={idx}
                           className="relative w-full h-16 rounded-lg overflow-hidden border border-maroon-200 bg-off-white group"
                         >
-                          <Image src={imgUrl} alt={`Product ${idx + 1}`} fill className="object-cover" />
+                          <Image src={imgUrl} alt={`Product ${idx + 1}`} fill sizes="64px" className="object-cover" />
                           {idx === 0 && (
                             <span className="absolute bottom-0 inset-x-0 bg-emerald-600/90 text-white text-[9px] font-bold text-center py-0.5 uppercase tracking-wider">
                               Cover
@@ -1052,7 +1053,7 @@ export default function AdminProductsPage() {
                           key={idx}
                           className="relative w-full h-16 rounded-lg overflow-hidden border border-maroon-200 bg-off-white group"
                         >
-                          <Image src={imgUrl} alt={`Product ${idx + 1}`} fill className="object-cover" />
+                          <Image src={imgUrl} alt={`Product ${idx + 1}`} fill sizes="64px" className="object-cover" />
                           {idx === 0 && (
                             <span className="absolute bottom-0 inset-x-0 bg-emerald-600/90 text-white text-[9px] font-bold text-center py-0.5 uppercase tracking-wider">
                               Cover

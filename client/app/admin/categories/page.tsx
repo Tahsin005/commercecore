@@ -360,6 +360,7 @@ export default function AdminCategoriesPage() {
                             src={cat.imageUrl}
                             alt={cat.name}
                             fill
+                            sizes="40px"
                             className="object-cover"
                           />
                         ) : (
@@ -458,6 +459,7 @@ export default function AdminCategoriesPage() {
                       src={createForm.watch("imageUrl") || ""}
                       alt="Category Preview"
                       fill
+                      sizes="(max-width: 768px) 100vw, 400px"
                       className="object-cover"
                     />
                     <button
@@ -603,6 +605,7 @@ export default function AdminCategoriesPage() {
                       src={editForm.watch("imageUrl") || ""}
                       alt="Category Preview"
                       fill
+                      sizes="(max-width: 768px) 100vw, 400px"
                       className="object-cover"
                     />
                     <button

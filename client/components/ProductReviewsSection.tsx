@@ -345,7 +345,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
 
             {imageUrl ? (
               <div className="relative w-full h-32 rounded-xl overflow-hidden border border-maroon-200 group">
-                <Image src={imageUrl} alt="Review attachment" fill className="object-cover" />
+                <Image src={imageUrl} alt="Review attachment" fill sizes="128px" className="object-cover" />
                 <button
                   type="button"
                   onClick={() => setImageUrl("")}
@@ -405,7 +405,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
         {previewModalImage && (
           <div className="space-y-4">
             <div className="w-full h-80 relative rounded-xl overflow-hidden border border-maroon-100 bg-black/5 flex items-center justify-center">
-              <Image src={previewModalImage} alt="Customer photo" fill className="object-contain" />
+              <Image src={previewModalImage} alt="Customer photo" fill sizes="(max-width: 768px) 100vw, 800px" className="object-contain" />
             </div>
             <div className="flex justify-end">
               <button
