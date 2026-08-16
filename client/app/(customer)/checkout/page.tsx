@@ -35,6 +35,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
 import { getDiscountAmount, useActiveDiscount } from "@/lib/discount";
+import { useUserAddressesQuery } from "@/hooks/useAddressQueries";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -65,13 +66,28 @@ export default function CheckoutPage() {
 
   const deliveryZone = watch("deliveryZone") || "inside_dhaka";
 
-  // autofill user details when authenticated user object hydrates
+  const { data: addressesRes } = useUserAddressesQuery(Boolean(isHydrated && isAuthenticated));
+  const addresses = addressesRes?.data || [];
+
+  // autofill user details & default address when authenticated
   useEffect(() => {
     if (user) {
       if (user.name) setValue("customerName", user.name);
       if (user.phone) setValue("phone", user.phone);
     }
-  }, [user, setValue]);
+    if (addresses && addresses.length > 0) {
+      const defaultAddr = addresses.find((a) => a.isDefault) || addresses[0];
+      if (defaultAddr && defaultAddr.fullAddress) {
+        setValue("shippingAddress", defaultAddr.fullAddress);
+        const cityLower = (defaultAddr.city || "").toLowerCase();
+        if (cityLower.includes("dhaka") || cityLower.includes("ঢাকা")) {
+          setValue("deliveryZone", "inside_dhaka");
+        } else {
+          setValue("deliveryZone", "outside_dhaka");
+        }
+      }
+    }
+  }, [user, addresses, setValue]);
 
   // delivery charge rates from site settings
   const insideDhakaRate = siteSettings?.delivery_charge?.insideDhaka ?? 60;
@@ -350,6 +366,45 @@ export default function CheckoutPage() {
                   </div>
 
                   <div>
+                    {addresses.length > 0 && (
+                      <div className="space-y-1.5 pb-3">
+                        <span className="text-[11px] font-bold text-maroon-800 uppercase tracking-wider block">
+                          Select Saved Address:
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {addresses.map((addr) => (
+                            <button
+                              key={addr.id}
+                              type="button"
+                              onClick={() => {
+                                setValue("shippingAddress", addr.fullAddress);
+                                const cityLower = (addr.city || "").toLowerCase();
+                                if (cityLower.includes("dhaka") || cityLower.includes("ঢাকা")) {
+                                  setValue("deliveryZone", "inside_dhaka");
+                                } else {
+                                  setValue("deliveryZone", "outside_dhaka");
+                                }
+                                toast.success(`Address selected: "${addr.label || 'Saved Address'}"`);
+                              }}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center space-x-1.5 ${
+                                watch("shippingAddress") === addr.fullAddress
+                                  ? "bg-maroon-900 text-white border-maroon-900 shadow-sm"
+                                  : "bg-off-white hover:bg-maroon-50 text-maroon-900 border-maroon-200"
+                              }`}
+                            >
+                              <MapPin className="w-3.5 h-3.5" />
+                              <span>{addr.label || "Home"}</span>
+                              {addr.isDefault && (
+                                <span className="text-[9px] bg-amber-400 text-maroon-950 font-extrabold px-1 rounded ml-0.5">
+                                  Default
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <label htmlFor="shippingAddress" className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
                       {t.checkout.shippingAddress}
                     </label>

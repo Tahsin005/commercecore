@@ -160,3 +160,66 @@ export const getAdminUserStatsService = async () => {
     },
   };
 };
+
+export const updateUserProfileService = async (userId, payload) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  if (payload.email && payload.email.toLowerCase() !== user.email.toLowerCase()) {
+    const existingEmail = await User.findOne({
+      email: payload.email.toLowerCase(),
+      _id: { $ne: userId },
+    });
+    if (existingEmail) {
+      throw new ApiError(400, 'User with this email already exists');
+    }
+    user.email = payload.email.toLowerCase();
+
+    if (checkIsAdminEmail(user.email)) {
+      user.isAdmin = true;
+    }
+  }
+
+  if (payload.phone && payload.phone !== user.phone) {
+    const existingPhone = await User.findOne({
+      phone: payload.phone,
+      _id: { $ne: userId },
+    });
+    if (existingPhone) {
+      throw new ApiError(400, 'User with this phone number already exists');
+    }
+    user.phone = payload.phone;
+  }
+
+  if (payload.name) {
+    user.name = payload.name.trim();
+  }
+
+  await user.save();
+  return user.toJSON();
+};
+
+export const changeUserPasswordService = async (userId, { currentPassword, newPassword }) => {
+  const user = await User.findById(userId).select('+password');
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  if (user.password || user.hasPassword) {
+    if (!currentPassword) {
+      throw new ApiError(400, 'Current password is required');
+    }
+    const isMatch = await user.isPasswordMatch(currentPassword);
+    if (!isMatch) {
+      throw new ApiError(400, 'Current password is incorrect');
+    }
+  }
+
+  user.password = newPassword;
+  await user.save();
+  return user.toJSON();
+};
+
+

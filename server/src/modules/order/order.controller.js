@@ -4,6 +4,7 @@ import {
   getAllOrdersAdminService,
   getOrderByIdAdminService,
   updateOrderStatusService,
+  getUserOrdersService,
 } from './order.service.js';
 import ApiResponse from '../../utils/ApiResponse.js';
 
@@ -51,3 +52,13 @@ export const updateOrderStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getUserOrders = async (req, res, next) => {
+  try {
+    const result = await getUserOrdersService(req.user.id, req.query);
+    res.status(200).json(new ApiResponse(200, result, 'User orders retrieved successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+

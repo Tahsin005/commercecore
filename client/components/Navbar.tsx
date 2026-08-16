@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
   Globe,
   Tag,
+  User,
 } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -153,10 +154,15 @@ export function Navbar() {
             {isHydrated ? (
               <div className="flex items-center space-x-2">
                 {isAuthenticated && user ? (
-                  <div className="flex items-center space-x-2.5 pl-2 border-l border-maroon-700">
-                    <span className="text-xs font-medium text-cream truncate max-w-[110px]" title={user.name}>
-                      {t.navbar.hi}, {user.name}
-                    </span>
+                  <div className="flex items-center space-x-2 pl-2 border-l border-maroon-700">
+                    <Link
+                      href="/profile"
+                      className="px-2.5 py-1.5 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 rounded-md text-cream hover:text-white text-xs transition-all flex items-center space-x-1.5 cursor-pointer max-w-[140px]"
+                      title="View Profile & Orders"
+                    >
+                      <User className="w-3.5 h-3.5 text-cream shrink-0" />
+                      <span className="font-medium truncate">{user.name}</span>
+                    </Link>
                     <button
                       onClick={handleLogoutClick}
                       className="p-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white rounded-md text-xs transition-all flex items-center space-x-1 cursor-pointer"
@@ -242,6 +248,18 @@ export function Navbar() {
               <HomeIcon className="w-4 h-4" />
               <span>{t.navbar.home}</span>
             </Link>
+
+            {isHydrated && isAuthenticated && (
+              <Link
+                href="/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-maroon-800 text-cream text-xs font-semibold uppercase tracking-wider"
+              >
+                <User className="w-4 h-4" />
+                <span>My Profile</span>
+              </Link>
+            )}
+
             <Link
               href="/checkout"
               onClick={() => setMobileMenuOpen(false)}
@@ -261,6 +279,7 @@ export function Navbar() {
                 <span>{t.navbar.adminPanel}</span>
               </Link>
             )}
+
 
             <div className="pt-2 border-t border-maroon-800 flex items-center justify-between">
               {isHydrated ? (

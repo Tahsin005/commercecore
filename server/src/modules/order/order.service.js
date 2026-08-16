@@ -408,3 +408,59 @@ export const updateOrderStatusService = async (orderId, newStatus) => {
 
   return getOrderByIdAdminService(order.id);
 };
+
+export const getUserOrdersService = async (userId, query = {}) => {
+  const { page = 1, limit = 10 } = query;
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+  const skip = (pageNum - 1) * limitNum;
+
+  const filter = { userId };
+
+  const [ordersRaw, total] = await Promise.all([
+    Order.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean(),
+    Order.countDocuments(filter),
+  ]);
+
+  const orderIds = ordersRaw.map((o) => o._id);
+  const items = await OrderItem.find({ orderId: { $in: orderIds } }).lean();
+
+  const itemsByOrder = items.reduce((acc, item) => {
+    const key = item.orderId.toString();
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {});
+
+  const orders = ordersRaw.map((order) => ({
+    ...order,
+    id: order._id.toString(),
+    items: (itemsByOrder[order._id.toString()] || []).map((item) => ({
+      ...item,
+      id: item._id ? item._id.toString() : undefined,
+      name: item.productName || item.name || '',
+      productName: item.productName || item.name || '',
+      price: item.unitPrice !== undefined && item.unitPrice !== null ? item.unitPrice : (item.price || 0),
+      unitPrice: item.unitPrice !== undefined && item.unitPrice !== null ? item.unitPrice : (item.price || 0),
+      size: item.selectedVariantLabel || item.size || 'Standard',
+      selectedVariantLabel: item.selectedVariantLabel || item.size || 'Standard',
+    })),
+  }));
+
+  const totalPages = Math.ceil(total / limitNum) || 1;
+
+  return {
+    orders,
+    pagination: {
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages,
+    },
+  };
+};
+
