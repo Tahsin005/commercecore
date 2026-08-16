@@ -5,10 +5,33 @@ export const deliveryChargeSchema = z.object({
   outsideDhaka: z.number().min(0, "Outside Dhaka charge must be 0 or greater"),
 });
 
-export const siteDiscountSchema = z.object({
-  discountPercentage: z.number().min(0, "Discount percentage must be between 0 and 100").max(100, "Discount percentage must be between 0 and 100"),
-  isActive: z.boolean(),
-});
+export const siteDiscountSchema = z
+  .object({
+    discountPercentage: z.number().min(0, "Discount percentage must be between 0 and 100").max(100, "Discount percentage must be between 0 and 100"),
+    startDate: z
+      .string()
+      .nullable()
+      .optional()
+      .refine((val) => !val || !isNaN(new Date(val).getTime()), { message: "Invalid start date format" }),
+    endDate: z
+      .string()
+      .nullable()
+      .optional()
+      .refine((val) => !val || !isNaN(new Date(val).getTime()), { message: "Invalid end date format" }),
+    isActive: z.boolean(),
+  })
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate && !isNaN(new Date(data.startDate).getTime()) && !isNaN(new Date(data.endDate).getTime())) {
+        return new Date(data.endDate) >= new Date(data.startDate);
+      }
+      return true;
+    },
+    {
+      message: "End date must be after or equal to start date",
+      path: ["endDate"],
+    }
+  );
 
 export const marqueeSchema = z.object({
   text: z.string().trim().min(1, "Marquee text is required"),

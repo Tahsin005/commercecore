@@ -14,12 +14,17 @@ import {
 import { useWishlist } from "@/hooks/useWishlist";
 import { useProductsQuery, Product } from "@/hooks/useProductQueries";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
+import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
+import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
 import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const { t } = useLanguage();
+  const { data: siteSettings } = useSiteSettingsQuery();
+  const discountSetting = siteSettings?.site_discount;
+  const hasSitewideDiscount = useActiveDiscount(discountSetting);
 
   // react Query Hooks
   const { data: categoriesResponse, isLoading: isCategoriesLoading } = useCategoriesQuery();
@@ -219,11 +224,15 @@ export default function Home() {
                       </span>
                     )}
 
-                    {product.isFeatured && (
+                    {hasSitewideDiscount ? (
+                      <span className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow">
+                        {discountSetting?.discountPercentage}% OFF
+                      </span>
+                    ) : product.isFeatured ? (
                       <span className="absolute top-3 left-3 bg-maroon-900 text-cream text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow">
                         {t.common.featured}
                       </span>
-                    )}
+                    ) : null}
                   </div>
 
                   <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
@@ -241,9 +250,20 @@ export default function Home() {
                         <span className="text-[10px] font-semibold text-maroon-500 uppercase tracking-wider block">
                           {t.common.price}
                         </span>
-                        <span className="text-lg font-bold font-mono text-maroon-900">
-                          ৳{price.toFixed(2)}
-                        </span>
+                        {hasSitewideDiscount ? (
+                          <div className="flex items-baseline space-x-1.5">
+                            <span className="text-lg font-bold font-mono text-maroon-900">
+                              ৳{getDiscountedPrice(price, discountSetting).toFixed(2)}
+                            </span>
+                            <span className="text-xs font-mono text-maroon-700/60 line-through">
+                              ৳{price.toFixed(2)}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-lg font-bold font-mono text-maroon-900">
+                            ৳{price.toFixed(2)}
+                          </span>
+                        )}
                       </div>
 
                       <Link

@@ -6,6 +6,7 @@ import User from '../user/user.model.js';
 import { generateAuthToken } from '../user/user.service.js';
 import { syncGuestCartService, clearUserCartService } from '../cart/cart.service.js';
 import { syncGuestWishlistService } from '../wishlist/wishlist.service.js';
+import { getSiteSettingsService } from '../setting/setting.service.js';
 import { orderStatusEnum } from './order.validation.js';
 import ApiError from '../../utils/ApiError.js';
 
@@ -59,7 +60,11 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
     }
   }
 
-  const deliveryCharge = deliveryZone === 'outside_dhaka' ? 120 : 60;
+  const siteSettings = await getSiteSettingsService();
+
+  const deliveryCharge = deliveryZone === 'outside_dhaka'
+    ? (siteSettings?.delivery_charge?.outsideDhaka ?? 120)
+    : (siteSettings?.delivery_charge?.insideDhaka ?? 60);
 
   const variantIds = items.map((i) => i.productVariantId).filter(Boolean);
   const rawProductIds = items.map((i) => i.productId).filter(Boolean);
@@ -190,8 +195,23 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
     throw error;
   }
 
-  const discountAmount = 0;
-  const total = subtotal + deliveryCharge - discountAmount;
+  const roundedSubtotal = Math.round(subtotal * 100) / 100;
+
+  let discountAmount = 0;
+  const siteDiscount = siteSettings?.site_discount;
+
+  if (siteDiscount && siteDiscount.isActive && siteDiscount.discountPercentage > 0) {
+    const now = new Date();
+    const startValid = !siteDiscount.startDate || new Date(siteDiscount.startDate) <= now;
+    const endValid = !siteDiscount.endDate || new Date(siteDiscount.endDate) >= now;
+
+    if (startValid && endValid) {
+      discountAmount = Math.round(((roundedSubtotal * siteDiscount.discountPercentage) / 100) * 100) / 100;
+    }
+  }
+
+  const rawTotal = roundedSubtotal + deliveryCharge - discountAmount;
+  const total = Math.max(0, Math.round(rawTotal * 100) / 100);
 
   const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   const randomSeq = Math.floor(1000 + Math.random() * 9000);

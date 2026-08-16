@@ -300,6 +300,12 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
                 <span>{t.orderSuccess.deliveryCharge}</span>
                 <span className="font-mono font-semibold">৳{order.deliveryCharge.toFixed(2)}</span>
               </div>
+              {Boolean(order.discountAmount && order.discountAmount > 0) && (
+                <div className="flex justify-between text-emerald-700 font-semibold">
+                  <span>Sitewide Discount</span>
+                  <span className="font-mono text-xs font-bold">-৳{order.discountAmount?.toFixed(2)}</span>
+                </div>
+              )}
               <div className="pt-2 border-t border-maroon-200/60 flex justify-between text-sm font-bold text-maroon-900">
                 <span>{t.orderSuccess.grandTotal}</span>
                 <span className="font-mono text-base text-maroon-900">৳{order.total.toFixed(2)}</span>

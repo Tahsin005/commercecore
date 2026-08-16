@@ -33,10 +33,14 @@ import { getCheckoutSchema, CheckoutInput } from "@/lib/validations/order";
 import { CheckoutSkeleton, OrderSuccessSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
+import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
+import { getDiscountAmount, useActiveDiscount } from "@/lib/discount";
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { user, isAuthenticated, isHydrated } = useAuth();
   const { t } = useLanguage();
+  const { data: siteSettings } = useSiteSettingsQuery();
 
   const { items: cartItems, subtotal, updateQuantity, removeItem, isLoading: isCartLoading } = useCart();
   const wishlistItems = useWishlistStore((state) => state.items);
@@ -69,9 +73,16 @@ export default function CheckoutPage() {
     }
   }, [user, setValue]);
 
-  // delivery charge rates: 60 Taka for Inside Dhaka, 120 Taka for Outside Dhaka
-  const deliveryCharge = deliveryZone === "outside_dhaka" ? 120 : 60;
-  const totalAmount = subtotal + deliveryCharge;
+  // delivery charge rates from site settings
+  const insideDhakaRate = siteSettings?.delivery_charge?.insideDhaka ?? 60;
+  const outsideDhakaRate = siteSettings?.delivery_charge?.outsideDhaka ?? 120;
+  const deliveryCharge = deliveryZone === "outside_dhaka" ? outsideDhakaRate : insideDhakaRate;
+
+  // sitewide discount deduction
+  const siteDiscount = siteSettings?.site_discount;
+  const hasActiveDiscount = useActiveDiscount(siteDiscount);
+  const discountAmount = getDiscountAmount(subtotal, siteDiscount);
+  const totalAmount = Math.max(0, subtotal + deliveryCharge - discountAmount);
 
   const onSubmit = (data: CheckoutInput) => {
     if (cartItems.length === 0) {
@@ -308,7 +319,7 @@ export default function CheckoutPage() {
                           <span className="text-xs font-bold">{t.checkout.insideDhaka}</span>
                         </div>
                         <span className={`text-xs font-mono font-bold ${deliveryZone === "inside_dhaka" ? "text-cream" : "text-maroon-700"}`}>
-                          ৳60
+                          ৳{insideDhakaRate}
                         </span>
                       </label>
 
@@ -329,7 +340,7 @@ export default function CheckoutPage() {
                           <span className="text-xs font-bold">{t.checkout.outsideDhaka}</span>
                         </div>
                         <span className={`text-xs font-mono font-bold ${deliveryZone === "outside_dhaka" ? "text-cream" : "text-maroon-700"}`}>
-                          ৳120
+                          ৳{outsideDhakaRate}
                         </span>
                       </label>
                     </div>
@@ -464,6 +475,15 @@ export default function CheckoutPage() {
                     <span>{t.checkout.deliveryCharge} ({deliveryZone === "inside_dhaka" ? t.checkout.insideDhaka : t.checkout.outsideDhaka})</span>
                     <span className="font-mono font-semibold">৳{deliveryCharge.toFixed(2)}</span>
                   </div>
+
+                  {hasActiveDiscount && discountAmount > 0 && (
+                    <div className="flex items-center justify-between text-emerald-700 font-semibold pt-1">
+                      <span className="flex items-center space-x-1">
+                        <span>Sitewide Discount ({siteDiscount?.discountPercentage}% OFF)</span>
+                      </span>
+                      <span className="font-mono text-xs font-bold">-৳{discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
 
                   <div className="pt-3 border-t border-maroon-100 flex items-center justify-between text-sm font-bold text-maroon-900">
                     <span>{t.checkout.totalAmount}</span>
