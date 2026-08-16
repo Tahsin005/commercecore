@@ -220,7 +220,6 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-maroon-100 shadow-sm">
         <div>
           <div className="flex items-center space-x-2 text-maroon-800">
@@ -244,7 +243,6 @@ export default function AdminOrdersPage() {
         </button>
       </div>
 
-      {/* Summary Analytics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 bg-white rounded-2xl border border-maroon-100 shadow-sm flex items-center justify-between">
           <div>
@@ -299,7 +297,6 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
       <div className="bg-white p-4 rounded-2xl border border-maroon-100 shadow-sm space-y-4">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="relative w-full lg:w-96">
@@ -353,7 +350,6 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Orders Table */}
       <div className="bg-white rounded-2xl border border-maroon-100 shadow-md overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-maroon-700 flex flex-col items-center justify-center space-y-3">
@@ -494,7 +490,6 @@ export default function AdminOrdersPage() {
           </div>
         )}
 
-        {/* Bounded Window Pagination Bar */}
         {pagination.totalPages > 1 && (
           <div className="p-4 bg-off-white border-t border-maroon-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-sans">
             <div className="text-maroon-700">
@@ -538,7 +533,6 @@ export default function AdminOrdersPage() {
         )}
       </div>
 
-      {/* Accessible Order Receipt Modal */}
       {selectedOrderId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div

@@ -246,7 +246,6 @@ export function MediaUploadsTab() {
         </form>
       </DialogModal>
 
-      {/* --- CONFIRM DELETE MODAL --- */}
       <ConfirmDeleteModal
         isOpen={!!deletingConfig}
         onClose={() => setDeletingConfig(null)}

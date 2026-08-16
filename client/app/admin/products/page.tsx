@@ -733,7 +733,6 @@ export default function AdminProductsPage() {
             </div>
 
             <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4" noValidate>
-              {/* Product Multi-Image Upload Dropzone */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
                   Product Images
@@ -1011,7 +1010,6 @@ export default function AdminProductsPage() {
             </div>
 
             <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4" noValidate>
-              {/* Product Multi-Image Upload Dropzone */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
                   Product Images
@@ -1435,7 +1433,6 @@ export default function AdminProductsPage() {
         </div>
       )}
 
-      {/* DELETE VARIANT CONFIRMATION MODAL */}
       {deletingVariant && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div

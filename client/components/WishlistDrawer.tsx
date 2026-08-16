@@ -124,7 +124,7 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
         price: item.price,
         imageUrl: item.imageUrl,
       }, 1);
-      toast.success("Added to cart!");
+      toast.success(t.wishlist?.addedToCartToast || "Added to cart!");
     } catch {
       toast.error("Failed to add to cart");
     } finally {
@@ -148,18 +148,16 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
         imageUrl: item.imageUrl,
       }, 1);
     }
-    toast.success("All items moved to cart!");
+    toast.success(t.wishlist?.allMovedToast || "All items moved to cart!");
   };
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
-      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
         onClick={onClose}
       />
 
-      {/* Drawer */}
       <div
         ref={drawerRef}
         role="dialog"
@@ -168,11 +166,10 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
         tabIndex={-1}
         className="relative w-full max-w-md bg-white text-text-main h-full shadow-2xl z-10 flex flex-col justify-between animate-in slide-in-from-right duration-300 font-sans focus:outline-none"
       >
-        {/* Header */}
         <div className="bg-maroon-900 text-white p-5 flex items-center justify-between shadow-md">
           <div className="flex items-center space-x-2.5">
             <Heart className="w-5 h-5 text-cream fill-cream" />
-            <h2 className="font-serif font-bold text-lg text-white">{t.navbar.wishlist}</h2>
+            <h2 className="font-serif font-bold text-lg text-white">{t.wishlist?.title || t.navbar.wishlist}</h2>
             <span className="bg-maroon-800 border border-maroon-700 text-cream font-mono font-bold text-xs px-2 py-0.5 rounded-full">
               {wishlistCount}
             </span>
@@ -186,7 +183,6 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
           </button>
         </div>
 
-        {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {items.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-12">
@@ -195,9 +191,9 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
               </div>
 
               <div className="space-y-1.5 max-w-xs">
-                <h3 className="font-serif font-bold text-xl text-maroon-900">Your Wishlist is Empty</h3>
+                <h3 className="font-serif font-bold text-xl text-maroon-900">{t.wishlist?.emptyTitle || "Your Wishlist is Empty"}</h3>
                 <p className="text-xs text-maroon-700/80 leading-relaxed">
-                  Save items you love while browsing to view them here later and quickly add them to your cart!
+                  {t.wishlist?.emptyDesc || "Save items you love while browsing to view them here later and quickly add them to your cart!"}
                 </p>
               </div>
 
@@ -206,7 +202,7 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
                 className="px-6 py-3 bg-maroon-900 hover:bg-maroon-800 active:scale-[0.98] text-white font-semibold text-xs rounded-xl shadow-md transition-all flex items-center space-x-2 cursor-pointer group mt-2"
               >
                 <ArrowRight className="w-4 h-4 text-cream group-hover:translate-x-1 transition-transform" />
-                <span>{t.common.exploreProducts}</span>
+                <span>{t.wishlist?.exploreProducts || t.common.exploreProducts}</span>
               </button>
             </div>
           ) : (
@@ -222,7 +218,6 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
                       isPending ? "opacity-60" : "opacity-100"
                     }`}
                   >
-                    {/* Item Image */}
                     <div className="w-14 h-14 rounded-lg overflow-hidden bg-white border border-maroon-200 flex items-center justify-center shrink-0 relative">
                       {item.imageUrl ? (
                         <Image src={item.imageUrl} alt={item.name} fill sizes="56px" className="object-cover" />
@@ -231,7 +226,6 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
                       )}
                     </div>
 
-                    {/* Details */}
                     <div className="flex-1 space-y-1 min-w-0">
                       <Link
                         href={`/product/${item.productId}`}
@@ -253,14 +247,13 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
                     <div className="flex items-center space-x-1.5 shrink-0">
                       <button
                         type="button"
                         disabled={isPending}
                         onClick={() => handleAddToCart(item)}
                         className="p-2 bg-maroon-900 hover:bg-maroon-800 text-white rounded-lg transition-colors cursor-pointer disabled:opacity-40"
-                        title="Add to Cart"
+                        title={t.productDetails?.addToCart || "Add to Cart"}
                       >
                         <ShoppingCart className="w-4 h-4 text-cream" />
                       </button>
@@ -270,7 +263,7 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
                         disabled={isPending}
                         onClick={() => handleRemoveItem(itemKey)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer disabled:opacity-40"
-                        title="Remove from Wishlist"
+                        title={t.home?.removeFromWishlist || "Remove from Wishlist"}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -282,7 +275,6 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
           )}
         </div>
 
-        {/* Footer Actions */}
         {items.length > 0 && (
           <div className="p-5 bg-off-white border-t border-maroon-100 space-y-3">
             <button
@@ -290,7 +282,7 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
               className="w-full py-3.5 px-4 bg-maroon-900 hover:bg-maroon-800 active:scale-[0.99] text-white font-semibold text-xs rounded-xl transition-all flex items-center justify-center space-x-2 shadow-md cursor-pointer"
             >
               <ShoppingCart className="w-4 h-4 text-cream" />
-              <span>Add All Items to Cart</span>
+              <span>{t.wishlist?.addAllToCart || "Add All Items to Cart"}</span>
             </button>
           </div>
         )}

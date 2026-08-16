@@ -158,7 +158,6 @@ export function ProductBulletsTab() {
         ))}
       </div>
 
-      {/* --- PRODUCT BULLET MODAL --- */}
       <DialogModal
         isOpen={bulletModalOpen}
         onClose={() => setBulletModalOpen(false)}

@@ -220,7 +220,6 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-maroon-100 shadow-sm">
         <div>
           <div className="flex items-center space-x-2 text-maroon-800">
@@ -241,7 +240,6 @@ export default function AdminCategoriesPage() {
         </button>
       </div>
 
-      {/* Summary Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="p-5 bg-white rounded-2xl border border-maroon-100 shadow-sm flex items-center justify-between">
           <div>
@@ -272,7 +270,6 @@ export default function AdminCategoriesPage() {
         </div>
       </div>
 
-      {/* Filters Bar */}
       <div className="bg-white p-4 rounded-2xl border border-maroon-100 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full sm:w-80">
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
@@ -308,7 +305,6 @@ export default function AdminCategoriesPage() {
         </div>
       </div>
 
-      {/* Categories Table */}
       <div className="bg-white rounded-2xl border border-maroon-100 shadow-md overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-maroon-700 flex flex-col items-center justify-center space-y-3">
@@ -425,7 +421,6 @@ export default function AdminCategoriesPage() {
         )}
       </div>
 
-      {/* CREATE MODAL */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
@@ -444,7 +439,6 @@ export default function AdminCategoriesPage() {
             </div>
 
             <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4" noValidate>
-              {/* Category Image Upload Component */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
                   Category Image
@@ -572,7 +566,6 @@ export default function AdminCategoriesPage() {
         </div>
       )}
 
-      {/* EDIT MODAL */}
       {editingCategory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
@@ -591,7 +584,6 @@ export default function AdminCategoriesPage() {
             </div>
 
             <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4" noValidate>
-              {/* Category Image Upload Component */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
                   Category Image
@@ -710,7 +702,6 @@ export default function AdminCategoriesPage() {
         </div>
       )}
 
-      {/* DELETE MODAL */}
       {deletingCategory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div

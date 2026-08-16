@@ -16,6 +16,7 @@ import { useProductReviewsQuery, useCreateReviewMutation } from "@/hooks/useRevi
 import { useUploadImageMutation } from "@/hooks/useUploadMutation";
 import { DialogModal } from "@/components/ui/DialogModal";
 import { RatingStars } from "@/components/ui/RatingStars";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface ProductReviewsSectionProps {
   productId: string;
@@ -23,6 +24,7 @@ interface ProductReviewsSectionProps {
 
 export function ProductReviewsSection({ productId }: ProductReviewsSectionProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [page, setPage] = useState<number>(1);
   const { data, isLoading } = useProductReviewsQuery(productId, page);
   const createReviewMutation = useCreateReviewMutation();
@@ -80,7 +82,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
       onSuccess: (res) => {
         if (res?.data?.url) {
           setImageUrl(res.data.url);
-          toast.success("Photo attached successfully!");
+          toast.success(t.reviews?.photoAttachedSuccess || "Photo attached successfully!");
         }
       },
       onError: (err) => {
@@ -93,11 +95,11 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
     e.preventDefault();
 
     if (!customerName.trim()) {
-      toast.error("Please enter your name");
+      toast.error(t.reviews?.nameRequired || "Please enter your name");
       return;
     }
     if (!description.trim()) {
-      toast.error("Please enter a review description");
+      toast.error(t.reviews?.descriptionRequired || "Please enter a review description");
       return;
     }
 
@@ -111,7 +113,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
       },
       {
         onSuccess: () => {
-          toast.success("Thank you! Your review has been submitted for moderation.");
+          toast.success(t.reviews?.submitSuccess || "Thank you! Your review has been submitted for moderation.");
           setIsWriteModalOpen(false);
         },
         onError: (err) => {
@@ -125,9 +127,9 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
     <div className="bg-white rounded-2xl border border-maroon-100 shadow-md p-6 sm:p-8 space-y-8 mt-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-maroon-100 pb-6">
         <div>
-          <h2 className="font-serif font-bold text-2xl text-maroon-900">Customer Reviews &amp; Ratings</h2>
+          <h2 className="font-serif font-bold text-2xl text-maroon-900">{t.reviews?.title || "Customer Reviews & Ratings"}</h2>
           <p className="text-xs text-maroon-700 mt-1">
-            Real feedback from verified buyers and shoppers.
+            {t.reviews?.subtitle || "Real feedback from verified buyers and shoppers."}
           </p>
         </div>
 
@@ -137,7 +139,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
           className="inline-flex items-center justify-center space-x-2 px-4 py-2.5 bg-maroon-900 hover:bg-maroon-800 text-white font-semibold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
         >
           <MessageSquarePlus className="w-4 h-4 text-cream" />
-          <span>Write a Review</span>
+          <span>{t.reviews?.writeReview || "Write a Review"}</span>
         </button>
       </div>
 
@@ -150,7 +152,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
             <RatingStars rating={summary.averageRating} sizeClass="w-5 h-5" />
           </div>
           <span className="text-xs font-semibold text-maroon-700 block">
-            Based on {summary.totalReviews} {summary.totalReviews === 1 ? "review" : "reviews"}
+            {t.reviews?.basedOn ? t.reviews.basedOn(summary.totalReviews) : `Based on ${summary.totalReviews} reviews`}
           </span>
         </div>
 
@@ -193,8 +195,8 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
       ) : reviews.length === 0 ? (
         <div className="p-8 text-center bg-off-white/40 rounded-xl border border-dashed border-maroon-200 space-y-2">
           <MessageSquarePlus className="w-8 h-8 text-maroon-300 mx-auto" />
-          <h4 className="font-serif font-bold text-sm text-maroon-900">No reviews yet</h4>
-          <p className="text-xs text-maroon-700">Be the first customer to share your thoughts on this product!</p>
+          <h4 className="font-serif font-bold text-sm text-maroon-900">{t.reviews?.noReviewsYet || "No reviews yet"}</h4>
+          <p className="text-xs text-maroon-700">{t.reviews?.beFirstToReview || "Be the first customer to share your thoughts on this product!"}</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -212,7 +214,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
                         {rev.userId && (
                           <span className="inline-flex items-center space-x-1 text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-md">
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            <span>Verified Buyer</span>
+                            <span>{t.reviews?.verifiedBuyer || "Verified Buyer"}</span>
                           </span>
                         )}
                       </div>
@@ -245,7 +247,6 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
             ))}
           </div>
 
-          {/* Pagination Controls */}
           {pagination.totalPages > 1 && (
             <div className="flex items-center justify-between pt-4 border-t border-maroon-100 text-xs">
               <span className="text-maroon-700">
@@ -303,17 +304,17 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
                 </button>
               ))}
               <span className="text-xs font-bold font-mono text-maroon-800 ml-2">
-                {hoverRating || rating} / 5 Stars
+                {hoverRating || rating} / 5
               </span>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-maroon-900 mb-1">Your Name *</label>
+            <label className="block text-xs font-semibold text-maroon-900 mb-1">{t.reviews?.yourName || "Your Name"} *</label>
             <input
               type="text"
               required
-              placeholder="e.g. Rahat Ahmed"
+              placeholder={t.reviews?.yourNamePlaceholder || "Enter your name"}
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               className="w-full px-3 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-lg text-xs focus:bg-white focus:ring-2 focus:ring-maroon-700"
@@ -321,11 +322,11 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-maroon-900 mb-1">Your Review *</label>
+            <label className="block text-xs font-semibold text-maroon-900 mb-1">{t.reviews?.reviewText || "Your Review"} *</label>
             <textarea
               required
               rows={4}
-              placeholder="Share what you liked or disliked about this product..."
+              placeholder={t.reviews?.reviewTextPlaceholder || "Share your experience..."}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full px-3 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-lg text-xs focus:bg-white focus:ring-2 focus:ring-maroon-700 resize-none"
@@ -333,7 +334,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-maroon-900 mb-1">Attach Photo (Optional)</label>
+            <label className="block text-xs font-semibold text-maroon-900 mb-1">{t.reviews?.attachPhoto || "Attach Photo (Optional)"}</label>
             <input
               type="file"
               ref={fileInputRef}
@@ -364,12 +365,12 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
                 {uploadImageMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-maroon-700" />
-                    <span>Uploading Photo...</span>
+                    <span>{t.reviews?.uploadingPhoto || "Uploading Photo..."}</span>
                   </>
                 ) : (
                   <>
                     <UploadCloud className="w-4 h-4 text-maroon-700" />
-                    <span>Upload Product Photo</span>
+                    <span>{t.reviews?.uploadPhotoBtn || "Upload Product Photo"}</span>
                   </>
                 )}
               </button>
@@ -382,7 +383,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
               onClick={handleCloseWriteModal}
               className="px-4 py-2 border border-maroon-200 text-maroon-800 text-xs font-semibold rounded-xl hover:bg-maroon-50 transition-all cursor-pointer"
             >
-              Cancel
+              {t.common?.cancel || "Cancel"}
             </button>
             <button
               type="submit"
@@ -390,7 +391,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
               className="px-4 py-2 bg-maroon-900 hover:bg-maroon-800 text-white text-xs font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-60 flex items-center space-x-1.5"
             >
               {createReviewMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin text-cream" />}
-              <span>Submit Review</span>
+              <span>{createReviewMutation.isPending ? (t.reviews?.submitting || "Submitting...") : (t.reviews?.submitBtn || "Submit Review")}</span>
             </button>
           </div>
         </form>

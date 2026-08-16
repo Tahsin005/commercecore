@@ -8,11 +8,21 @@ import {
   CreditCard,
   Heart,
   ArrowRight,
+  Phone,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
+import { usePublicContentBlockQuery } from "@/hooks/useCmsQueries";
 
 export function Footer() {
   const { t } = useLanguage();
+  const { data: settings } = useSiteSettingsQuery();
+  const { data: aboutUs } = usePublicContentBlockQuery("about_us");
+  const { data: contactUs } = usePublicContentBlockQuery("contact_us");
+
+  const footerSettings = settings?.footer_settings;
+  const helplineNumber = settings?.helpline_number || footerSettings?.helpline || "01700000000";
+  const brandDescription = aboutUs?.body || footerSettings?.description || t.footer.brandDesc;
 
   return (
     <footer className="bg-maroon-900 text-white border-t border-maroon-800 font-sans mt-auto">
@@ -50,9 +60,7 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Main Footer Links & Info Grid */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-8">
-        {/* Brand Column */}
         <div className="sm:col-span-2 md:col-span-5 space-y-4">
           <Link href="/" className="inline-flex items-center space-x-3 group">
             <div className="p-1.5 bg-white rounded-lg shadow-sm group-hover:bg-cream transition-colors shrink-0">
@@ -69,12 +77,11 @@ export function Footer() {
             </span>
           </Link>
 
-          <p className="text-xs text-maroon-200 leading-relaxed max-w-sm font-sans">
-            {t.footer.brandDesc}
+          <p className="text-xs text-maroon-200 leading-relaxed max-w-sm font-sans line-clamp-4">
+            {brandDescription}
           </p>
         </div>
 
-        {/* Quick Navigation Links */}
         <div className="md:col-span-3 space-y-3">
           <h4 className="text-xs font-bold uppercase tracking-wider text-cream font-serif">{t.footer.quickNav}</h4>
           <ul className="space-y-2.5 text-xs text-maroon-200 font-sans">
@@ -105,21 +112,23 @@ export function Footer() {
           </ul>
         </div>
 
-        {/* Customer Support & Shipping info */}
         <div className="md:col-span-4 space-y-3">
           <h4 className="text-xs font-bold uppercase tracking-wider text-cream font-serif">{t.footer.deliverySupport}</h4>
-          <p className="text-xs text-maroon-200 leading-relaxed font-sans">
-            {t.footer.supportDesc}
+          <p className="text-xs text-maroon-200 leading-relaxed font-sans line-clamp-3">
+            {contactUs?.body || t.footer.supportDesc}
           </p>
           <div className="pt-1">
-            <span className="inline-block text-[11px] font-semibold text-cream bg-maroon-800 border border-maroon-700 px-3 py-1.5 rounded-md shadow-xs">
-              {t.footer.helpline}
-            </span>
+            <a
+              href={`tel:${helplineNumber}`}
+              className="inline-flex items-center space-x-2 text-[11px] font-semibold text-cream bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 px-3 py-1.5 rounded-md shadow-xs transition-colors"
+            >
+              <Phone className="w-3.5 h-3.5 text-cream" />
+              <span>{t.footer?.helplineLabel || "Helpline:"} {helplineNumber}</span>
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Bottom Copyright Strip */}
       <div className="border-t border-maroon-800/80 bg-maroon-900 py-4 text-xs text-maroon-200 font-sans">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <p>&copy; {new Date().getFullYear()} {t.common.commerceCore}। {t.footer.copyright}</p>

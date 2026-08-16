@@ -20,6 +20,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { MarqueeBanner } from "@/components/MarqueeBanner";
 import { CartDrawer } from "@/components/CartDrawer";
 import { WishlistDrawer } from "@/components/WishlistDrawer";
 import { LogoutWarningModal } from "@/components/modals/LogoutWarningModal";
@@ -58,6 +59,7 @@ export function Navbar() {
   return (
     <>
       <header className="sticky top-0 z-40 bg-maroon-900 text-white shadow-lg border-b border-maroon-800 font-sans">
+        <MarqueeBanner />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-3 shrink-0 group mr-4">
             <div className="p-1.5 bg-white rounded-lg shadow-sm group-hover:bg-cream transition-colors shrink-0">
@@ -229,7 +231,6 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Mobile & Tablet Dropdown Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-maroon-800 bg-maroon-900 px-4 py-4 space-y-3 animate-in slide-in-from-top duration-200">
             <Link
@@ -294,13 +295,10 @@ export function Navbar() {
         )}
       </header>
 
-      {/* Cart Drawer Component */}
       <CartDrawer isOpen={cartDrawerOpen} onClose={closeCartDrawer} />
 
-      {/* Wishlist Drawer Component */}
       <WishlistDrawer isOpen={wishlistDrawerOpen} onClose={closeWishlistDrawer} />
 
-      {/* Logout Warning Modal for Guest Accounts */}
       <LogoutWarningModal
         isOpen={logoutWarningOpen}
         onClose={() => setLogoutWarningOpen(false)}
@@ -308,7 +306,6 @@ export function Navbar() {
         onOpenClaimModal={() => setClaimModalOpen(true)}
       />
 
-      {/* Claim Account Modal */}
       <ClaimAccountModal
         isOpen={claimModalOpen}
         onClose={() => setClaimModalOpen(false)}
