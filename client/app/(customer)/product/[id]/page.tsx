@@ -29,6 +29,7 @@ import { ProductDetailsSkeleton } from "@/components/skeletons";
 import { ProductReviewsSection } from "@/components/ProductReviewsSection";
 import { ProductSidebarBoxes } from "@/components/ProductSidebarBoxes";
 import { ProductTabsSection } from "@/components/ProductTabsSection";
+import { RelatedProductsSection } from "@/components/RelatedProductsSection";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface ProductDetailsPageProps {
@@ -429,6 +430,11 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         <ProductTabsSection product={product} />
 
         <ProductReviewsSection productId={product.id} />
+
+        <RelatedProductsSection
+          categoryId={typeof product.categoryId === "object" && product.categoryId ? product.categoryId.id : (product.categoryId as any)}
+          currentProductId={product.id}
+        />
       </main>
     </div>
   );

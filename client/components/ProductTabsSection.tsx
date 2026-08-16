@@ -74,9 +74,6 @@ export function ProductTabsSection({ product }: ProductTabsSectionProps) {
 
         {activeTab === "how_to_buy" && (
           <div className="space-y-3 max-w-3xl">
-            <h3 className="font-serif font-bold text-lg text-maroon-900">
-              {howToBuy?.title || t.productDetails.howToBuyTab}
-            </h3>
             <div className="text-sm text-maroon-800 leading-relaxed whitespace-pre-line bg-maroon-50/40 p-5 rounded-xl border border-maroon-100 font-sans">
               {howToBuy?.body || t.productDetails?.howToBuyFallback || "Select desired items, add to cart or click 'Order Now', fill out customer details, and confirm Cash-on-Delivery order."}
             </div>
@@ -85,9 +82,6 @@ export function ProductTabsSection({ product }: ProductTabsSectionProps) {
 
         {activeTab === "return_policy" && (
           <div className="space-y-3 max-w-3xl">
-            <h3 className="font-serif font-bold text-lg text-maroon-900">
-              {returnPolicy?.title || t.productDetails.returnPolicyTab}
-            </h3>
             <div className="text-sm text-maroon-800 leading-relaxed whitespace-pre-line bg-maroon-50/40 p-5 rounded-xl border border-maroon-100 font-sans">
               {returnPolicy?.body || t.productDetails?.returnPolicyFallback || "Returns accepted within 7 days of delivery for unused items in original packaging. Contact customer support for hassle-free returns."}
             </div>

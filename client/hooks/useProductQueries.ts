@@ -70,16 +70,88 @@ export interface UpdateVariantPayload {
   isActive?: boolean;
 }
 
-export function useProductsQuery(categoryId?: string, isFeatured?: boolean) {
-  return useQuery<ApiResponse<Product[]>, ApiError>({
-    queryKey: ["products", categoryId || "all", isFeatured ? "featured" : "all"],
-    queryFn: () => {
+export interface PaginationInfo {
+  totalProducts: number;
+  totalPages: number;
+  currentPage: number;
+  limit: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface ProductsResponsePayload {
+  products: Product[];
+  pagination: PaginationInfo;
+}
+
+export interface ProductQueryParams {
+  categoryId?: string;
+  isFeatured?: boolean;
+  search?: string;
+  minPrice?: number | string;
+  maxPrice?: number | string;
+  sortBy?: string;
+  page?: number;
+  limit?: number;
+}
+
+export function useProductsQuery(
+  paramsOrCategory?: string | ProductQueryParams,
+  isFeaturedFlag?: boolean
+) {
+  const queryParams: ProductQueryParams =
+    typeof paramsOrCategory === "string"
+      ? { categoryId: paramsOrCategory, isFeatured: isFeaturedFlag }
+      : paramsOrCategory || {};
+
+  const { categoryId, isFeatured, search, minPrice, maxPrice, sortBy, page, limit } = queryParams;
+
+  return useQuery<ApiResponse<ProductsResponsePayload>, ApiError>({
+    queryKey: [
+      "products",
+      categoryId || "all",
+      isFeatured ? "featured" : "all",
+      search || "",
+      minPrice !== undefined ? String(minPrice) : "",
+      maxPrice !== undefined ? String(maxPrice) : "",
+      sortBy || "default",
+      page || 1,
+      limit || "default",
+    ],
+    queryFn: async () => {
       const params = new URLSearchParams();
-      if (categoryId) params.append("categoryId", categoryId);
+      if (categoryId && categoryId !== "all") params.append("categoryId", categoryId);
       if (isFeatured) params.append("isFeatured", "true");
+      if (search && search.trim()) params.append("search", search.trim());
+      if (minPrice !== undefined && minPrice !== "") params.append("minPrice", String(minPrice));
+      if (maxPrice !== undefined && maxPrice !== "") params.append("maxPrice", String(maxPrice));
+      if (sortBy) params.append("sortBy", sortBy);
+      if (page) params.append("page", String(page));
+      if (limit !== undefined) params.append("limit", String(limit));
+
       const queryString = params.toString();
       const url = queryString ? `/products?${queryString}` : "/products";
-      return apiClient<ApiResponse<Product[]>>(url);
+      const rawRes = await apiClient<ApiResponse<ProductsResponsePayload | Product[]>>(url);
+
+      if (Array.isArray(rawRes.data)) {
+        const rawArray = rawRes.data;
+        return {
+          ...rawRes,
+          data: {
+            products: rawArray,
+            pagination: {
+              totalProducts: rawArray.length,
+              totalPages: 1,
+              currentPage: 1,
+              limit: rawArray.length,
+              hasNextPage: false,
+              hasPrevPage: false,
+            },
+          },
+        };
+      }
+
+      return rawRes as ApiResponse<ProductsResponsePayload>;
     },
   });
 }
