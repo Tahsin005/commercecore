@@ -49,18 +49,19 @@ export function SecurityTab({ user }: SecurityTabProps) {
           {t.profile.changePasswordTitle || "Account Security & Password"}
         </h3>
         <p className="text-xs text-maroon-700 mt-0.5">
-          Change your account password to ensure your profile and order history remain secure.
+          {t.profile.changePasswordDesc || "Change your account password to ensure your profile and order history remain secure."}
         </p>
       </div>
 
       <form onSubmit={handleChangePassword} className="space-y-4">
         {user?.hasPassword && (
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-maroon-900">
+            <label htmlFor="current-password" className="text-xs font-semibold text-maroon-900">
               {t.profile.currentPasswordInput || "Current Password"}
             </label>
             <div className="relative">
               <input
+                id="current-password"
                 type={showCurrentPass ? "text" : "password"}
                 required
                 value={passwordForm.currentPassword}
@@ -70,6 +71,8 @@ export function SecurityTab({ user }: SecurityTabProps) {
               <button
                 type="button"
                 onClick={() => setShowCurrentPass(!showCurrentPass)}
+                aria-label={showCurrentPass ? "Hide current password" : "Show current password"}
+                title={showCurrentPass ? "Hide current password" : "Show current password"}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-maroon-600 hover:text-maroon-900 cursor-pointer"
               >
                 {showCurrentPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -79,11 +82,12 @@ export function SecurityTab({ user }: SecurityTabProps) {
         )}
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-maroon-900">
+          <label htmlFor="new-password" className="text-xs font-semibold text-maroon-900">
             {t.profile.newPasswordInput || "New Password *"}
           </label>
           <div className="relative">
             <input
+              id="new-password"
               type={showNewPass ? "text" : "password"}
               required
               minLength={6}
@@ -94,6 +98,8 @@ export function SecurityTab({ user }: SecurityTabProps) {
             <button
               type="button"
               onClick={() => setShowNewPass(!showNewPass)}
+              aria-label={showNewPass ? "Hide new password" : "Show new password"}
+              title={showNewPass ? "Hide new password" : "Show new password"}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-maroon-600 hover:text-maroon-900 cursor-pointer"
             >
               {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -102,10 +108,11 @@ export function SecurityTab({ user }: SecurityTabProps) {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-maroon-900">
+          <label htmlFor="confirm-password" className="text-xs font-semibold text-maroon-900">
             {t.profile.confirmPasswordInput || "Confirm New Password *"}
           </label>
           <input
+            id="confirm-password"
             type="password"
             required
             minLength={6}
@@ -120,7 +127,7 @@ export function SecurityTab({ user }: SecurityTabProps) {
           disabled={changePasswordMutation.isPending}
           className="w-full py-3 bg-maroon-900 hover:bg-maroon-800 text-white font-semibold text-xs rounded-xl shadow transition-all cursor-pointer disabled:opacity-50"
         >
-          {changePasswordMutation.isPending ? "Updating password..." : (t.profile.changePasswordBtn || "Update Password")}
+          {changePasswordMutation.isPending ? (t.profile.updatingPassword || "Updating password...") : (t.profile.changePasswordBtn || "Update Password")}
         </button>
       </form>
     </div>

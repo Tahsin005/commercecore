@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+const objectIdSchema = z
+  .string()
+  .min(1, 'Address ID is required')
+  .regex(/^[0-9a-fA-F]{24}$/, 'Invalid address ID format');
+
 export const createAddressSchema = z.object({
   body: z.object({
     label: z.string().trim().max(50).optional().default('Home'),
@@ -11,7 +16,7 @@ export const createAddressSchema = z.object({
 
 export const updateAddressSchema = z.object({
   params: z.object({
-    id: z.string().min(1, 'Address ID is required'),
+    id: objectIdSchema,
   }),
   body: z.object({
     label: z.string().trim().max(50).optional(),
@@ -23,6 +28,6 @@ export const updateAddressSchema = z.object({
 
 export const addressIdParamSchema = z.object({
   params: z.object({
-    id: z.string().min(1, 'Address ID is required'),
+    id: objectIdSchema,
   }),
 });

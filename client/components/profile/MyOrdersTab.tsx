@@ -30,10 +30,11 @@ interface MyOrdersTabProps {
 
 export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
   const { t } = useLanguage();
-  const [ordersPage] = useState(1);
+  const [ordersPage, setOrdersPage] = useState(1);
   const { data: ordersRes, isLoading: isOrdersLoading } = useCustomerOrdersQuery(ordersPage, 10, isAuthenticated);
   const ordersData = ordersRes?.data;
   const orders = ordersData?.orders || [];
+  const totalPages = ordersData?.pagination?.totalPages || 1;
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   if (isOrdersLoading) {
@@ -151,6 +152,28 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
         </div>
       </div>
 
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 py-3 bg-white border border-maroon-100 rounded-2xl shadow-sm">
+          <button
+            disabled={ordersPage <= 1}
+            onClick={() => setOrdersPage((prev) => Math.max(1, prev - 1))}
+            className="px-3.5 py-1.5 bg-maroon-50 hover:bg-maroon-100 text-maroon-900 border border-maroon-200 text-xs font-semibold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            Previous
+          </button>
+          <span className="text-xs font-mono font-medium text-maroon-800">
+            Page {ordersPage} of {totalPages}
+          </span>
+          <button
+            disabled={ordersPage >= totalPages}
+            onClick={() => setOrdersPage((prev) => Math.min(totalPages, prev + 1))}
+            className="px-3.5 py-1.5 bg-maroon-50 hover:bg-maroon-100 text-maroon-900 border border-maroon-200 text-xs font-semibold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
       {selectedOrder && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-6 border border-maroon-100 shadow-2xl relative max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
@@ -233,16 +256,18 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
             <div className="bg-maroon-50/60 border border-maroon-100 rounded-2xl p-4 space-y-1.5 text-xs">
               <div className="flex items-center justify-between text-maroon-800">
                 <span>Subtotal</span>
-                <span className="font-mono">৳{(selectedOrder.subtotal || selectedOrder.total - (selectedOrder.deliveryCharge || 0)).toFixed(2)}</span>
+                <span className="font-mono">
+                  ৳{(selectedOrder.subtotal || (selectedOrder.total - (selectedOrder.deliveryCharge || 0) + (selectedOrder.discountAmount ?? selectedOrder.discount ?? 0))).toFixed(2)}
+                </span>
               </div>
               <div className="flex items-center justify-between text-maroon-800">
                 <span>Delivery Fee</span>
                 <span className="font-mono">৳{(selectedOrder.deliveryCharge || 0).toFixed(2)}</span>
               </div>
-              {Boolean(selectedOrder.discount && selectedOrder.discount > 0) && (
+              {Boolean((selectedOrder.discountAmount ?? selectedOrder.discount ?? 0) > 0) && (
                 <div className="flex items-center justify-between text-emerald-800 font-semibold">
                   <span>Discount</span>
-                  <span className="font-mono">-৳{(selectedOrder.discount || 0).toFixed(2)}</span>
+                  <span className="font-mono">-৳{(selectedOrder.discountAmount ?? selectedOrder.discount ?? 0).toFixed(2)}</span>
                 </div>
               )}
               <div className="pt-2 border-t border-maroon-200 flex items-center justify-between text-sm font-bold text-maroon-900">

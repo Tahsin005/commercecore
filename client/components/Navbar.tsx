@@ -158,7 +158,7 @@ export function Navbar() {
                     <Link
                       href="/profile"
                       className="px-2.5 py-1.5 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 rounded-md text-cream hover:text-white text-xs transition-all flex items-center space-x-1.5 cursor-pointer max-w-[140px]"
-                      title="View Profile & Orders"
+                      title={t.navbar.profileTooltip || "View Profile & Orders"}
                     >
                       <User className="w-3.5 h-3.5 text-cream shrink-0" />
                       <span className="font-medium truncate">{user.name}</span>
@@ -256,7 +256,7 @@ export function Navbar() {
                 className="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-maroon-800 text-cream text-xs font-semibold uppercase tracking-wider"
               >
                 <User className="w-4 h-4" />
-                <span>My Profile</span>
+                <span>{t.navbar.profile || "My Profile"}</span>
               </Link>
             )}
 

@@ -48,17 +48,18 @@ export function ProfileDetailsTab({ user }: ProfileDetailsTabProps) {
           {t.profile.updateProfileTitle || "Update Profile Info"}
         </h3>
         <p className="text-xs text-maroon-700 mt-0.5">
-          Update your account display name, primary email address, and contact number.
+          {t.profile.updateProfileDesc || "Update your account display name, primary email address, and contact number."}
         </p>
       </div>
 
       <form onSubmit={handleUpdateProfile} className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-maroon-900 flex items-center">
+          <label htmlFor="profile-name" className="text-xs font-semibold text-maroon-900 flex items-center">
             <User className="w-3.5 h-3.5 mr-1 text-maroon-700" />
             {t.profile.fullNameInput || "Full Name *"}
           </label>
           <input
+            id="profile-name"
             type="text"
             required
             value={profileForm.name}
@@ -68,11 +69,12 @@ export function ProfileDetailsTab({ user }: ProfileDetailsTabProps) {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-maroon-900 flex items-center">
+          <label htmlFor="profile-email" className="text-xs font-semibold text-maroon-900 flex items-center">
             <Mail className="w-3.5 h-3.5 mr-1 text-maroon-700" />
             {t.profile.emailInput || "Email Address *"}
           </label>
           <input
+            id="profile-email"
             type="email"
             required
             value={profileForm.email}
@@ -82,11 +84,12 @@ export function ProfileDetailsTab({ user }: ProfileDetailsTabProps) {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-maroon-900 flex items-center">
+          <label htmlFor="profile-phone" className="text-xs font-semibold text-maroon-900 flex items-center">
             <Phone className="w-3.5 h-3.5 mr-1 text-maroon-700" />
             {t.profile.phoneInput || "Phone Number *"}
           </label>
           <input
+            id="profile-phone"
             type="tel"
             required
             value={profileForm.phone}
@@ -100,7 +103,7 @@ export function ProfileDetailsTab({ user }: ProfileDetailsTabProps) {
           disabled={updateProfileMutation.isPending}
           className="w-full py-3 bg-maroon-900 hover:bg-maroon-800 text-white font-semibold text-xs rounded-xl shadow transition-all cursor-pointer disabled:opacity-50"
         >
-          {updateProfileMutation.isPending ? "Saving changes..." : (t.profile.saveProfileBtn || "Save Profile Changes")}
+          {updateProfileMutation.isPending ? (t.profile.savingChanges || "Saving changes...") : (t.profile.saveProfileBtn || "Save Profile Changes")}
         </button>
       </form>
     </div>

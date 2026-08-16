@@ -27,11 +27,16 @@ export interface UpdateAddressPayload {
   isDefault?: boolean;
 }
 
+import { useAuthStore } from "@/store/useAuthStore";
+
 export function useUserAddressesQuery(enabled = true) {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "guest";
+
   return useQuery<ApiResponse<Address[]>, ApiError>({
-    queryKey: ["user-addresses"],
+    queryKey: ["user-addresses", userId],
     queryFn: () => apiClient<ApiResponse<Address[]>>("/addresses"),
-    enabled,
+    enabled: Boolean(enabled && user),
   });
 }
 

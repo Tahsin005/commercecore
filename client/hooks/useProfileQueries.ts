@@ -33,6 +33,7 @@ export interface Order {
   subtotal?: number;
   deliveryCharge?: number;
   discount?: number;
+  discountAmount?: number;
   total: number;
   createdAt: string;
   items?: OrderItem[];

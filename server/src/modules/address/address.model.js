@@ -50,6 +50,11 @@ const addressSchema = new mongoose.Schema(
   }
 );
 
+addressSchema.index(
+  { userId: 1, isDefault: 1 },
+  { unique: true, partialFilterExpression: { isDefault: true } }
+);
+
 const Address = mongoose.model('Address', addressSchema);
 
 export default Address;

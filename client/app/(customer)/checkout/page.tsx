@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -52,6 +52,7 @@ export default function CheckoutPage() {
     register,
     handleSubmit,
     setValue,
+    getValues,
     watch,
     formState: { errors },
   } = useForm<CheckoutInput>({
@@ -69,13 +70,15 @@ export default function CheckoutPage() {
   const { data: addressesRes } = useUserAddressesQuery(Boolean(isHydrated && isAuthenticated));
   const addresses = addressesRes?.data || [];
 
+  const hasInitializedAddressRef = useRef(false);
+
   // autofill user details & default address when authenticated
   useEffect(() => {
     if (user) {
-      if (user.name) setValue("customerName", user.name);
-      if (user.phone) setValue("phone", user.phone);
+      if (user.name && !getValues("customerName")) setValue("customerName", user.name);
+      if (user.phone && !getValues("phone")) setValue("phone", user.phone);
     }
-    if (addresses && addresses.length > 0) {
+    if (addresses && addresses.length > 0 && !hasInitializedAddressRef.current) {
       const defaultAddr = addresses.find((a) => a.isDefault) || addresses[0];
       if (defaultAddr && defaultAddr.fullAddress) {
         setValue("shippingAddress", defaultAddr.fullAddress);
@@ -85,9 +88,10 @@ export default function CheckoutPage() {
         } else {
           setValue("deliveryZone", "outside_dhaka");
         }
+        hasInitializedAddressRef.current = true;
       }
     }
-  }, [user, addresses, setValue]);
+  }, [user, addresses, setValue, getValues]);
 
   // delivery charge rates from site settings
   const insideDhakaRate = siteSettings?.delivery_charge?.insideDhaka ?? 60;
@@ -369,7 +373,7 @@ export default function CheckoutPage() {
                     {addresses.length > 0 && (
                       <div className="space-y-1.5 pb-3">
                         <span className="text-[11px] font-bold text-maroon-800 uppercase tracking-wider block">
-                          Select Saved Address:
+                          {t.profile.selectSavedAddress || "Select Saved Address:"}
                         </span>
                         <div className="flex flex-wrap gap-2">
                           {addresses.map((addr) => (
@@ -384,7 +388,12 @@ export default function CheckoutPage() {
                                 } else {
                                   setValue("deliveryZone", "outside_dhaka");
                                 }
-                                toast.success(`Address selected: "${addr.label || 'Saved Address'}"`);
+                                const labelText = addr.label || "Saved Address";
+                                toast.success(
+                                  typeof t.profile.addressSelectedToast === "function"
+                                    ? t.profile.addressSelectedToast(labelText)
+                                    : `Address selected: "${labelText}"`
+                                );
                               }}
                               className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center space-x-1.5 ${
                                 watch("shippingAddress") === addr.fullAddress
@@ -396,7 +405,7 @@ export default function CheckoutPage() {
                               <span>{addr.label || "Home"}</span>
                               {addr.isDefault && (
                                 <span className="text-[9px] bg-amber-400 text-maroon-950 font-extrabold px-1 rounded ml-0.5">
-                                  Default
+                                  {t.profile.defaultBadge || "Default"}
                                 </span>
                               )}
                             </button>

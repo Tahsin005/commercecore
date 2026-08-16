@@ -36,7 +36,7 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
       throw new ApiError(400, 'Phone number is required for guest checkout');
     }
 
-    user = await User.findOne({ phone: phone.trim() });
+    user = await User.findOne({ phone: phone.trim() }).select('+password');
 
     if (!user) {
       const userEmail = email && email.trim() ? email.trim().toLowerCase() : `guest_${Date.now()}@commercecore.com`;
@@ -411,8 +411,10 @@ export const updateOrderStatusService = async (orderId, newStatus) => {
 
 export const getUserOrdersService = async (userId, query = {}) => {
   const { page = 1, limit = 10 } = query;
-  const pageNum = Math.max(1, parseInt(page, 10) || 1);
-  const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+  const pageParsed = parseInt(page, 10);
+  const limitParsed = parseInt(limit, 10);
+  const pageNum = Number.isSafeInteger(pageParsed) && pageParsed > 0 ? pageParsed : 1;
+  const limitNum = Number.isSafeInteger(limitParsed) && limitParsed > 0 ? Math.min(100, limitParsed) : 10;
   const skip = (pageNum - 1) * limitNum;
 
   const filter = { userId };

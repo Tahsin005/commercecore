@@ -99,12 +99,6 @@ export const loginUser = async ({ email, phone, identifier, password }) => {
     throw new ApiError(401, 'Invalid credentials');
   }
 
-  // check if user email is in admin list and promote to admin if not already
-  if (user.email && checkIsAdminEmail(user.email) && !user.isAdmin) {
-    user.isAdmin = true;
-    await user.save();
-  }
-
   const token = generateAuthToken(user);
 
   return {
@@ -188,10 +182,6 @@ export const updateUserProfileService = async (userId, payload) => {
       throw new ApiError(400, 'User with this email already exists');
     }
     user.email = payload.email.toLowerCase();
-
-    if (checkIsAdminEmail(user.email)) {
-      user.isAdmin = true;
-    }
   }
 
   if (payload.phone && payload.phone !== user.phone) {

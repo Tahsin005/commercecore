@@ -27,11 +27,19 @@ export const createAddressService = async (userId, payload) => {
 export const updateAddressService = async (userId, addressId, payload) => {
   const address = await Address.findOne({ _id: addressId, userId });
   if (!address) {
-    throw new ApiError(44, 'Address not found');
+    throw new ApiError(404, 'Address not found');
   }
 
   if (payload.isDefault) {
     await Address.updateMany({ userId, _id: { $ne: addressId } }, { isDefault: false });
+  } else if (payload.isDefault === false && address.isDefault) {
+    const other = await Address.findOne({ userId, _id: { $ne: addressId } }).sort({ createdAt: -1 });
+    if (other) {
+      other.isDefault = true;
+      await other.save();
+    } else {
+      payload.isDefault = true;
+    }
   }
 
   if (payload.label !== undefined) address.label = payload.label;
@@ -70,7 +78,7 @@ export const setDefaultAddressService = async (userId, addressId) => {
     throw new ApiError(404, 'Address not found');
   }
 
-  await Address.updateMany({ userId }, { isDefault: false });
+  await Address.updateMany({ userId, _id: { $ne: addressId } }, { isDefault: false });
   address.isDefault = true;
   await address.save();
 
