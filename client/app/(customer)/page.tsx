@@ -53,6 +53,7 @@ export default function Home() {
         slug: product.slug,
         size: defaultVariant?.label || defaultVariant?.size || t.common.standard,
         price,
+        imageUrl: product.images?.[0],
       });
       toast.success(`"${product.name}" ${t.home.addToWishlist}`);
     }

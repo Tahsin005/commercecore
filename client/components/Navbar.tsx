@@ -21,6 +21,7 @@ import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { CartDrawer } from "@/components/CartDrawer";
+import { WishlistDrawer } from "@/components/WishlistDrawer";
 import { LogoutWarningModal } from "@/components/modals/LogoutWarningModal";
 import { ClaimAccountModal } from "@/components/modals/ClaimAccountModal";
 
@@ -32,12 +33,15 @@ export function Navbar() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
+  const [wishlistDrawerOpen, setWishlistDrawerOpen] = useState(false);
   const [logoutWarningOpen, setLogoutWarningOpen] = useState(false);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
 
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
   const openCartDrawer = () => setCartDrawerOpen(true);
   const closeCartDrawer = () => setCartDrawerOpen(false);
+  const openWishlistDrawer = () => setWishlistDrawerOpen(true);
+  const closeWishlistDrawer = () => setWishlistDrawerOpen(false);
 
   const toggleLanguage = () => {
     setLanguage(language === "bn" ? "en" : "bn");
@@ -123,8 +127,9 @@ export function Navbar() {
               )}
             </button>
 
-            <div
-              className="px-3.5 py-2 bg-maroon-800 border border-maroon-700 text-cream font-medium text-xs rounded-md flex items-center space-x-2 shadow-sm whitespace-nowrap"
+            <button
+              onClick={openWishlistDrawer}
+              className="px-3.5 py-2 bg-maroon-800 hover:bg-maroon-700 active:scale-[0.98] border border-maroon-700 text-cream font-medium text-xs rounded-md flex items-center space-x-2 shadow-sm whitespace-nowrap cursor-pointer transition-all"
               title={t.navbar.wishlist}
             >
               <Heart className={`w-4 h-4 text-cream ${wishlistCount > 0 ? "fill-cream" : ""}`} />
@@ -140,7 +145,7 @@ export function Navbar() {
                   0
                 </span>
               )}
-            </div>
+            </button>
 
             {isHydrated ? (
               <div className="flex items-center space-x-2">
@@ -184,8 +189,9 @@ export function Navbar() {
               <span className="font-mono uppercase">{language === "bn" ? "EN" : "বাং"}</span>
             </button>
 
-            <div
-              className="relative p-2 bg-maroon-800 border border-maroon-700 rounded-md text-cream flex items-center justify-center"
+            <button
+              onClick={openWishlistDrawer}
+              className="relative p-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 rounded-md text-cream flex items-center justify-center cursor-pointer transition-colors"
               title={t.navbar.wishlist}
             >
               <Heart className={`w-4 h-4 text-cream ${wishlistCount > 0 ? "fill-cream" : ""}`} />
@@ -196,7 +202,7 @@ export function Navbar() {
                   {wishlistCount}
                 </span>
               ) : null}
-            </div>
+            </button>
 
             <button
               onClick={openCartDrawer}
@@ -290,6 +296,9 @@ export function Navbar() {
 
       {/* Cart Drawer Component */}
       <CartDrawer isOpen={cartDrawerOpen} onClose={closeCartDrawer} />
+
+      {/* Wishlist Drawer Component */}
+      <WishlistDrawer isOpen={wishlistDrawerOpen} onClose={closeWishlistDrawer} />
 
       {/* Logout Warning Modal for Guest Accounts */}
       <LogoutWarningModal

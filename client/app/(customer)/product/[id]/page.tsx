@@ -144,6 +144,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         slug: product.slug,
         size: selectedLabel,
         price: currentPrice,
+        imageUrl: product.images?.[0],
       });
       toast.success(`"${product.name}" ${t.home.addToWishlist}`);
     }

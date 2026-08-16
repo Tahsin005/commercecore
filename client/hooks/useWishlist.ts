@@ -38,6 +38,7 @@ export function useWishlist() {
     slug: string;
     size?: string;
     price: number;
+    imageUrl?: string;
   }) => {
     if (isAuthenticated) {
       await addMutation.mutateAsync(item);

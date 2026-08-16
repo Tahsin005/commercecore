@@ -8,6 +8,7 @@ export interface WishlistItem {
   slug: string;
   size?: string;
   price: number;
+  imageUrl?: string;
 }
 
 interface GuestWishlistState {
@@ -19,6 +20,7 @@ interface GuestWishlistState {
     slug: string;
     size?: string;
     price: number;
+    imageUrl?: string;
   }) => void;
   removeItem: (id: string) => void;
   clearWishlist: () => void;
@@ -55,6 +57,7 @@ export const useWishlistStore = create<GuestWishlistState>()(
                 slug: item.slug,
                 size: item.size || "Standard",
                 price: item.price,
+                imageUrl: item.imageUrl,
               },
             ],
           });
