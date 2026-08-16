@@ -19,6 +19,11 @@ export function DialogModal({
 }: DialogModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (isOpen) {
@@ -26,7 +31,7 @@ export function DialogModal({
 
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") {
-          onClose();
+          onCloseRef.current();
         }
 
         if (e.key === "Tab" && dialogRef.current) {
@@ -54,10 +59,10 @@ export function DialogModal({
 
       document.addEventListener("keydown", handleKeyDown);
 
-      // Focus first element or dialog container
-      setTimeout(() => {
-        if (dialogRef.current) {
-          const firstInput = dialogRef.current.querySelector<HTMLElement>("input, button, select, textarea");
+      // Focus inside dialog container ONLY ONCE on mount if not already focused
+      const timer = setTimeout(() => {
+        if (dialogRef.current && !dialogRef.current.contains(document.activeElement)) {
+          const firstInput = dialogRef.current.querySelector<HTMLElement>("input:not([type='hidden']), textarea, select, button");
           if (firstInput) {
             firstInput.focus();
           } else {
@@ -67,13 +72,14 @@ export function DialogModal({
       }, 50);
 
       return () => {
+        clearTimeout(timer);
         document.removeEventListener("keydown", handleKeyDown);
-        if (previousFocusRef.current) {
+        if (previousFocusRef.current && typeof previousFocusRef.current.focus === "function") {
           previousFocusRef.current.focus();
         }
       };
     }
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
