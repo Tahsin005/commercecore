@@ -238,22 +238,22 @@ export default function Home() {
                       </p>
                     </div>
 
-                    <div className="pt-3 border-t border-maroon-100 flex items-center justify-between">
+                    <div className="pt-3 border-t border-maroon-100 flex items-end justify-between">
                       <div>
-                        <span className="text-[10px] font-semibold text-maroon-500 uppercase tracking-wider block">
+                        <span className="text-[10px] font-semibold text-maroon-500 uppercase tracking-wider block mb-0.5">
                           {t.common.price}
                         </span>
                         {hasSitewideDiscount ? (
-                          <div className="flex items-baseline space-x-1.5">
-                            <span className="text-lg font-bold font-mono text-maroon-900">
-                              ৳{getDiscountedPrice(price, discountSetting).toFixed(2)}
-                            </span>
-                            <span className="text-xs font-mono text-maroon-700/60 line-through">
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-mono text-maroon-700/60 line-through leading-none mb-0.5">
                               ৳{price.toFixed(2)}
+                            </span>
+                            <span className="text-lg font-bold font-mono text-maroon-900 leading-tight">
+                              ৳{getDiscountedPrice(price, discountSetting).toFixed(2)}
                             </span>
                           </div>
                         ) : (
-                          <span className="text-lg font-bold font-mono text-maroon-900">
+                          <span className="text-lg font-bold font-mono text-maroon-900 leading-tight block">
                             ৳{price.toFixed(2)}
                           </span>
                         )}
