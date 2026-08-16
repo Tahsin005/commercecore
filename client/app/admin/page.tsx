@@ -45,10 +45,18 @@ export default function AdminDashboardPage() {
     limit: 6,
   });
 
-  const { data: productsRes, isLoading: isProductsLoading } = useProductsQuery();
-  const { data: categoriesRes } = useCategoriesQuery();
-  const { data: reviewsRes } = useAdminReviewsQuery();
-  const { data: usersRes, isLoading: isUsersLoading } = useAdminUsersQuery();
+  const { data: productsRes, isLoading: isProductsLoading, error: productsError, refetch: refetchProducts } = useProductsQuery();
+  const { data: categoriesRes, error: categoriesError, refetch: refetchCategories } = useCategoriesQuery();
+  const { data: reviewsRes, error: reviewsError, refetch: refetchReviews } = useAdminReviewsQuery();
+  const { data: usersRes, isLoading: isUsersLoading, error: usersError, refetch: refetchUsers } = useAdminUsersQuery();
+
+  const handleRefreshAll = () => {
+    refetchOrders();
+    refetchProducts();
+    refetchCategories();
+    refetchReviews();
+    refetchUsers();
+  };
 
   const ordersData = ordersRes?.data;
   const orders = ordersData?.orders || [];
@@ -79,7 +87,7 @@ export default function AdminDashboardPage() {
 
         <div className="flex items-center space-x-3 shrink-0">
           <button
-            onClick={() => refetchOrders()}
+            onClick={handleRefreshAll}
             className="inline-flex items-center justify-center space-x-1.5 px-3.5 py-2 bg-off-white hover:bg-maroon-100 border border-maroon-200 text-maroon-900 font-medium text-xs rounded-xl transition-all cursor-pointer shadow-2xs"
             title="Refresh Dashboard Stats"
           >
@@ -104,7 +112,7 @@ export default function AdminDashboardPage() {
               Total Revenue
             </span>
             <span className="text-2xl font-bold font-mono text-maroon-900 block">
-              {isOrdersLoading ? "..." : `৳${stats?.totalRevenue ? stats.totalRevenue.toFixed(2) : "0.00"}`}
+              {ordersError ? "Unavailable" : isOrdersLoading ? "..." : `৳${stats?.totalRevenue ? stats.totalRevenue.toFixed(2) : "0.00"}`}
             </span>
             <span className="inline-flex items-center text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
               <TrendingUp className="w-3 h-3 mr-1 text-emerald-700" /> Confirmed Sales
@@ -121,10 +129,10 @@ export default function AdminDashboardPage() {
               Total Orders
             </span>
             <span className="text-2xl font-bold font-serif text-maroon-900 block">
-              {isOrdersLoading ? "..." : stats?.totalOrders ?? 0}
+              {ordersError ? "Unavailable" : isOrdersLoading ? "..." : stats?.totalOrders ?? 0}
             </span>
             <span className="inline-flex items-center text-[10px] font-semibold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-              <Clock className="w-3 h-3 mr-1 text-amber-700" /> {stats?.pendingOrders ?? 0} Pending
+              <Clock className="w-3 h-3 mr-1 text-amber-700" /> {ordersError ? 0 : stats?.pendingOrders ?? 0} Pending
             </span>
           </div>
           <div className="p-3 bg-blue-50 border border-blue-200/80 rounded-xl text-blue-800 group-hover:scale-105 transition-transform">
@@ -138,14 +146,14 @@ export default function AdminDashboardPage() {
               Products Catalog
             </span>
             <span className="text-2xl font-bold font-serif text-maroon-900 block">
-              {isProductsLoading ? "..." : totalProducts}
+              {productsError ? "Unavailable" : isProductsLoading ? "..." : totalProducts}
             </span>
             <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded border ${
-              outOfStockCount > 0
+              productsError || outOfStockCount > 0
                 ? "bg-red-50 text-red-900 border-red-200"
                 : "bg-emerald-50 text-emerald-900 border-emerald-200"
             }`}>
-              <AlertTriangle className="w-3 h-3 mr-1 text-red-600" /> {outOfStockCount} Out of Stock
+              <AlertTriangle className="w-3 h-3 mr-1 text-red-600" /> {productsError ? "Error" : `${outOfStockCount} Out of Stock`}
             </span>
           </div>
           <div className="p-3 bg-emerald-50 border border-emerald-200/80 rounded-xl text-emerald-800 group-hover:scale-105 transition-transform">
@@ -159,10 +167,10 @@ export default function AdminDashboardPage() {
               Customer Accounts
             </span>
             <span className="text-2xl font-bold font-serif text-maroon-900 block">
-              {isUsersLoading ? "..." : userStats?.totalUsers ?? 0}
+              {usersError ? "Unavailable" : isUsersLoading ? "..." : userStats?.totalUsers ?? 0}
             </span>
             <span className="inline-flex items-center text-[10px] font-semibold text-purple-900 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
-              <UserCheck className="w-3 h-3 mr-1 text-purple-700" /> {userStats?.registeredUsers ?? 0} Password / {userStats?.guestUsers ?? 0} Guest
+              <UserCheck className="w-3 h-3 mr-1 text-purple-700" /> {usersError ? "Unavailable" : `${userStats?.registeredUsers ?? 0} Password / ${userStats?.guestUsers ?? 0} Guest`}
             </span>
           </div>
           <div className="p-3 bg-purple-50 border border-purple-200/80 rounded-xl text-purple-800 group-hover:scale-105 transition-transform">
@@ -194,7 +202,7 @@ export default function AdminDashboardPage() {
           </div>
           <div>
             <span className="text-xs font-bold block">Products</span>
-            <span className="text-[10px] text-maroon-600">{totalProducts} active items</span>
+            <span className="text-[10px] text-maroon-600">{productsError ? "Unavailable" : `${totalProducts} active items`}</span>
           </div>
         </Link>
 
@@ -207,7 +215,7 @@ export default function AdminDashboardPage() {
           </div>
           <div>
             <span className="text-xs font-bold block">Categories</span>
-            <span className="text-[10px] text-maroon-600">{categoriesCount} categories</span>
+            <span className="text-[10px] text-maroon-600">{categoriesError ? "Unavailable" : `${categoriesCount} categories`}</span>
           </div>
         </Link>
 
@@ -220,7 +228,7 @@ export default function AdminDashboardPage() {
           </div>
           <div>
             <span className="text-xs font-bold block">Reviews</span>
-            <span className="text-[10px] text-maroon-600">{reviewsCount} reviews</span>
+            <span className="text-[10px] text-maroon-600">{reviewsError ? "Unavailable" : `${reviewsCount} reviews`}</span>
           </div>
         </Link>
 
@@ -343,73 +351,81 @@ export default function AdminDashboardPage() {
                 <h3 className="font-serif font-bold text-base text-maroon-900">Users Info</h3>
               </div>
               <span className="text-xs font-mono font-bold text-maroon-900 bg-maroon-100 px-2.5 py-0.5 rounded-md">
-                {isUsersLoading ? "..." : `${userStats?.totalUsers ?? 0} Accounts`}
+                {usersError ? "Unavailable" : isUsersLoading ? "..." : `${userStats?.totalUsers ?? 0} Accounts`}
               </span>
             </div>
 
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="p-3 bg-purple-50/60 border border-purple-200/80 rounded-xl space-y-1">
-                  <span className="text-[10px] font-bold text-purple-900 uppercase tracking-wider block">
-                    Registered (Password)
-                  </span>
-                  <span className="text-xl font-bold font-serif text-purple-950 block">
-                    {isUsersLoading ? "..." : userStats?.registeredUsers ?? 0}
-                  </span>
+            {usersError ? (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-center space-y-1">
+                <AlertTriangle className="w-5 h-5 text-red-600 mx-auto" />
+                <p className="text-xs font-bold text-red-900">Failed to load user accounts</p>
+                <p className="text-[10px] text-red-700">{usersError.message || "An error occurred"}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-3 bg-purple-50/60 border border-purple-200/80 rounded-xl space-y-1">
+                    <span className="text-[10px] font-bold text-purple-900 uppercase tracking-wider block">
+                      Registered (Password)
+                    </span>
+                    <span className="text-xl font-bold font-serif text-purple-950 block">
+                      {isUsersLoading ? "..." : userStats?.registeredUsers ?? 0}
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-amber-50/60 border border-amber-200/80 rounded-xl space-y-1">
+                    <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">
+                      Guest Checkouts
+                    </span>
+                    <span className="text-xl font-bold font-serif text-amber-950 block">
+                      {isUsersLoading ? "..." : userStats?.guestUsers ?? 0}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="p-3 bg-amber-50/60 border border-amber-200/80 rounded-xl space-y-1">
-                  <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">
-                    Guest Checkouts
+                <div className="space-y-2 pt-2">
+                  <span className="text-xs font-bold text-maroon-900 uppercase tracking-wider block">
+                    Recent Registered &amp; Guest Accounts
                   </span>
-                  <span className="text-xl font-bold font-serif text-amber-950 block">
-                    {isUsersLoading ? "..." : userStats?.guestUsers ?? 0}
-                  </span>
+
+                  {isUsersLoading ? (
+                    <div className="p-4 text-center text-maroon-600">
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto text-maroon-700" />
+                    </div>
+                  ) : recentUsers.length === 0 ? (
+                    <p className="text-xs text-maroon-600 italic">No user accounts created yet.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                      {recentUsers.map((u) => (
+                        <div
+                          key={u.id}
+                          className="p-2.5 bg-off-white border border-maroon-100 rounded-xl flex items-center justify-between text-xs"
+                        >
+                          <div className="space-y-0.5 truncate mr-2">
+                            <span className="font-bold text-maroon-900 block truncate">{u.name}</span>
+                            <span className="text-[10px] text-maroon-600 font-mono block truncate">
+                              {u.email || u.phone}
+                            </span>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            {u.hasPassword ? (
+                              <span className="inline-flex items-center text-[9px] font-bold text-purple-900 bg-purple-100 px-1.5 py-0.5 rounded border border-purple-200">
+                                <ShieldCheck className="w-2.5 h-2.5 mr-0.5 text-purple-700" /> Password
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center text-[9px] font-bold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
+                                <Clock className="w-2.5 h-2.5 mr-0.5 text-amber-700" /> Guest
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-
-              <div className="space-y-2 pt-2">
-                <span className="text-xs font-bold text-maroon-900 uppercase tracking-wider block">
-                  Recent Registered &amp; Guest Accounts
-                </span>
-
-                {isUsersLoading ? (
-                  <div className="p-4 text-center text-maroon-600">
-                    <Loader2 className="w-5 h-5 animate-spin mx-auto text-maroon-700" />
-                  </div>
-                ) : recentUsers.length === 0 ? (
-                  <p className="text-xs text-maroon-600 italic">No user accounts created yet.</p>
-                ) : (
-                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                    {recentUsers.map((u) => (
-                      <div
-                        key={u.id}
-                        className="p-2.5 bg-off-white border border-maroon-100 rounded-xl flex items-center justify-between text-xs"
-                      >
-                        <div className="space-y-0.5 truncate mr-2">
-                          <span className="font-bold text-maroon-900 block truncate">{u.name}</span>
-                          <span className="text-[10px] text-maroon-600 font-mono block truncate">
-                            {u.email || u.phone}
-                          </span>
-                        </div>
-
-                        <div className="text-right shrink-0">
-                          {u.hasPassword ? (
-                            <span className="inline-flex items-center text-[9px] font-bold text-purple-900 bg-purple-100 px-1.5 py-0.5 rounded border border-purple-200">
-                              <ShieldCheck className="w-2.5 h-2.5 mr-0.5 text-purple-700" /> Password
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center text-[9px] font-bold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
-                              <Clock className="w-2.5 h-2.5 mr-0.5 text-amber-700" /> Guest
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="bg-white rounded-2xl border border-maroon-100 shadow-md p-5 space-y-4">
@@ -426,35 +442,43 @@ export default function AdminDashboardPage() {
               </Link>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-maroon-700">Stock Status Ratio</span>
-                <span className="font-mono text-maroon-900">
-                  {totalProducts - outOfStockCount} / {totalProducts} In Stock
-                </span>
+            {productsError ? (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-center space-y-1">
+                <AlertTriangle className="w-5 h-5 text-red-600 mx-auto" />
+                <p className="text-xs font-bold text-red-900">Failed to load inventory status</p>
+                <p className="text-[10px] text-red-700">{productsError.message || "An error occurred"}</p>
               </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs font-semibold">
+                  <span className="text-maroon-700">Stock Status Ratio</span>
+                  <span className="font-mono text-maroon-900">
+                    {totalProducts - outOfStockCount} / {totalProducts} In Stock
+                  </span>
+                </div>
 
-              <div className="w-full h-2.5 bg-red-100 rounded-full overflow-hidden flex">
-                <div
-                  className="bg-emerald-600 h-full transition-all"
-                  style={{
-                    width: `${totalProducts > 0 ? ((totalProducts - outOfStockCount) / totalProducts) * 100 : 100}%`,
-                  }}
-                />
+                <div className="w-full h-2.5 bg-red-100 rounded-full overflow-hidden flex">
+                  <div
+                    className="bg-emerald-600 h-full transition-all"
+                    style={{
+                      width: `${totalProducts > 0 ? ((totalProducts - outOfStockCount) / totalProducts) * 100 : 100}%`,
+                    }}
+                  />
+                </div>
+
+                {outOfStockCount > 0 ? (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center space-x-2 text-red-900 text-xs font-semibold">
+                    <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                    <span>{outOfStockCount} product(s) currently require stock replenishment.</span>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-2 text-emerald-900 text-xs font-semibold">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <span>All catalog items have available inventory units.</span>
+                  </div>
+                )}
               </div>
-
-              {outOfStockCount > 0 ? (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center space-x-2 text-red-900 text-xs font-semibold">
-                  <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
-                  <span>{outOfStockCount} product(s) currently require stock replenishment.</span>
-                </div>
-              ) : (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-2 text-emerald-900 text-xs font-semibold">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
-                  <span>All catalog items have available inventory units.</span>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </div>

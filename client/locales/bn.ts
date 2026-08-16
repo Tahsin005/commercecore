@@ -18,6 +18,7 @@ export const bn = {
     standard: "স্ট্যান্ডার্ড",
     save: "সংরক্ষণ",
     cancel: "বাতিল",
+    off: "ছাড়",
   },
 
   // Form Validation Messages
@@ -123,6 +124,7 @@ export const bn = {
     maxPrice: "সর্বোচ্চ দাম",
     priceFilter: "দামের ফিল্টার",
     clearFilters: "ফিল্টার মুছুন",
+    categoriesPageDesc: "সকল স্টোর ক্যাটাগরি ব্রাউজ করুন এবং সার্চ ও মূল্য ফিল্টার দিয়ে পণ্য খুঁজুন",
     page: "পৃষ্ঠা",
     of: "এর",
     previous: "পূর্ববর্তী",

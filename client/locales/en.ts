@@ -19,6 +19,7 @@ export const en: TranslationType = {
     standard: "Standard",
     save: "Save",
     cancel: "Cancel",
+    off: "OFF",
   },
   validation: {
     nameMin: "Name must be at least 2 characters long",
@@ -112,6 +113,7 @@ export const en: TranslationType = {
     maxPrice: "Max Price",
     priceFilter: "Price Filter",
     clearFilters: "Clear Filters",
+    categoriesPageDesc: "Browse all store categories and filter products with custom search and price criteria",
     page: "Page",
     of: "of",
     previous: "Previous",

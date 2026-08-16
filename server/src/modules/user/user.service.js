@@ -3,6 +3,16 @@ import User from './user.model.js';
 import env from '../../config/env.js';
 import ApiError from '../../utils/ApiError.js';
 
+// helper function to check if email is in ADMIN_EMAILS env list
+const checkIsAdminEmail = (email) => {
+  if (!email || !env.adminEmails) return false;
+  const adminList = env.adminEmails
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return adminList.includes(email.trim().toLowerCase());
+};
+
 // generate jwt auth token for a user
 export const generateAuthToken = (user) => {
   const payload = {
@@ -30,12 +40,14 @@ export const registerUser = async (userData) => {
     throw new ApiError(400, 'User with this phone number already exists');
   }
 
+  const isAdmin = checkIsAdminEmail(email);
+
   const user = await User.create({
     name,
     email,
     phone,
     password,
-    isAdmin: false,
+    isAdmin,
   });
 
   const token = generateAuthToken(user);
@@ -79,6 +91,12 @@ export const loginUser = async ({ email, phone, identifier, password }) => {
     throw new ApiError(401, 'Invalid credentials');
   }
 
+  // check if user email is in admin list and promote to admin if not already
+  if (user.email && checkIsAdminEmail(user.email) && !user.isAdmin) {
+    user.isAdmin = true;
+    await user.save();
+  }
+
   const token = generateAuthToken(user);
 
   return {
@@ -105,6 +123,10 @@ export const claimAccountService = async (userId, { email, password }) => {
       throw new ApiError(400, 'This email address is already registered to another user');
     }
     user.email = cleanEmail;
+  }
+
+  if (checkIsAdminEmail(user.email)) {
+    user.isAdmin = true;
   }
 
   user.password = password;

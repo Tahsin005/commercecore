@@ -118,25 +118,29 @@ export default function CategoriesPage() {
     minPrice !== "" ||
     maxPrice !== "";
 
-  const handleToggleWishlist = (product: Product) => {
+  const handleToggleWishlist = async (product: Product) => {
     const wishlisted = isInWishlist(product.id);
     const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
     const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
 
-    if (wishlisted) {
-      removeFromWishlist(product.id);
-      toast.success(`"${product.name}" ${t.home.removeFromWishlist}`);
-    } else {
-      addToWishlist({
-        productId: product.id,
-        productVariantId: defaultVariant?.id,
-        name: product.name,
-        slug: product.slug,
-        size: defaultVariant?.label || defaultVariant?.size || t.common.standard,
-        price,
-        imageUrl: product.images?.[0],
-      });
-      toast.success(`"${product.name}" ${t.home.addToWishlist}`);
+    try {
+      if (wishlisted) {
+        await removeFromWishlist(product.id);
+        toast.success(`"${product.name}" ${t.home.removeFromWishlist}`);
+      } else {
+        await addToWishlist({
+          productId: product.id,
+          productVariantId: defaultVariant?.id,
+          name: product.name,
+          slug: product.slug,
+          size: defaultVariant?.label || defaultVariant?.size || t.common.standard,
+          price,
+          imageUrl: product.images?.[0],
+        });
+        toast.success(`"${product.name}" ${t.home.addToWishlist}`);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || t.common.error || "Failed to update wishlist");
     }
   };
 
@@ -152,7 +156,7 @@ export default function CategoriesPage() {
               </h1>
             </div>
             <p className="text-xs sm:text-sm text-maroon-700 mt-1">
-              Browse all store categories and filter products with custom search and price criteria
+              {t.home.categoriesPageDesc || "Browse all store categories and filter products with custom search and price criteria"}
             </p>
           </div>
           <span className="text-xs font-semibold text-maroon-700 bg-maroon-100 px-3.5 py-1.5 rounded-xl border border-maroon-200 shrink-0 self-start sm:self-auto">
@@ -408,7 +412,7 @@ export default function CategoriesPage() {
 
                       {hasSitewideDiscount ? (
                         <span className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow">
-                          {discountSetting?.discountPercentage}% OFF
+                          {discountSetting?.discountPercentage}% {t.common.off || "OFF"}
                         </span>
                       ) : product.isFeatured ? (
                         <span className="absolute top-3 left-3 bg-maroon-900 text-cream text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow">
@@ -482,23 +486,59 @@ export default function CategoriesPage() {
                   </button>
 
                   <div className="flex items-center space-x-1 px-2">
-                    {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => {
-                      const isActive = pageNum === currentPage;
-                      return (
-                        <button
-                          key={pageNum}
-                          type="button"
-                          onClick={() => setPage(pageNum)}
-                          className={`w-8 h-8 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer flex items-center justify-center ${
-                            isActive
-                              ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
-                              : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
+                    {(() => {
+                      const pageNumbers: (number | string)[] = [];
+                      const delta = 1;
+                      const range: number[] = [];
+
+                      for (let i = 1; i <= totalPages; i++) {
+                        if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+                          range.push(i);
+                        }
+                      }
+
+                      let last: number | null = null;
+                      for (const p of range) {
+                        if (last !== null) {
+                          if (p - last === 2) {
+                            pageNumbers.push(last + 1);
+                          } else if (p - last > 2) {
+                            pageNumbers.push(`ellipsis-${last}`);
+                          }
+                        }
+                        pageNumbers.push(p);
+                        last = p;
+                      }
+
+                      return pageNumbers.map((item) => {
+                        if (typeof item === "string") {
+                          return (
+                            <span
+                              key={item}
+                              className="w-7 h-7 flex items-center justify-center text-xs font-bold text-maroon-400 font-mono select-none"
+                            >
+                              ...
+                            </span>
+                          );
+                        }
+
+                        const isActive = item === currentPage;
+                        return (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() => setPage(item)}
+                            className={`w-8 h-8 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer flex items-center justify-center ${
+                              isActive
+                                ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
+                                : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"
+                            }`}
+                          >
+                            {item}
+                          </button>
+                        );
+                      });
+                    })()}
                   </div>
 
                   <button
