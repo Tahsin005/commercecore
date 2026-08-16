@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -43,6 +43,16 @@ export default function Home() {
   // React Query Hooks
   const { data: categoriesResponse, isLoading: isCategoriesLoading } = useCategoriesQuery();
   const categories = categoriesResponse?.data || [];
+
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => {
+      if (a.isFeatured && !b.isFeatured) return -1;
+      if (!a.isFeatured && b.isFeatured) return 1;
+      return 0;
+    });
+  }, [categories]);
+
+  const homepageCategories = useMemo(() => sortedCategories.slice(0, 4), [sortedCategories]);
 
   const discountPercentage = hasSitewideDiscount && discountSetting?.discountPercentage ? discountSetting.discountPercentage : 0;
   const discountMultiplier = discountPercentage > 0 ? (100 - discountPercentage) / 100 : 1;
@@ -144,41 +154,39 @@ export default function Home() {
               <h2 className="text-xl sm:text-2xl font-serif font-bold text-maroon-900 tracking-tight">
                 {t.home.categoryItems}
               </h2>
-              {selectedCategory !== "all" && (
-                <button
-                  type="button"
-                  onClick={() => handleCategorySelect("all")}
-                  className="text-xs font-semibold text-maroon-700 hover:text-maroon-900 underline cursor-pointer"
-                >
-                  {t.home.showAllCategories}
-                </button>
-              )}
+              <Link
+                href="/categories"
+                className="inline-flex items-center space-x-1 text-xs font-bold text-maroon-900 hover:text-maroon-700 bg-maroon-100/80 hover:bg-maroon-200/80 px-3.5 py-1.5 rounded-xl border border-maroon-200 transition-all cursor-pointer shadow-2xs group"
+              >
+                <span>{t.home.showAllCategories || "View All Categories"}</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
               <button
                 type="button"
                 onClick={() => handleCategorySelect("all")}
-                className={`bg-white rounded-2xl border p-2.5 flex flex-col justify-between transition-all cursor-pointer group shadow-xs hover:shadow-md ${
+                className={`bg-white rounded-2xl border p-2 sm:p-2.5 flex flex-col justify-center sm:justify-between transition-all cursor-pointer group shadow-xs hover:shadow-md ${
                   selectedCategory === "all"
                     ? "border-maroon-900 ring-2 ring-maroon-800/30 shadow-md bg-maroon-50/20"
                     : "border-maroon-100 hover:border-maroon-300"
                 }`}
               >
-                <div className="relative w-full aspect-square bg-off-white rounded-xl overflow-hidden flex items-center justify-center p-3 border border-maroon-100/60">
+                <div className="hidden sm:flex relative w-full aspect-square bg-off-white rounded-xl overflow-hidden items-center justify-center p-3 border border-maroon-100/60">
                   <div className="w-full h-full rounded-lg bg-maroon-900 flex flex-col items-center justify-center text-white space-y-1 group-hover:scale-105 transition-transform duration-300">
                     <Tag className="w-8 h-8 text-cream" />
                     <span className="text-[10px] font-bold uppercase tracking-wider text-cream/90">{t.home.all}</span>
                   </div>
                 </div>
-                <div className="pt-2.5 pb-1 px-1 text-center">
+                <div className="py-1 sm:pt-2.5 sm:pb-1 px-1 text-center">
                   <span className="font-serif font-bold text-xs sm:text-sm text-maroon-900 group-hover:text-maroon-700 block truncate">
                     {t.home.allProducts}
                   </span>
                 </div>
               </button>
 
-              {categories.map((cat) => {
+              {homepageCategories.map((cat) => {
                 const isSelected = selectedCategory === cat.id;
 
                 return (
@@ -186,13 +194,13 @@ export default function Home() {
                     key={cat.id}
                     type="button"
                     onClick={() => handleCategorySelect(cat.id)}
-                    className={`bg-white rounded-2xl border p-2.5 flex flex-col justify-between transition-all cursor-pointer group shadow-xs hover:shadow-md ${
+                    className={`bg-white rounded-2xl border p-2 sm:p-2.5 flex flex-col justify-center sm:justify-between transition-all cursor-pointer group shadow-xs hover:shadow-md ${
                       isSelected
                         ? "border-maroon-900 ring-2 ring-maroon-800/30 shadow-md bg-maroon-50/20"
                         : "border-maroon-100 hover:border-maroon-300"
                     }`}
                   >
-                    <div className="relative w-full aspect-square bg-off-white rounded-xl overflow-hidden flex items-center justify-center border border-maroon-100/60">
+                    <div className="hidden sm:flex relative w-full aspect-square bg-off-white rounded-xl overflow-hidden items-center justify-center border border-maroon-100/60">
                       {cat.imageUrl ? (
                         <Image
                           src={cat.imageUrl}
@@ -214,10 +222,15 @@ export default function Home() {
                       )}
                     </div>
 
-                    <div className="pt-2.5 pb-1 px-1 text-center">
+                    <div className="py-1 sm:pt-2.5 sm:pb-1 px-1 text-center flex items-center justify-center space-x-1">
                       <span className="font-serif font-bold text-xs sm:text-sm text-maroon-900 group-hover:text-maroon-700 block truncate">
                         {cat.name}
                       </span>
+                      {cat.isFeatured && (
+                        <span className="sm:hidden bg-maroon-900 text-cream text-[8px] font-bold px-1 py-0.2 rounded shrink-0">
+                          ★
+                        </span>
+                      )}
                     </div>
                   </button>
                 );
