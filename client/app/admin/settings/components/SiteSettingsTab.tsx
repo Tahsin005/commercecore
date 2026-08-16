@@ -76,6 +76,8 @@ export function SiteSettingsTab() {
       if (settings.site_discount) {
         resetDiscount({
           discountPercentage: settings.site_discount.discountPercentage ?? 0,
+          startDate: settings.site_discount.startDate ? new Date(settings.site_discount.startDate).toISOString().slice(0, 16) : "",
+          endDate: settings.site_discount.endDate ? new Date(settings.site_discount.endDate).toISOString().slice(0, 16) : "",
           isActive: settings.site_discount.isActive ?? false,
         });
       }
@@ -102,8 +104,14 @@ export function SiteSettingsTab() {
   };
 
   const onSaveDiscount = (data: SiteDiscountInput) => {
+    const payload = {
+      discountPercentage: data.discountPercentage,
+      startDate: data.startDate ? new Date(data.startDate).toISOString() : null,
+      endDate: data.endDate ? new Date(data.endDate).toISOString() : null,
+      isActive: data.isActive,
+    };
     updateSettingMutation.mutate(
-      { key: "site_discount", value: data },
+      { key: "site_discount", value: payload },
       { onSuccess: () => toast.success("Sitewide discount updated successfully!") }
     );
   };
@@ -206,6 +214,28 @@ export function SiteSettingsTab() {
               className="w-full px-3 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-lg text-xs font-mono focus:bg-white focus:ring-2 focus:ring-maroon-700"
             />
             {discountErrors.discountPercentage && <p className="text-red-500 text-[11px] mt-1">{discountErrors.discountPercentage.message}</p>}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-maroon-900 mb-1">Start Date &amp; Time (Optional)</label>
+              <input
+                type="datetime-local"
+                {...regDiscount("startDate")}
+                className="w-full px-3 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-lg text-xs font-mono focus:bg-white focus:ring-2 focus:ring-maroon-700"
+              />
+              {discountErrors.startDate && <p className="text-red-500 text-[11px] mt-1">{discountErrors.startDate.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-maroon-900 mb-1">End Date &amp; Time (Optional)</label>
+              <input
+                type="datetime-local"
+                {...regDiscount("endDate")}
+                className="w-full px-3 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-lg text-xs font-mono focus:bg-white focus:ring-2 focus:ring-maroon-700"
+              />
+              {discountErrors.endDate && <p className="text-red-500 text-[11px] mt-1">{discountErrors.endDate.message}</p>}
+            </div>
           </div>
 
           <div className="flex items-center space-x-2 pt-2">

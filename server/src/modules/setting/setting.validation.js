@@ -5,15 +5,28 @@ export const deliveryChargeSchema = z.object({
   outsideDhaka: z.number().min(0, 'Outside Dhaka delivery charge must be at least 0'),
 });
 
-export const siteDiscountSchema = z.object({
-  discountPercentage: z
-    .number()
-    .min(0, 'Discount percentage must be between 0 and 100')
-    .max(100, 'Discount percentage must be between 0 and 100'),
-  startDate: z.string().nullable().optional(),
-  endDate: z.string().nullable().optional(),
-  isActive: z.boolean(),
-});
+export const siteDiscountSchema = z
+  .object({
+    discountPercentage: z
+      .number()
+      .min(0, 'Discount percentage must be between 0 and 100')
+      .max(100, 'Discount percentage must be between 0 and 100'),
+    startDate: z.string().nullable().optional(),
+    endDate: z.string().nullable().optional(),
+    isActive: z.boolean(),
+  })
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate) {
+        return new Date(data.endDate) >= new Date(data.startDate);
+      }
+      return true;
+    },
+    {
+      message: 'End date must be after or equal to start date',
+      path: ['endDate'],
+    }
+  );
 
 export const marqueeSchema = z.object({
   text: z.string().trim().min(1, 'Marquee text is required'),

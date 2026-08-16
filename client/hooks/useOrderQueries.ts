@@ -37,6 +37,7 @@ export interface CreateOrderResponseData {
     deliveryZone: string;
     deliveryCharge: number;
     subtotal: number;
+    discountAmount?: number;
     total: number;
     status: string;
   };

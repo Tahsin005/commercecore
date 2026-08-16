@@ -21,6 +21,8 @@ import {
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useProductDetailsQuery, ProductVariant } from "@/hooks/useProductQueries";
+import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
+import { getDiscountedPrice, isDiscountActive } from "@/lib/discount";
 import { ProductDetailsSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
@@ -32,6 +34,9 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   const { id } = use(params);
   const router = useRouter();
   const { t } = useLanguage();
+  const { data: siteSettings } = useSiteSettingsQuery();
+  const discountSetting = siteSettings?.site_discount;
+  const hasSitewideDiscount = isDiscountActive(discountSetting);
 
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
@@ -264,9 +269,23 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   <span className="text-xs font-semibold uppercase tracking-wider text-maroon-500 block">
                     {t.common.price}
                   </span>
-                  <span className="text-2xl sm:text-3xl font-bold font-mono text-maroon-900">
-                    ৳{currentPrice.toFixed(2)}
-                  </span>
+                  {hasSitewideDiscount ? (
+                    <div className="flex items-baseline space-x-2.5">
+                      <span className="text-2xl sm:text-3xl font-bold font-mono text-maroon-900">
+                        ৳{getDiscountedPrice(currentPrice, discountSetting).toFixed(2)}
+                      </span>
+                      <span className="text-sm font-mono text-maroon-700/60 line-through">
+                        ৳{currentPrice.toFixed(2)}
+                      </span>
+                      <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-md border border-red-200">
+                        {discountSetting?.discountPercentage}% OFF
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-2xl sm:text-3xl font-bold font-mono text-maroon-900">
+                      ৳{currentPrice.toFixed(2)}
+                    </span>
+                  )}
                 </div>
 
                 <div>
