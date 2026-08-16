@@ -53,7 +53,6 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-maroon-100 shadow-sm">
         <div>
           <div className="flex items-center space-x-2 text-maroon-800">
@@ -76,7 +75,6 @@ export default function AdminSettingsPage() {
         </button>
       </div>
 
-      {/* --- MOBILE TAB SELECTOR --- */}
       <div className="sm:hidden">
         <div className="relative">
           <select
@@ -100,7 +98,6 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      {/* --- DESKTOP SEGMENTED TAB BAR --- */}
       <div
         role="tablist"
         aria-label="Admin Settings Navigation"
@@ -129,7 +126,6 @@ export default function AdminSettingsPage() {
         })}
       </div>
 
-      {/* Tab Panels */}
       {activeTab === "site_settings" && <SiteSettingsTab />}
       {activeTab === "banners" && <BannersTab />}
       {activeTab === "contact_channels" && <ContactChannelsTab />}

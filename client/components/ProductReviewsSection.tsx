@@ -245,7 +245,6 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
             ))}
           </div>
 
-          {/* Pagination Controls */}
           {pagination.totalPages > 1 && (
             <div className="flex items-center justify-between pt-4 border-t border-maroon-100 text-xs">
               <span className="text-maroon-700">

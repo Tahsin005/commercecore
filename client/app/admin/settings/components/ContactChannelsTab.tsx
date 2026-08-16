@@ -212,7 +212,6 @@ export function ContactChannelsTab() {
         </form>
       </DialogModal>
 
-      {/* --- CONFIRM DELETE MODAL --- */}
       <ConfirmDeleteModal
         isOpen={!!deletingChannel}
         onClose={() => setDeletingChannel(null)}

@@ -130,7 +130,6 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
               </span>
             </div>
 
-            {/* Option 1: Claim Account Card for Guest Accounts */}
             {user && user.hasPassword === false && (
               <div className="p-6 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl shadow-sm space-y-4">
                 <div className="flex items-start space-x-3">

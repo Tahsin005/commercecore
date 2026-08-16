@@ -227,3 +227,54 @@ export function useDeleteProductBulletMutation() {
     },
   });
 }
+
+// Public Banners Query
+export function usePublicBannersQuery() {
+  return useQuery<BannerItem[], ApiError>({
+    queryKey: ["cms", "public-banners"],
+    queryFn: async () => {
+      const res = await apiClient<ApiResponse<BannerItem[]>>("/cms/banners");
+      return res.data || [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Public Contact Channels Query
+export function usePublicContactChannelsQuery() {
+  return useQuery<ContactChannelItem[], ApiError>({
+    queryKey: ["cms", "public-contactChannels"],
+    queryFn: async () => {
+      const res = await apiClient<ApiResponse<ContactChannelItem[]>>("/cms/contact-channels");
+      return res.data || [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Public Content Block by Key Query
+export function usePublicContentBlockQuery(key: string) {
+  return useQuery<ContentBlockItem, ApiError>({
+    queryKey: ["cms", "public-contentBlock", key],
+    queryFn: async () => {
+      const res = await apiClient<ApiResponse<ContentBlockItem>>(`/cms/content-blocks/${key}`);
+      return res.data;
+    },
+    enabled: Boolean(key),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// Public Product Info Bullets Query
+export function usePublicProductBulletsQuery(productId?: string) {
+  return useQuery<ProductInfoBulletItem[], ApiError>({
+    queryKey: ["cms", "public-productBullets", productId],
+    queryFn: async () => {
+      const url = productId ? `/cms/info-bullets?productId=${productId}` : "/cms/info-bullets";
+      const res = await apiClient<ApiResponse<ProductInfoBulletItem[]>>(url);
+      return res.data || [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+

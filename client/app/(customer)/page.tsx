@@ -16,6 +16,7 @@ import { useProductsQuery, Product } from "@/hooks/useProductQueries";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
 import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
+import { HomepageBanners } from "@/components/HomepageBanners";
 import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
@@ -62,16 +63,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 w-full flex-1 space-y-8">
-        <div className="relative rounded-2xl overflow-hidden shadow-xl border border-maroon-100/80 bg-maroon-900 group">
-          <Image
-            src="/banner.png"
-            alt="Rupzone Collection Banner"
-            width={1200}
-            height={450}
-            className="w-full h-auto object-cover rounded-2xl transition-transform duration-500 group-hover:scale-[1.01]"
-            priority
-          />
-        </div>
+        <HomepageBanners />
 
         {isCategoriesLoading ? (
           <CategoriesSkeleton />

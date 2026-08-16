@@ -153,13 +153,11 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
-      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
         onClick={onClose}
       />
 
-      {/* Drawer */}
       <div
         ref={drawerRef}
         role="dialog"
@@ -168,7 +166,6 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
         tabIndex={-1}
         className="relative w-full max-w-md bg-white text-text-main h-full shadow-2xl z-10 flex flex-col justify-between animate-in slide-in-from-right duration-300 font-sans focus:outline-none"
       >
-        {/* Header */}
         <div className="bg-maroon-900 text-white p-5 flex items-center justify-between shadow-md">
           <div className="flex items-center space-x-2.5">
             <Heart className="w-5 h-5 text-cream fill-cream" />
@@ -186,7 +183,6 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
           </button>
         </div>
 
-        {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {items.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-12">
@@ -222,7 +218,6 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
                       isPending ? "opacity-60" : "opacity-100"
                     }`}
                   >
-                    {/* Item Image */}
                     <div className="w-14 h-14 rounded-lg overflow-hidden bg-white border border-maroon-200 flex items-center justify-center shrink-0 relative">
                       {item.imageUrl ? (
                         <Image src={item.imageUrl} alt={item.name} fill sizes="56px" className="object-cover" />
@@ -231,7 +226,6 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
                       )}
                     </div>
 
-                    {/* Details */}
                     <div className="flex-1 space-y-1 min-w-0">
                       <Link
                         href={`/product/${item.productId}`}
@@ -253,7 +247,6 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
                     <div className="flex items-center space-x-1.5 shrink-0">
                       <button
                         type="button"
@@ -282,7 +275,6 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
           )}
         </div>
 
-        {/* Footer Actions */}
         {items.length > 0 && (
           <div className="p-5 bg-off-white border-t border-maroon-100 space-y-3">
             <button

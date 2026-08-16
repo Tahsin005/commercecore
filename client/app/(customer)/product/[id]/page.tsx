@@ -25,6 +25,8 @@ import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
 import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
 import { ProductDetailsSkeleton } from "@/components/skeletons";
 import { ProductReviewsSection } from "@/components/ProductReviewsSection";
+import { ProductContactChannels } from "@/components/ProductContactChannels";
+import { ProductBulletsAndPolicy } from "@/components/ProductBulletsAndPolicy";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface ProductDetailsPageProps {
@@ -201,9 +203,8 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                     alt={product.name}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
-                    className={`object-contain transition-transform duration-150 ease-out ${
-                      isZoomed ? "scale-250 cursor-zoom-in" : "scale-100"
-                    }`}
+                    className={`object-contain transition-transform duration-150 ease-out ${isZoomed ? "scale-250 cursor-zoom-in" : "scale-100"
+                      }`}
                     style={{
                       transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
                     }}
@@ -211,9 +212,8 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   />
 
                   <div
-                    className={`absolute bottom-3 right-3 bg-maroon-900/80 text-cream text-[10px] font-semibold px-2.5 py-1 rounded-full shadow-md backdrop-blur-xs flex items-center space-x-1 transition-opacity duration-200 pointer-events-none ${
-                      isZoomed ? "opacity-0" : "opacity-90"
-                    }`}
+                    className={`absolute bottom-3 right-3 bg-maroon-900/80 text-cream text-[10px] font-semibold px-2.5 py-1 rounded-full shadow-md backdrop-blur-xs flex items-center space-x-1 transition-opacity duration-200 pointer-events-none ${isZoomed ? "opacity-0" : "opacity-90"
+                      }`}
                   >
                     <ZoomIn className="w-3 h-3 text-cream" />
                     <span>{t.productDetails.hoverToZoom}</span>
@@ -242,11 +242,10 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                     key={idx}
                     type="button"
                     onClick={() => setSelectedImageIndex(idx)}
-                    className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
-                      selectedImageIndex === idx
+                    className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${selectedImageIndex === idx
                         ? "border-maroon-900 ring-2 ring-maroon-700/30 scale-105"
                         : "border-maroon-200 hover:border-maroon-500 opacity-70 hover:opacity-100"
-                    }`}
+                      }`}
                   >
                     <Image src={imgUrl} alt={`${product.name} thumbnail ${idx + 1}`} fill sizes="56px" className="object-cover" />
                   </button>
@@ -323,11 +322,10 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                             setSelectedVariant(variant);
                             setQuantity(1);
                           }}
-                          className={`px-3.5 py-2 rounded-md border text-xs font-bold transition-all cursor-pointer ${
-                            isSelected
+                          className={`px-3.5 py-2 rounded-md border text-xs font-bold transition-all cursor-pointer ${isSelected
                               ? "bg-maroon-900 text-cream border-maroon-900 shadow-md ring-2 ring-maroon-700"
                               : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
-                          }`}
+                            }`}
                         >
                           <span>{label}</span>
                         </button>
@@ -376,11 +374,10 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
 
                 <button
                   onClick={handleToggleWishlist}
-                  className={`py-3 px-4 border font-semibold text-xs rounded-md transition-all flex items-center justify-center space-x-2 shadow-sm cursor-pointer ${
-                    wishlisted
+                  className={`py-3 px-4 border font-semibold text-xs rounded-md transition-all flex items-center justify-center space-x-2 shadow-sm cursor-pointer ${wishlisted
                       ? "bg-maroon-900 text-cream border-maroon-800"
                       : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
-                  }`}
+                    }`}
                 >
                   <Heart className={`w-4 h-4 ${wishlisted ? "fill-cream" : ""}`} />
                   <span>{wishlisted ? t.productDetails.wishlisted : t.productDetails.wishlist}</span>
@@ -395,9 +392,13 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                 <ShoppingBag className="w-4 h-4 text-cream" />
                 <span>{t.productDetails.orderNow}</span>
               </button>
+
+              <ProductContactChannels />
             </div>
           </div>
         </div>
+
+        <ProductBulletsAndPolicy productId={product.id} />
 
         <ProductReviewsSection productId={product.id} />
       </main>
