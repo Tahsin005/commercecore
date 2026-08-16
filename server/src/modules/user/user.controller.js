@@ -1,4 +1,4 @@
-import { registerUser, loginUser, claimAccountService } from './user.service.js';
+import { registerUser, loginUser, claimAccountService, getAdminUserStatsService } from './user.service.js';
 import ApiResponse from '../../utils/ApiResponse.js';
 
 export const signup = async (req, res, next) => {
@@ -29,6 +29,17 @@ export const claimAccount = async (req, res, next) => {
     res
       .status(200)
       .json(new ApiResponse(200, result, 'Account claimed successfully with new password'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAdminUserStats = async (req, res, next) => {
+  try {
+    const result = await getAdminUserStatsService();
+    res
+      .status(200)
+      .json(new ApiResponse(200, result, 'Admin user stats retrieved successfully'));
   } catch (error) {
     next(error);
   }

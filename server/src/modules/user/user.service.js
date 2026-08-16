@@ -117,3 +117,24 @@ export const claimAccountService = async (userId, { email, password }) => {
     token,
   };
 };
+
+export const getAdminUserStatsService = async () => {
+  const totalUsers = await User.countDocuments();
+  const registeredUsers = await User.countDocuments({ hasPassword: true });
+  const guestUsers = await User.countDocuments({ hasPassword: false });
+  const adminUsers = await User.countDocuments({ isAdmin: true });
+
+  const recentUsers = await User.find()
+    .sort({ createdAt: -1 })
+    .limit(8);
+
+  return {
+    users: recentUsers,
+    stats: {
+      totalUsers,
+      registeredUsers,
+      guestUsers,
+      adminUsers,
+    },
+  };
+};

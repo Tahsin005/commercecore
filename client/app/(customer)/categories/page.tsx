@@ -15,6 +15,7 @@ import {
   ChevronRight,
   RotateCcw,
   X,
+  Layers,
 } from "lucide-react";
 
 import { useWishlist } from "@/hooks/useWishlist";
@@ -22,11 +23,10 @@ import { useProductsQuery, Product } from "@/hooks/useProductQueries";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
 import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
-import { HomepageBanners } from "@/components/HomepageBanners";
 import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
-export default function Home() {
+export default function CategoriesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("newest");
@@ -44,6 +44,7 @@ export default function Home() {
   const { data: categoriesResponse, isLoading: isCategoriesLoading } = useCategoriesQuery();
   const categories = categoriesResponse?.data || [];
 
+  // Sort categories: featured first
   const sortedCategories = useMemo(() => {
     return [...categories].sort((a, b) => {
       if (a.isFeatured && !b.isFeatured) return -1;
@@ -51,8 +52,6 @@ export default function Home() {
       return 0;
     });
   }, [categories]);
-
-  const homepageCategories = useMemo(() => sortedCategories.slice(0, 4), [sortedCategories]);
 
   const discountPercentage = hasSitewideDiscount && discountSetting?.discountPercentage ? discountSetting.discountPercentage : 0;
   const discountMultiplier = discountPercentage > 0 ? (100 - discountPercentage) / 100 : 1;
@@ -144,26 +143,43 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 w-full flex-1 space-y-8">
-        <HomepageBanners />
+        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-maroon-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center space-x-2 text-maroon-800">
+              <Layers className="w-5 h-5 text-maroon-700" />
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-maroon-900 tracking-tight">
+                {t.navbar.categories || "Categories"}
+              </h1>
+            </div>
+            <p className="text-xs sm:text-sm text-maroon-700 mt-1">
+              Browse all store categories and filter products with custom search and price criteria
+            </p>
+          </div>
+          <span className="text-xs font-semibold text-maroon-700 bg-maroon-100 px-3.5 py-1.5 rounded-xl border border-maroon-200 shrink-0 self-start sm:self-auto">
+            {isLoading ? "..." : `${totalProducts} ${t.home.itemsAvailable}`}
+          </span>
+        </div>
 
         {isCategoriesLoading ? (
           <CategoriesSkeleton />
-        ) : categories.length > 0 ? (
-          <div className="space-y-4 pt-2">
+        ) : sortedCategories.length > 0 ? (
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl sm:text-2xl font-serif font-bold text-maroon-900 tracking-tight">
-                {t.home.categoryItems}
+              <h2 className="text-lg font-serif font-bold text-maroon-900 tracking-tight">
+                {t.home.browseCategories || "All Categories"} ({sortedCategories.length})
               </h2>
-              <Link
-                href="/categories"
-                className="inline-flex items-center space-x-1 text-xs font-bold text-maroon-900 hover:text-maroon-700 bg-maroon-100/80 hover:bg-maroon-200/80 px-3.5 py-1.5 rounded-xl border border-maroon-200 transition-all cursor-pointer shadow-2xs group"
-              >
-                <span>{t.home.showAllCategories || "View All Categories"}</span>
-                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
+              {selectedCategory !== "all" && (
+                <button
+                  type="button"
+                  onClick={() => handleCategorySelect("all")}
+                  className="text-xs font-semibold text-maroon-700 hover:text-maroon-900 underline cursor-pointer"
+                >
+                  {t.home.showAllCategories || "Show All Categories"}
+                </button>
+              )}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={() => handleCategorySelect("all")}
@@ -175,18 +191,18 @@ export default function Home() {
               >
                 <div className="hidden sm:flex relative w-full aspect-square bg-off-white rounded-xl overflow-hidden items-center justify-center p-3 border border-maroon-100/60">
                   <div className="w-full h-full rounded-lg bg-maroon-900 flex flex-col items-center justify-center text-white space-y-1 group-hover:scale-105 transition-transform duration-300">
-                    <Tag className="w-8 h-8 text-cream" />
+                    <Tag className="w-7 h-7 text-cream" />
                     <span className="text-[10px] font-bold uppercase tracking-wider text-cream/90">{t.home.all}</span>
                   </div>
                 </div>
                 <div className="py-1 sm:pt-2.5 sm:pb-1 px-1 text-center">
-                  <span className="font-serif font-bold text-xs sm:text-sm text-maroon-900 group-hover:text-maroon-700 block truncate">
+                  <span className="font-serif font-bold text-xs text-maroon-900 group-hover:text-maroon-700 block truncate">
                     {t.home.allProducts}
                   </span>
                 </div>
               </button>
 
-              {homepageCategories.map((cat) => {
+              {sortedCategories.map((cat) => {
                 const isSelected = selectedCategory === cat.id;
 
                 return (
@@ -206,24 +222,24 @@ export default function Home() {
                           src={cat.imageUrl}
                           alt={cat.name}
                           fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
                         <div className="w-full h-full bg-maroon-50/50 flex flex-col items-center justify-center text-maroon-300">
-                          <Tag className="w-10 h-10 group-hover:scale-110 transition-transform duration-300" />
+                          <Tag className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
                         </div>
                       )}
 
                       {cat.isFeatured && (
-                        <span className="absolute top-2 left-2 bg-maroon-900 text-cream text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs">
+                        <span className="absolute top-1.5 left-1.5 bg-maroon-900 text-cream text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md shadow-xs">
                           {t.common.featured}
                         </span>
                       )}
                     </div>
 
-                    <div className="py-1 sm:pt-2.5 sm:pb-1 px-1 text-center flex items-center justify-center space-x-1">
-                      <span className="font-serif font-bold text-xs sm:text-sm text-maroon-900 group-hover:text-maroon-700 block truncate">
+                    <div className="py-1 sm:pt-2 sm:pb-0.5 px-1 text-center flex items-center justify-center space-x-1">
+                      <span className="font-serif font-bold text-xs text-maroon-900 group-hover:text-maroon-700 block truncate">
                         {cat.name}
                       </span>
                       {cat.isFeatured && (
@@ -239,92 +255,80 @@ export default function Home() {
           </div>
         ) : null}
 
-        <div className="space-y-4 border-b border-maroon-100 pb-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-2xl font-serif font-bold text-maroon-900">{t.home.productsCatalog}</h2>
-              <p className="text-xs text-maroon-700">{t.home.catalogDesc}</p>
-            </div>
-            <span className="text-xs font-semibold text-maroon-700 bg-maroon-100 px-3 py-1.5 rounded-lg border border-maroon-200 self-start sm:self-auto">
-              {isLoading ? "..." : `${totalProducts} ${t.home.itemsAvailable}`}
-            </span>
-          </div>
-
-          <div className="bg-white p-4 rounded-2xl border border-maroon-100 shadow-sm space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-              <div className="relative md:col-span-5">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
-                  <Search className="w-4 h-4" />
-                </div>
-                <input
-                  type="text"
-                  placeholder={t.home.searchPlaceholder || "Search by product title or description..."}
-                  value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="w-full pl-10 pr-9 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs placeholder-maroon-500/70 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all font-medium"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => handleSearchChange("")}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-maroon-400 hover:text-maroon-700 cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
+        <div className="bg-white p-4 rounded-2xl border border-maroon-100 shadow-sm space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+            <div className="relative md:col-span-5">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
+                <Search className="w-4 h-4" />
               </div>
-
-              <div className="relative md:col-span-4 flex items-center">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-maroon-500">
-                  <ArrowUpDown className="w-3.5 h-3.5" />
-                </div>
-                <select
-                  value={sortBy}
-                  onChange={(e) => handleSortChange(e.target.value)}
-                  className="w-full pl-9 pr-8 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs font-medium focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all cursor-pointer appearance-none"
+              <input
+                type="text"
+                placeholder={t.home.searchPlaceholder || "Search by product title or description..."}
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full pl-10 pr-9 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs placeholder-maroon-500/70 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all font-medium"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => handleSearchChange("")}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-maroon-400 hover:text-maroon-700 cursor-pointer"
                 >
-                  <option value="newest">{t.home.sortNewest || "Newest First"}</option>
-                  <option value="price_asc">{t.home.sortPriceLowToHigh || "Price: Low to High"}</option>
-                  <option value="price_desc">{t.home.sortPriceHighToLow || "Price: High to Low"}</option>
-                  <option value="oldest">{t.home.sortOldest || "Oldest First"}</option>
-                  <option value="name_asc">{t.home.sortNameAsc || "Name: A to Z"}</option>
-                  <option value="name_desc">{t.home.sortNameDesc || "Name: Z to A"}</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-maroon-400">
-                  <ChevronRight className="w-3.5 h-3.5 rotate-90" />
-                </div>
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="relative md:col-span-4 flex items-center">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-maroon-500">
+                <ArrowUpDown className="w-3.5 h-3.5" />
+              </div>
+              <select
+                value={sortBy}
+                onChange={(e) => handleSortChange(e.target.value)}
+                className="w-full pl-9 pr-8 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs font-medium focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all cursor-pointer appearance-none"
+              >
+                <option value="newest">{t.home.sortNewest || "Newest First"}</option>
+                <option value="price_asc">{t.home.sortPriceLowToHigh || "Price: Low to High"}</option>
+                <option value="price_desc">{t.home.sortPriceHighToLow || "Price: High to Low"}</option>
+                <option value="oldest">{t.home.sortOldest || "Oldest First"}</option>
+                <option value="name_asc">{t.home.sortNameAsc || "Name: A to Z"}</option>
+                <option value="name_desc">{t.home.sortNameDesc || "Name: Z to A"}</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-maroon-400">
+                <ChevronRight className="w-3.5 h-3.5 rotate-90" />
+              </div>
+            </div>
+
+            <div className="md:col-span-3 flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5 flex-1 min-w-0">
+                <input
+                  type="number"
+                  placeholder={t.home.minPrice || "Min ৳"}
+                  value={minPrice}
+                  onChange={(e) => handleMinPriceChange(e.target.value)}
+                  className="w-full py-2 px-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs placeholder-maroon-500/70 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all font-mono"
+                />
+                <span className="text-maroon-400 text-xs font-bold">-</span>
+                <input
+                  type="number"
+                  placeholder={t.home.maxPrice || "Max ৳"}
+                  value={maxPrice}
+                  onChange={(e) => handleMaxPriceChange(e.target.value)}
+                  className="w-full py-2 px-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs placeholder-maroon-500/70 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all font-mono"
+                />
               </div>
 
-              <div className="md:col-span-3 flex items-center space-x-2">
-                <div className="flex items-center space-x-1.5 flex-1 min-w-0">
-                  <input
-                    type="number"
-                    placeholder={t.home.minPrice || "Min ৳"}
-                    value={minPrice}
-                    onChange={(e) => handleMinPriceChange(e.target.value)}
-                    className="w-full py-2 px-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs placeholder-maroon-500/70 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all font-mono"
-                  />
-                  <span className="text-maroon-400 text-xs font-bold">-</span>
-                  <input
-                    type="number"
-                    placeholder={t.home.maxPrice || "Max ৳"}
-                    value={maxPrice}
-                    onChange={(e) => handleMaxPriceChange(e.target.value)}
-                    className="w-full py-2 px-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs placeholder-maroon-500/70 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all font-mono"
-                  />
-                </div>
-
-                {hasActiveFilters && (
-                  <button
-                    type="button"
-                    onClick={handleClearFilters}
-                    className="p-2 bg-maroon-50 hover:bg-maroon-100 text-maroon-800 border border-maroon-200 rounded-xl transition-colors cursor-pointer shrink-0"
-                    title={t.home.clearFilters || "Clear Filters"}
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="p-2 bg-maroon-50 hover:bg-maroon-100 text-maroon-800 border border-maroon-200 rounded-xl transition-colors cursor-pointer shrink-0"
+                  title={t.home.clearFilters || "Clear Filters"}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -384,6 +388,7 @@ export default function Home() {
                       )}
                       
                       <button
+                        type="button"
                         onClick={() => handleToggleWishlist(product)}
                         className={`absolute top-3 right-3 p-2 rounded-full border transition-all cursor-pointer shadow-sm ${
                           wishlisted

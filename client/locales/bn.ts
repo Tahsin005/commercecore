@@ -46,6 +46,7 @@ export const bn = {
   // Navbar
   navbar: {
     home: "হোম",
+    categories: "ক্যাটাগরি সমূহ",
     checkout: "চেকআউট",
     adminPanel: "অ্যাডমিন প্যানেল",
     cart: "কার্ট",

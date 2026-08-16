@@ -14,6 +14,7 @@ import {
   ShoppingBag,
   LayoutDashboard,
   Globe,
+  Tag,
 } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";

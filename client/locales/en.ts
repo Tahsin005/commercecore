@@ -41,6 +41,7 @@ export const en: TranslationType = {
   },
   navbar: {
     home: "Home",
+    categories: "Categories",
     checkout: "Checkout",
     adminPanel: "Admin Panel",
     cart: "Cart",
