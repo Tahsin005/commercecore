@@ -10,6 +10,7 @@ import uploadConfigRoutes from '../modules/upload/uploadConfig.routes.js';
 import settingRoutes from '../modules/setting/setting.routes.js';
 import cmsRoutes from '../modules/cms/cms.routes.js';
 import reviewRoutes from '../modules/review/review.routes.js';
+import addressRoutes from '../modules/address/address.routes.js';
 
 const router = express.Router();
 
@@ -24,5 +25,6 @@ router.use('/upload-configs', uploadConfigRoutes);
 router.use('/settings', settingRoutes);
 router.use('/cms', cmsRoutes);
 router.use('/reviews', reviewRoutes);
+router.use('/addresses', addressRoutes);
 
 export default router;

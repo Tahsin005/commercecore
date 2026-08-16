@@ -14,7 +14,7 @@ export const authenticateToken = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, env.jwtSecret);
 
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id).select('+password');
     if (!user) {
       throw new ApiError(401, 'User not found or session invalid');
     }
@@ -44,7 +44,7 @@ export const optionalAuth = async (req, res, next) => {
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
       const decoded = jwt.verify(token, env.jwtSecret);
-      const user = await User.findById(decoded.id);
+      const user = await User.findById(decoded.id).select('+password');
       if (user) {
         req.user = user;
       }

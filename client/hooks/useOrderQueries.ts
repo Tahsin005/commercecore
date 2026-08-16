@@ -61,12 +61,14 @@ export function useCreateOrderMutation() {
       useCartStore.getState().clearCart();
       useWishlistStore.getState().clearWishlist();
 
-      // Immediately set and invalidate TanStack Query cache for cart and wishlist
+      // Immediately set and invalidate TanStack Query cache for cart, wishlist, and orders
       queryClient.setQueryData(CART_QUERY_KEY, []);
       queryClient.setQueryData(WISHLIST_QUERY_KEY, []);
       await queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
       await queryClient.invalidateQueries({ queryKey: WISHLIST_QUERY_KEY });
       await queryClient.invalidateQueries({ queryKey: ["products"] });
+      await queryClient.invalidateQueries({ queryKey: ["customer-orders"] });
+      await queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
 
       if (response.data?.token && response.data?.user) {
         setAuth(response.data.user, response.data.token);

@@ -5,6 +5,7 @@ import {
   getAdminOrders,
   getAdminOrderById,
   updateOrderStatus,
+  getUserOrders,
 } from './order.controller.js';
 import {
   placeOrderSchema,
@@ -23,8 +24,10 @@ router.get('/admin', authenticateToken, requireAdmin, validate(getAdminOrdersSch
 router.get('/admin/:id', authenticateToken, requireAdmin, validate(getAdminOrderByIdSchema), getAdminOrderById);
 router.patch('/admin/:id/status', authenticateToken, requireAdmin, validate(updateOrderStatusSchema), updateOrderStatus);
 
-// Public / Customer Endpoints
+// Customer Endpoints
+router.get('/my-orders', authenticateToken, getUserOrders);
 router.post('/', optionalAuth, validate(placeOrderSchema), placeOrder);
 router.get('/:orderNumber', optionalAuth, validate(getOrderDetailsSchema), getOrderDetails);
 
 export default router;
+

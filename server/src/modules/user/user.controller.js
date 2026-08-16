@@ -1,5 +1,16 @@
-import { registerUser, loginUser, claimAccountService, getAdminUserStatsService } from './user.service.js';
+import { registerUser, loginUser, claimAccountService, getAdminUserStatsService, updateUserProfileService, changeUserPasswordService, getMeService } from './user.service.js';
 import ApiResponse from '../../utils/ApiResponse.js';
+
+export const getMe = async (req, res, next) => {
+  try {
+    const result = await getMeService(req.user.id);
+    res
+      .status(200)
+      .json(new ApiResponse(200, result, 'User profile fetched successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const signup = async (req, res, next) => {
   try {
@@ -44,3 +55,26 @@ export const getAdminUserStats = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateProfile = async (req, res, next) => {
+  try {
+    const result = await updateUserProfileService(req.user.id, req.body);
+    res
+      .status(200)
+      .json(new ApiResponse(200, result, 'Profile updated successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const changePassword = async (req, res, next) => {
+  try {
+    const result = await changeUserPasswordService(req.user.id, req.body);
+    res
+      .status(200)
+      .json(new ApiResponse(200, result, 'Password changed successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
+

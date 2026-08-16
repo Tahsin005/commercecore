@@ -26,6 +26,14 @@ export const generateAuthToken = (user) => {
   });
 };
 
+export const getMeService = async (userId) => {
+  const user = await User.findById(userId).select('+password');
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+  return user.toJSON();
+};
+
 // register a new user
 export const registerUser = async (userData) => {
   const { name, email, phone, password } = userData;
@@ -91,12 +99,6 @@ export const loginUser = async ({ email, phone, identifier, password }) => {
     throw new ApiError(401, 'Invalid credentials');
   }
 
-  // check if user email is in admin list and promote to admin if not already
-  if (user.email && checkIsAdminEmail(user.email) && !user.isAdmin) {
-    user.isAdmin = true;
-    await user.save();
-  }
-
   const token = generateAuthToken(user);
 
   return {
@@ -142,13 +144,17 @@ export const claimAccountService = async (userId, { email, password }) => {
 
 export const getAdminUserStatsService = async () => {
   const totalUsers = await User.countDocuments();
-  const registeredUsers = await User.countDocuments({ hasPassword: true });
-  const guestUsers = await User.countDocuments({ hasPassword: false });
+  const registeredUsers = await User.countDocuments({ password: { $exists: true, $ne: null } });
+  const guestUsers = await User.countDocuments({
+    $or: [{ password: null }, { password: { $exists: false } }],
+  });
   const adminUsers = await User.countDocuments({ isAdmin: true });
 
-  const recentUsers = await User.find()
+  const recentUsersRaw = await User.find()
+    .select('+password')
     .sort({ createdAt: -1 })
     .limit(8);
+  const recentUsers = recentUsersRaw.map((u) => u.toJSON());
 
   return {
     users: recentUsers,
@@ -160,3 +166,62 @@ export const getAdminUserStatsService = async () => {
     },
   };
 };
+
+export const updateUserProfileService = async (userId, payload) => {
+  const user = await User.findById(userId).select('+password');
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  if (payload.email && payload.email.toLowerCase() !== user.email.toLowerCase()) {
+    const existingEmail = await User.findOne({
+      email: payload.email.toLowerCase(),
+      _id: { $ne: userId },
+    });
+    if (existingEmail) {
+      throw new ApiError(400, 'User with this email already exists');
+    }
+    user.email = payload.email.toLowerCase();
+  }
+
+  if (payload.phone && payload.phone !== user.phone) {
+    const existingPhone = await User.findOne({
+      phone: payload.phone,
+      _id: { $ne: userId },
+    });
+    if (existingPhone) {
+      throw new ApiError(400, 'User with this phone number already exists');
+    }
+    user.phone = payload.phone;
+  }
+
+  if (payload.name) {
+    user.name = payload.name.trim();
+  }
+
+  await user.save();
+  return user.toJSON();
+};
+
+export const changeUserPasswordService = async (userId, { currentPassword, newPassword }) => {
+  const user = await User.findById(userId).select('+password');
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  if (user.password) {
+    if (!currentPassword) {
+      throw new ApiError(400, 'Current password is required');
+    }
+    const isMatch = await user.isPasswordMatch(currentPassword);
+    if (!isMatch) {
+      throw new ApiError(400, 'Current password is incorrect');
+    }
+  }
+
+  user.password = newPassword;
+  await user.save();
+  return user.toJSON();
+};
+
+

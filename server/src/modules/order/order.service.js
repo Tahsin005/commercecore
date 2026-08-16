@@ -36,7 +36,7 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
       throw new ApiError(400, 'Phone number is required for guest checkout');
     }
 
-    user = await User.findOne({ phone: phone.trim() });
+    user = await User.findOne({ phone: phone.trim() }).select('+password');
 
     if (!user) {
       const userEmail = email && email.trim() ? email.trim().toLowerCase() : `guest_${Date.now()}@commercecore.com`;
@@ -408,3 +408,61 @@ export const updateOrderStatusService = async (orderId, newStatus) => {
 
   return getOrderByIdAdminService(order.id);
 };
+
+export const getUserOrdersService = async (userId, query = {}) => {
+  const { page = 1, limit = 10 } = query;
+  const pageParsed = parseInt(page, 10);
+  const limitParsed = parseInt(limit, 10);
+  const pageNum = Number.isSafeInteger(pageParsed) && pageParsed > 0 ? pageParsed : 1;
+  const limitNum = Number.isSafeInteger(limitParsed) && limitParsed > 0 ? Math.min(100, limitParsed) : 10;
+  const skip = (pageNum - 1) * limitNum;
+
+  const filter = { userId };
+
+  const [ordersRaw, total] = await Promise.all([
+    Order.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean(),
+    Order.countDocuments(filter),
+  ]);
+
+  const orderIds = ordersRaw.map((o) => o._id);
+  const items = await OrderItem.find({ orderId: { $in: orderIds } }).lean();
+
+  const itemsByOrder = items.reduce((acc, item) => {
+    const key = item.orderId.toString();
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {});
+
+  const orders = ordersRaw.map((order) => ({
+    ...order,
+    id: order._id.toString(),
+    items: (itemsByOrder[order._id.toString()] || []).map((item) => ({
+      ...item,
+      id: item._id ? item._id.toString() : undefined,
+      name: item.productName || item.name || '',
+      productName: item.productName || item.name || '',
+      price: item.unitPrice !== undefined && item.unitPrice !== null ? item.unitPrice : (item.price || 0),
+      unitPrice: item.unitPrice !== undefined && item.unitPrice !== null ? item.unitPrice : (item.price || 0),
+      size: item.selectedVariantLabel || item.size || 'Standard',
+      selectedVariantLabel: item.selectedVariantLabel || item.size || 'Standard',
+    })),
+  }));
+
+  const totalPages = Math.ceil(total / limitNum) || 1;
+
+  return {
+    orders,
+    pagination: {
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages,
+    },
+  };
+};
+
