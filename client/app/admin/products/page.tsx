@@ -73,7 +73,7 @@ export default function AdminProductsPage() {
   const { data: categoriesRes } = useCategoriesQuery();
   const { data: globalVariantsRes, isLoading: isVariantsLoading } = useGlobalVariantsQuery(true);
 
-  const products = productsRes?.data || [];
+  const products = Array.isArray(productsRes?.data) ? productsRes.data : (productsRes?.data?.products || []);
   const categories = categoriesRes?.data || [];
   const globalVariants = globalVariantsRes?.data || [];
 
@@ -648,7 +648,7 @@ export default function AdminProductsPage() {
                     <td className="py-4 px-6">
                       <div className="flex flex-wrap gap-1 max-w-xs">
                         {prod.variants && prod.variants.length > 0 ? (
-                          prod.variants.map((v) => (
+                          prod.variants.map((v: ProductVariant) => (
                             <span
                               key={v.id}
                               className="text-[10px] font-bold font-mono text-maroon-800 bg-off-white border border-maroon-200 px-1.5 py-0.5 rounded"

@@ -79,13 +79,66 @@ export const getAllProductsService = async (query = {}) => {
     filter.isActive = query.isActive === 'true' || query.isActive === true;
   }
 
-  const products = await Product.find(filter)
+  // Partial match search on name, description, and code
+  if (query.search && typeof query.search === 'string' && query.search.trim() !== '') {
+    const searchRegex = new RegExp(query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    filter.$or = [
+      { name: { $regex: searchRegex } },
+      { description: { $regex: searchRegex } },
+      { code: { $regex: searchRegex } },
+    ];
+  }
+
+  // Min & Max price range filtering
+  if (
+    (query.minPrice !== undefined && query.minPrice !== '') ||
+    (query.maxPrice !== undefined && query.maxPrice !== '')
+  ) {
+    filter.price = {};
+    if (query.minPrice !== undefined && query.minPrice !== '') {
+      filter.price.$gte = Number(query.minPrice);
+    }
+    if (query.maxPrice !== undefined && query.maxPrice !== '') {
+      filter.price.$lte = Number(query.maxPrice);
+    }
+  }
+
+  // Sorting
+  let sortOptions = { createdAt: -1 };
+  if (query.sortBy === 'price_asc') {
+    sortOptions = { price: 1, createdAt: -1 };
+  } else if (query.sortBy === 'price_desc') {
+    sortOptions = { price: -1, createdAt: -1 };
+  } else if (query.sortBy === 'oldest') {
+    sortOptions = { createdAt: 1 };
+  } else if (query.sortBy === 'name_asc') {
+    sortOptions = { name: 1 };
+  } else if (query.sortBy === 'name_desc') {
+    sortOptions = { name: -1 };
+  } else if (query.sortBy === 'newest') {
+    sortOptions = { createdAt: -1 };
+  }
+
+  // Pagination
+  const isPaginated = query.page !== undefined || (query.limit !== undefined && Number(query.limit) > 0);
+  const page = Math.max(1, parseInt(query.page || 1, 10));
+  const limit = query.limit !== undefined ? Math.max(0, parseInt(query.limit, 10)) : (isPaginated ? 12 : 0);
+
+  const totalProducts = await Product.countDocuments(filter);
+
+  let productQuery = Product.find(filter)
     .populate('categoryId', 'name slug isFeatured')
-    .sort({ createdAt: -1 });
+    .sort(sortOptions);
+
+  if (limit > 0) {
+    const skip = (page - 1) * limit;
+    productQuery = productQuery.skip(skip).limit(limit);
+  }
+
+  const products = await productQuery;
 
   const productIds = products.map((p) => p.id);
-  const links = await ProductVariantLink.find({ productId: { $in: productIds } })
-    .populate('productVariantId');
+  const links = await ProductVariantLink.find({ productId: { $in: productIds } }).populate('productVariantId');
 
   const linksByProduct = links.reduce((acc, link) => {
     const pid = link.productId.toString();
@@ -94,11 +147,26 @@ export const getAllProductsService = async (query = {}) => {
     return acc;
   }, {});
 
-  return products.map((p) => ({
+  const formattedProducts = products.map((p) => ({
     ...p.toJSON(),
     defaultPrice: p.price,
     variants: processAndSortVariants(linksByProduct[p.id] || []),
   }));
+
+  const effectiveLimit = limit > 0 ? limit : totalProducts;
+  const totalPages = effectiveLimit > 0 ? Math.ceil(totalProducts / effectiveLimit) : 1;
+
+  return {
+    products: formattedProducts,
+    pagination: {
+      totalProducts,
+      totalPages: totalPages || 1,
+      currentPage: page,
+      limit: effectiveLimit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    },
+  };
 };
 
 export const getProductByIdService = async (productId) => {
