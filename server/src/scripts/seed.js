@@ -75,7 +75,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'jamdani-sarees',
     imageFile: 'img1.jpeg',
-    variantLabels: ['With Unstitched Blouse Piece', 'Custom Fall & Pico Included'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years'],
   },
   {
     name: 'Kanchipuram Crimson Silk Katan Sharee',
@@ -88,7 +88,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'katan-silk-sarees',
     imageFile: 'img2.jpeg',
-    variantLabels: ['With Unstitched Blouse Piece', 'With Stitched Designer Blouse', 'Matching Petticoat Included'],
+    variantLabels: ['1-2 years', '2-3 years', '3-4 years', '4-5 years'],
   },
   {
     name: 'Soft Handloom Muslin Jamdani Sharee',
@@ -101,7 +101,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'jamdani-sarees',
     imageFile: 'img3.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'Custom Fall & Pico Included'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years'],
   },
   {
     name: 'Pure Rajshahi Silk Pattern Sharee',
@@ -114,7 +114,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'katan-silk-sarees',
     imageFile: 'img4.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'Without Blouse Piece'],
+    variantLabels: ['1-2 years', '2-3 years', '3-4 years'],
   },
   {
     name: 'Printed Pure Cotton Daily Sharee',
@@ -127,7 +127,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'cotton-sarees',
     imageFile: 'img5.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'Without Blouse Piece'],
+    variantLabels: ['1-2 years', '2-3 years', '3-4 years', '4-5 years'],
   },
   {
     name: 'Flowy Floral Organza Silk Sharee',
@@ -140,7 +140,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'organza-sarees',
     imageFile: 'img6.jpeg',
-    variantLabels: ['With Unstitched Blouse Piece', 'With Stitched Designer Blouse'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years'],
   },
   {
     name: 'Bridal Zardosi Embroidered Velvet Sharee',
@@ -153,7 +153,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'bridal-sarees',
     imageFile: 'img7.png',
-    variantLabels: ['With Stitched Designer Blouse', 'Matching Petticoat Included', 'Custom Fall & Pico Included'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years', '2-3 years'],
   },
   {
     name: 'Designer Georgette Sequin Party Sharee',
@@ -166,7 +166,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'partywear-sarees',
     imageFile: 'img8.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'With Stitched Designer Blouse'],
+    variantLabels: ['2-3 years', '3-4 years', '4-5 years', '5-6 years'],
   },
   {
     name: 'Traditional Bengal Taant Cotton Sharee',
@@ -179,7 +179,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'cotton-sarees',
     imageFile: 'img9.jpeg',
-    variantLabels: ['Without Blouse Piece', 'Custom Fall & Pico Included'],
+    variantLabels: ['2-3 years', '3-4 years', '4-5 years'],
   },
   {
     name: 'Banarasi Katan Silk Gold Zari Sharee',
@@ -192,7 +192,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'katan-silk-sarees',
     imageFile: 'img10.jpeg',
-    variantLabels: ['With Unstitched Blouse Piece', 'With Stitched Designer Blouse', 'Matching Petticoat Included'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years'],
   },
   {
     name: 'Dhakai Heritage Fine Muslin Sharee',
@@ -205,7 +205,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'jamdani-sarees',
     imageFile: 'img11.jpeg',
-    variantLabels: ['With Unstitched Blouse Piece', 'Custom Fall & Pico Included'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years', '2-3 years'],
   },
   {
     name: 'Pastel Tissue Organza Lace Sharee',
@@ -218,7 +218,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'organza-sarees',
     imageFile: 'img12.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'With Stitched Designer Blouse'],
+    variantLabels: ['2-3 years', '3-4 years', '4-5 years', '5-6 years'],
   },
   {
     name: 'Heavy Bridal Maroon Banarasi Silk Sharee',
@@ -231,7 +231,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'bridal-sarees',
     imageFile: 'img13.png',
-    variantLabels: ['With Stitched Designer Blouse', 'Matching Petticoat Included', 'Custom Fall & Pico Included'],
+    variantLabels: ['2-3 years', '3-4 years', '4-5 years', '5-6 years'],
   },
   {
     name: 'Chanderi Silk Cotton Blend Sharee',
@@ -244,7 +244,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'katan-silk-sarees',
     imageFile: 'img14.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'Custom Fall & Pico Included'],
+    variantLabels: ['1-2 years', '2-3 years', '3-4 years', '4-5 years'],
   },
   {
     name: 'Hand-Painted Peacock Dupion Silk Sharee',
@@ -257,7 +257,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'katan-silk-sarees',
     imageFile: 'img15.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'With Stitched Designer Blouse'],
+    variantLabels: ['2-3 years', '3-4 years', '4-5 years', '5-6 years'],
   },
   {
     name: 'Contemporary Digital Print Georgette Sharee',
@@ -270,7 +270,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'partywear-sarees',
     imageFile: 'img16.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'Without Blouse Piece'],
+    variantLabels: ['2-3 years', '3-4 years', '4-5 years', '5-6 years'],
   },
   {
     name: 'Embroidered Crystal Net Party Sharee',
@@ -283,7 +283,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'partywear-sarees',
     imageFile: 'img17.jpeg',
-    variantLabels: ['With Stitched Designer Blouse', 'Matching Petticoat Included'],
+    variantLabels: ['1-2 years', '2-3 years', '3-4 years', '4-5 years'],
   },
   {
     name: 'Soft Half-Silk Jamdani Festive Sharee',
@@ -296,7 +296,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'jamdani-sarees',
     imageFile: 'img18.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'Custom Fall & Pico Included'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years'],
   },
   {
     name: 'Pure Organic Linen Sharee with Tassels',
@@ -309,7 +309,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'cotton-sarees',
     imageFile: 'img19.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'Custom Fall & Pico Included'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years', '2-3 years'],
   },
   {
     name: 'Royal Velvet Border Bridal Heritage Sharee',
@@ -322,7 +322,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'bridal-sarees',
     imageFile: 'img20.png',
-    variantLabels: ['With Stitched Designer Blouse', 'Matching Petticoat Included'],
+    variantLabels: ['2-3 years', '3-4 years', '4-5 years', '5-6 years'],
   },
   {
     name: 'Soft Metallic Tissue Silk Party Sharee',
@@ -335,7 +335,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'organza-sarees',
     imageFile: 'img21.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'With Stitched Designer Blouse'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years'],
   },
   {
     name: 'Boutique Pearl Work Silk Chiffon Sharee',
@@ -348,7 +348,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'partywear-sarees',
     imageFile: 'img22.jpeg',
-    variantLabels: ['With Unstitched Blouse Piece', 'With Stitched Designer Blouse'],
+    variantLabels: ['1-2 years', '2-3 years', '3-4 years', '4-5 years'],
   },
   {
     name: 'Authentic Tangail Handloom Cotton Sharee',
@@ -361,7 +361,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'cotton-sarees',
     imageFile: 'img23.png',
-    variantLabels: ['Without Blouse Piece', 'Custom Fall & Pico Included'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years', '2-3 years', '3-4 years'],
   },
   {
     name: 'Gold Zari Embroidered Organza Sharee',
@@ -374,7 +374,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'organza-sarees',
     imageFile: 'img24.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'With Stitched Designer Blouse'],
+    variantLabels: ['2-3 years', '3-4 years', '4-5 years', '5-6 years'],
   },
   {
     name: 'Handcrafted Kantha Stitch Cotton Sharee',
@@ -387,7 +387,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'cotton-sarees',
     imageFile: 'img25.jpeg',
-    variantLabels: ['With Unstitched Blouse Piece', 'Custom Fall & Pico Included'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years'],
   },
   {
     name: 'Contemporary Pre-Pleated Ready Sharee',
@@ -400,7 +400,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'partywear-sarees',
     imageFile: 'img26.jpeg',
-    variantLabels: ['With Stitched Designer Blouse'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years'],
   },
   {
     name: 'Exclusive Banarasi Tanchoi Silk Sharee',
@@ -413,7 +413,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'katan-silk-sarees',
     imageFile: 'img27.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'With Stitched Designer Blouse', 'Matching Petticoat Included'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years', '2-3 years'],
   },
   {
     name: 'Self-Weave Fine Count Muslin Sharee',
@@ -426,7 +426,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'jamdani-sarees',
     imageFile: 'img28.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'Custom Fall & Pico Included'],
+    variantLabels: ['2-3 years', '3-4 years', '4-5 years', '5-6 years'],
   },
   {
     name: 'Bridal Heavily Woven Gold Katan Sharee',
@@ -439,7 +439,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'bridal-sarees',
     imageFile: 'img29.png',
-    variantLabels: ['With Stitched Designer Blouse', 'Matching Petticoat Included', 'Custom Fall & Pico Included'],
+    variantLabels: ['1-2 years', '2-3 years', '3-4 years', '4-5 years'],
   },
   {
     name: 'Floral Embroidered Sheer Net Sharee',
@@ -452,7 +452,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'partywear-sarees',
     imageFile: 'img30.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'With Stitched Designer Blouse'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years', '2-3 years'],
   },
   {
     name: 'Natural Tussar Silk Handloom Sharee',
@@ -465,7 +465,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'katan-silk-sarees',
     imageFile: 'img31.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'Custom Fall & Pico Included'],
+    variantLabels: ['1-2 years', '2-3 years', '3-4 years', '4-5 years'],
   },
   {
     name: 'Lustrous Satin Silk Cocktail Sharee',
@@ -478,7 +478,7 @@ const sampleProducts = [
     isActive: true,
     categorySlug: 'partywear-sarees',
     imageFile: 'img32.png',
-    variantLabels: ['With Unstitched Blouse Piece', 'With Stitched Designer Blouse'],
+    variantLabels: ['0-6 months', '6-12 months', '1-2 years', '2-3 years'],
   },
 ];
 
@@ -548,8 +548,8 @@ const seedDatabase = async () => {
       return acc;
     }, {});
 
-    logger.info('Inserting Master Global Sharee Variants...');
-    const createdVariants = await ProductVariant.insertMany(sampleSareeVariants);
+    logger.info('Inserting Master Global Age Variants...');
+    const createdVariants = await ProductVariant.insertMany(sampleAgeVariants);
     const variantMap = createdVariants.reduce((acc, v) => {
       acc[v.label] = v.id;
       return acc;
@@ -591,7 +591,7 @@ const seedDatabase = async () => {
       productIndex++;
     }
 
-    logger.info(`Successfully seeded ${sampleCategories.length} Sharee categories, ${createdVariants.length} Sharee variants, ${sampleProducts.length} Sharee products, and ${totalLinks} variant links.`);
+    logger.info(`Successfully seeded ${sampleCategories.length} Sharee categories, ${createdVariants.length} age variants, ${sampleProducts.length} Sharee products, and ${totalLinks} variant links.`);
     logger.info('All Sharee category and product images were successfully uploaded to Cloudinary!');
     process.exit(0);
   } catch (error) {
