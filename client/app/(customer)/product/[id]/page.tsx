@@ -24,6 +24,7 @@ import { useProductDetailsQuery, ProductVariant } from "@/hooks/useProductQuerie
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
 import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
 import { ProductDetailsSkeleton } from "@/components/skeletons";
+import { ProductReviewsSection } from "@/components/ProductReviewsSection";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface ProductDetailsPageProps {
@@ -303,7 +304,6 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                 </div>
               </div>
 
-              {/* Age Variant Selector */}
               {product.variants && product.variants.length > 0 && (
                 <div className="pt-2">
                   <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-2">
@@ -397,6 +397,8 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
             </div>
           </div>
         </div>
+
+        <ProductReviewsSection productId={product.id} />
       </main>
     </div>
   );
