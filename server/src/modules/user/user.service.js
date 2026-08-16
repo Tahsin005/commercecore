@@ -26,6 +26,14 @@ export const generateAuthToken = (user) => {
   });
 };
 
+export const getMeService = async (userId) => {
+  const user = await User.findById(userId).select('+password');
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+  return user.toJSON();
+};
+
 // register a new user
 export const registerUser = async (userData) => {
   const { name, email, phone, password } = userData;
@@ -142,13 +150,17 @@ export const claimAccountService = async (userId, { email, password }) => {
 
 export const getAdminUserStatsService = async () => {
   const totalUsers = await User.countDocuments();
-  const registeredUsers = await User.countDocuments({ hasPassword: true });
-  const guestUsers = await User.countDocuments({ hasPassword: false });
+  const registeredUsers = await User.countDocuments({ password: { $exists: true, $ne: null } });
+  const guestUsers = await User.countDocuments({
+    $or: [{ password: null }, { password: { $exists: false } }],
+  });
   const adminUsers = await User.countDocuments({ isAdmin: true });
 
-  const recentUsers = await User.find()
+  const recentUsersRaw = await User.find()
+    .select('+password')
     .sort({ createdAt: -1 })
     .limit(8);
+  const recentUsers = recentUsersRaw.map((u) => u.toJSON());
 
   return {
     users: recentUsers,
@@ -162,7 +174,7 @@ export const getAdminUserStatsService = async () => {
 };
 
 export const updateUserProfileService = async (userId, payload) => {
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).select('+password');
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
@@ -207,7 +219,7 @@ export const changeUserPasswordService = async (userId, { currentPassword, newPa
     throw new ApiError(404, 'User not found');
   }
 
-  if (user.password || user.hasPassword) {
+  if (user.password) {
     if (!currentPassword) {
       throw new ApiError(400, 'Current password is required');
     }

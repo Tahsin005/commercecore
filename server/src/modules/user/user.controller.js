@@ -1,5 +1,16 @@
-import { registerUser, loginUser, claimAccountService, getAdminUserStatsService, updateUserProfileService, changeUserPasswordService } from './user.service.js';
+import { registerUser, loginUser, claimAccountService, getAdminUserStatsService, updateUserProfileService, changeUserPasswordService, getMeService } from './user.service.js';
 import ApiResponse from '../../utils/ApiResponse.js';
+
+export const getMe = async (req, res, next) => {
+  try {
+    const result = await getMeService(req.user.id);
+    res
+      .status(200)
+      .json(new ApiResponse(200, result, 'User profile fetched successfully'));
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const signup = async (req, res, next) => {
   try {

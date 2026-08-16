@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { ApiResponse } from "@/types/api";
+import { useAuthStore, User } from "@/store/useAuthStore";
 
 export interface PaginationMeta {
   total: number;
@@ -53,6 +54,20 @@ export interface ChangePasswordPayload {
   newPassword: string;
 }
 
+export function useMeQuery(enabled = true) {
+  return useQuery<ApiResponse<User>, ApiError>({
+    queryKey: ["user-me"],
+    queryFn: async () => {
+      const response = await apiClient<ApiResponse<User>>("/users/me");
+      if (response.data) {
+        useAuthStore.getState().setAuthUser(response.data);
+      }
+      return response;
+    },
+    enabled,
+  });
+}
+
 export function useCustomerOrdersQuery(page = 1, limit = 10, enabled = true) {
   return useQuery<ApiResponse<CustomerOrdersData>, ApiError>({
     queryKey: ["customer-orders", page, limit],
@@ -64,14 +79,17 @@ export function useCustomerOrdersQuery(page = 1, limit = 10, enabled = true) {
 export function useUpdateProfileMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<ApiResponse<any>, ApiError, UpdateProfilePayload>({
+  return useMutation<ApiResponse<User>, ApiError, UpdateProfilePayload>({
     mutationFn: (payload) =>
-      apiClient<ApiResponse<any>>("/users/profile", {
+      apiClient<ApiResponse<User>>("/users/profile", {
         method: "PUT",
         body: JSON.stringify(payload),
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+    onSuccess: (response) => {
+      if (response.data) {
+        useAuthStore.getState().setAuthUser(response.data);
+      }
+      queryClient.invalidateQueries({ queryKey: ["user-me"] });
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },
   });
@@ -86,4 +104,5 @@ export function useChangePasswordMutation() {
       }),
   });
 }
+
 

@@ -283,6 +283,10 @@ export const en: TranslationType = {
     logoutAnywayBtn: "Logout Anyway",
   },
   profile: {
+    unauthTitle: "Sign in to view your profile",
+    unauthSubtitle: "Please log in or register to access your saved delivery addresses, order history, and account settings.",
+    loginBtn: "Login",
+    registerBtn: "Register",
     title: "My Account Dashboard",
     subtitle: "Manage your profile details, delivery addresses, order history, and security settings.",
     myOrdersTab: "My Orders",
