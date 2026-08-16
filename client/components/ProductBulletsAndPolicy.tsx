@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle2, HelpCircle, RotateCcw } from "lucide-react";
 import {
   usePublicProductBulletsQuery,
@@ -17,6 +17,12 @@ export function ProductBulletsAndPolicy({ productId }: ProductBulletsAndPolicyPr
   const { data: returnPolicy } = usePublicContentBlockQuery("return_policy");
 
   const [activeTab, setActiveTab] = useState<"how_to_buy" | "return_policy">("how_to_buy");
+
+  useEffect(() => {
+    if (!howToBuy && returnPolicy) {
+      setActiveTab("return_policy");
+    }
+  }, [howToBuy, returnPolicy]);
 
   const activeBullets = bullets.filter((b) => b.isActive);
   const hasBullets = activeBullets.length > 0;

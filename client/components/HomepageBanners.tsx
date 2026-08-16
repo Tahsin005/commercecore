@@ -12,6 +12,15 @@ export function HomepageBanners() {
   const activeBanners = banners.filter((b) => b.isActive);
 
   useEffect(() => {
+    if (activeBanners.length === 0) {
+      if (currentIndex !== 0) setCurrentIndex(0);
+      return;
+    }
+
+    if (currentIndex >= activeBanners.length) {
+      setCurrentIndex(0);
+    }
+
     if (activeBanners.length <= 1) return;
 
     const timer = setInterval(() => {
@@ -19,7 +28,7 @@ export function HomepageBanners() {
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [activeBanners.length]);
+  }, [activeBanners.length, currentIndex]);
 
   if (isLoading) {
     return (

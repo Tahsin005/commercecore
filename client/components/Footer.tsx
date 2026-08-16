@@ -123,7 +123,7 @@ export function Footer() {
               className="inline-flex items-center space-x-2 text-[11px] font-semibold text-cream bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 px-3 py-1.5 rounded-md shadow-xs transition-colors"
             >
               <Phone className="w-3.5 h-3.5 text-cream" />
-              <span>Helpline: {helplineNumber}</span>
+              <span>{t.footer?.helplineLabel || "Helpline:"} {helplineNumber}</span>
             </a>
           </div>
         </div>

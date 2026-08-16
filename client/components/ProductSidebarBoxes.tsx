@@ -88,55 +88,57 @@ export function ProductSidebarBoxes({ productId }: ProductSidebarBoxesProps) {
         )}
       </div>
 
-      <div className="border-2 border-dashed border-maroon-200 bg-maroon-50/40 rounded-xl p-4 space-y-3 font-sans">
-        <h4 className="text-xs font-semibold text-maroon-900 leading-snug">
-          {t.productDetails.haveQuestionCall}
-        </h4>
+      {activeChannels.length > 0 && (
+        <div className="border-2 border-dashed border-maroon-200 bg-maroon-50/40 rounded-xl p-4 space-y-3 font-sans">
+          <h4 className="text-xs font-semibold text-maroon-900 leading-snug">
+            {t.productDetails.haveQuestionCall}
+          </h4>
 
-        <div className="space-y-2">
-          {activeChannels.map((channel) => {
-            const href = getActionHref(channel);
+          <div className="space-y-2">
+            {activeChannels.map((channel) => {
+              const href = getActionHref(channel);
 
-            const badgeLabel =
-              channel.type === "bkash"
-                ? "Bkash Personal"
-                : channel.type === "nagad"
-                ? "Nagad Personal"
-                : null;
+              const badgeLabel =
+                channel.type === "bkash"
+                  ? "Bkash Personal"
+                  : channel.type === "nagad"
+                  ? "Nagad Personal"
+                  : null;
 
-            return (
-              <div key={channel.id} className="flex items-center space-x-2 text-xs">
-                {href ? (
-                  <a
-                    href={href}
-                    target={channel.type === "whatsapp" ? "_blank" : undefined}
-                    rel={channel.type === "whatsapp" ? "noopener noreferrer" : undefined}
-                    className="inline-flex items-center space-x-1.5 text-maroon-800 hover:text-maroon-900 font-mono font-bold hover:underline cursor-pointer"
-                  >
-                    {channel.type === "whatsapp" ? (
-                      <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    ) : (
+              return (
+                <div key={channel.id} className="flex items-center space-x-2 text-xs">
+                  {href ? (
+                    <a
+                      href={href}
+                      target={channel.type === "whatsapp" ? "_blank" : undefined}
+                      rel={channel.type === "whatsapp" ? "noopener noreferrer" : undefined}
+                      className="inline-flex items-center space-x-1.5 text-maroon-800 hover:text-maroon-900 font-mono font-bold hover:underline cursor-pointer"
+                    >
+                      {channel.type === "whatsapp" ? (
+                        <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      ) : (
+                        <Phone className="w-3.5 h-3.5 text-maroon-700 shrink-0" />
+                      )}
+                      <span>{channel.phoneNumber}</span>
+                    </a>
+                  ) : (
+                    <div className="inline-flex items-center space-x-1.5 text-maroon-900 font-mono font-bold">
                       <Phone className="w-3.5 h-3.5 text-maroon-700 shrink-0" />
-                    )}
-                    <span>{channel.phoneNumber}</span>
-                  </a>
-                ) : (
-                  <div className="inline-flex items-center space-x-1.5 text-maroon-900 font-mono font-bold">
-                    <Phone className="w-3.5 h-3.5 text-maroon-700 shrink-0" />
-                    <span>{channel.phoneNumber}</span>
-                  </div>
-                )}
+                      <span>{channel.phoneNumber}</span>
+                    </div>
+                  )}
 
-                {badgeLabel && (
-                  <span className="text-[10px] font-semibold text-maroon-800 bg-maroon-100 border border-maroon-200 px-1.5 py-0.5 rounded">
-                    {badgeLabel}
-                  </span>
-                )}
-              </div>
-            );
-          })}
+                  {badgeLabel && (
+                    <span className="text-[10px] font-semibold text-maroon-800 bg-maroon-100 border border-maroon-200 px-1.5 py-0.5 rounded">
+                      {badgeLabel}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

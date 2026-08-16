@@ -82,7 +82,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
       onSuccess: (res) => {
         if (res?.data?.url) {
           setImageUrl(res.data.url);
-          toast.success(t.reviews?.uploadingPhoto ? "Photo attached successfully!" : "Photo attached successfully!");
+          toast.success(t.reviews?.photoAttachedSuccess || "Photo attached successfully!");
         }
       },
       onError: (err) => {
@@ -95,11 +95,11 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
     e.preventDefault();
 
     if (!customerName.trim()) {
-      toast.error(t.reviews?.yourNamePlaceholder || "Please enter your name");
+      toast.error(t.reviews?.nameRequired || "Please enter your name");
       return;
     }
     if (!description.trim()) {
-      toast.error(t.reviews?.reviewTextPlaceholder || "Please enter a review description");
+      toast.error(t.reviews?.descriptionRequired || "Please enter a review description");
       return;
     }
 
@@ -370,7 +370,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
                 ) : (
                   <>
                     <UploadCloud className="w-4 h-4 text-maroon-700" />
-                    <span>{t.reviews?.attachPhoto || "Upload Product Photo"}</span>
+                    <span>{t.reviews?.uploadPhotoBtn || "Upload Product Photo"}</span>
                   </>
                 )}
               </button>

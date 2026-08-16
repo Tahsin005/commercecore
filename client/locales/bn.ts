@@ -74,6 +74,7 @@ export const bn = {
     deliverySupport: "ডেলিভারি ও সহায়তা",
     supportDesc: "অর্ডার সম্পর্কিত যেকোনো প্রয়োজনে আমাদের কাস্টমার সাপোর্ট টিম সর্বদা প্রস্তুত।",
     helpline: "অর্ডার হেল্পলাইন: ২৪/৭ সাপোর্ট একটিভ",
+    helplineLabel: "হেল্পলাইন:",
     copyright: "সর্বস্বত্ব সংরক্ষিত।",
     craftedWith: "তৈরি করা হয়েছে",
     forEcommerce: "সহজ ও সুন্দর কেনাকাটার জন্য",
@@ -133,6 +134,8 @@ export const bn = {
     codAvailable: "ক্যাশ অন ডেলিভারি সুবিধা",
     deliveryChargeInside: "ঢাকার ভেতরে ডেলিভারি চার্জ",
     deliveryChargeOutside: "ঢাকার বাইরে ডেলিভারি চার্জ",
+    howToBuyFallback: "পছন্দের পণ্য নির্বাচন করে কার্টে যোগ করুন বা 'এখনই অর্ডার করুন' বাটনে ক্লিক করুন, আপনার তথ্য দিন এবং ক্যাশ অন ডেলিভারি অর্ডার নিশ্চিত করুন।",
+    returnPolicyFallback: "পণ্য গ্রহণের ৭ দিনের মধ্যে অব্যবহৃত এবং মূল প্যাকেজিং সহ পণ্য পরিবর্তন বা রিটার্ন সুবিধা প্রযোজ্য। যেকোনো সহায়তায় আমাদের কল করুন।",
   },
 
   // Checkout Page
@@ -255,6 +258,10 @@ export const bn = {
     reviewText: "আপনার মতামত",
     reviewTextPlaceholder: "এই পণ্যটি সম্পর্কে আপনার অভিজ্ঞতা শেয়ার করুন...",
     attachPhoto: "ছবি যুক্ত করুন (ঐচ্ছিক)",
+    photoAttachedSuccess: "ছবি সফলভাবে যুক্ত করা হয়েছে!",
+    uploadPhotoBtn: "পণ্যের ছবি আপলোড করুন",
+    nameRequired: "অনুগ্রহ করে আপনার নাম লিখুন",
+    descriptionRequired: "অনুগ্রহ করে আপনার মতামত লিখুন",
     changePhoto: "ছবি পরিবর্তন করুন",
     uploadingPhoto: "ছবি আপলোড হচ্ছে...",
     submitting: "জমা হচ্ছে...",

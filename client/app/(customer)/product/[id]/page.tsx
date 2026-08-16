@@ -22,6 +22,7 @@ import {
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useProductDetailsQuery, ProductVariant } from "@/hooks/useProductQueries";
+import { usePublicContactChannelsQuery } from "@/hooks/useCmsQueries";
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
 import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
 import { ProductDetailsSkeleton } from "@/components/skeletons";
@@ -39,6 +40,8 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   const router = useRouter();
   const { t } = useLanguage();
   const { data: siteSettings } = useSiteSettingsQuery();
+  const { data: contactChannels = [] } = usePublicContactChannelsQuery();
+  const whatsappChannel = contactChannels.find((c) => c.isActive && c.type === "whatsapp");
   const discountSetting = siteSettings?.site_discount;
   const hasSitewideDiscount = useActiveDiscount(discountSetting);
 
@@ -265,17 +268,25 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   {product.name}
                 </h1>
 
-                <div className="mt-2 flex items-center space-x-2 text-xs">
-                  <a
-                    href={`https://wa.me/8801700000000?text=${encodeURIComponent(`Hi, I would like to ask details about ${product.name}`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-1 text-emerald-700 hover:text-emerald-900 font-semibold underline cursor-pointer"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    <span>{t.productDetails.askForDetails}</span>
-                  </a>
-                </div>
+                {whatsappChannel && (() => {
+                  const rawNum = whatsappChannel.phoneNumber.replace(/\D/g, "");
+                  const formattedNum = rawNum.startsWith("88") ? rawNum : `88${rawNum}`;
+                  const waUrl = `https://wa.me/${formattedNum}?text=${encodeURIComponent(`Hi, I would like to ask details about ${product.name}`)}`;
+
+                  return (
+                    <div className="mt-2 flex items-center space-x-2 text-xs">
+                      <a
+                        href={waUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center space-x-1 text-emerald-700 hover:text-emerald-900 font-semibold underline cursor-pointer"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>{t.productDetails.askForDetails}</span>
+                      </a>
+                    </div>
+                  );
+                })()}
               </div>
 
               <div className="pt-3 border-t border-maroon-100 flex items-center justify-between">
