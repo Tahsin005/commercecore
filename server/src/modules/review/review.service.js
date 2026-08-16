@@ -36,12 +36,12 @@ export const getProductApprovedReviewsService = async (productId, query = {}) =>
 
   const { page = 1, limit = 20 } = query;
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
-  const limitNum = Math.max(1, parseInt(limit, 10) || 20);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
   const skip = (pageNum - 1) * limitNum;
 
   const filter = { productId, status: 'approved' };
 
-  const [reviews, totalCount, [ratingAggregate]] = await Promise.all([
+  const [reviews, totalCount, ratingGroups] = await Promise.all([
     Review.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -62,8 +62,8 @@ export const getProductApprovedReviewsService = async (productId, query = {}) =>
   let sumRating = 0;
   let totalRatingCount = 0;
 
-  if (ratingAggregate) {
-    for (const item of (Array.isArray(ratingAggregate) ? ratingAggregate : [ratingAggregate])) {
+  if (ratingGroups && Array.isArray(ratingGroups)) {
+    for (const item of ratingGroups) {
       if (item._id && item.count) {
         starCounts[item._id] = item.count;
         sumRating += item._id * item.count;
@@ -72,20 +72,7 @@ export const getProductApprovedReviewsService = async (productId, query = {}) =>
     }
   }
 
-  // Double check aggregate iteration
-  const aggregateList = await Review.aggregate([
-    { $match: { productId: new mongoose.Types.ObjectId(productId), status: 'approved' } },
-    {
-      $group: {
-        _id: null,
-        avgRating: { $avg: '$rating' },
-        totalCount: { $sum: 1 },
-      },
-    },
-  ]);
-
-  const stats = aggregateList[0] || { avgRating: 0, totalCount: 0 };
-  const averageRating = stats.totalCount > 0 ? Math.round(stats.avgRating * 10) / 10 : 0;
+  const averageRating = totalRatingCount > 0 ? Math.round((sumRating / totalRatingCount) * 10) / 10 : 0;
 
   return {
     reviews: reviews.map((r) => r.toJSON()),

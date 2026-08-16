@@ -6,12 +6,10 @@ import toast from "react-hot-toast";
 import {
   Star,
   MessageSquarePlus,
-  User,
   ImageIcon,
   UploadCloud,
   Loader2,
   CheckCircle2,
-  Package,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProductReviewsQuery, useCreateReviewMutation } from "@/hooks/useReviewQueries";
@@ -25,7 +23,8 @@ interface ProductReviewsSectionProps {
 
 export function ProductReviewsSection({ productId }: ProductReviewsSectionProps) {
   const { user } = useAuth();
-  const { data, isLoading } = useProductReviewsQuery(productId);
+  const [page, setPage] = useState<number>(1);
+  const { data, isLoading } = useProductReviewsQuery(productId, page);
   const createReviewMutation = useCreateReviewMutation();
   const uploadImageMutation = useUploadImageMutation();
 
@@ -49,6 +48,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
 
   const reviews = data?.reviews || [];
   const summary = data?.summary || { averageRating: 0, totalReviews: 0, starCounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } };
+  const pagination = data?.pagination || { total: 0, page: 1, limit: 20, totalPages: 0 };
 
   const openWriteModal = () => {
     setRating(5);
@@ -60,6 +60,10 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
@@ -114,21 +118,6 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
           toast.error(err.message || "Failed to submit review");
         },
       }
-    );
-  };
-
-  const renderStars = (score: number, sizeClass = "w-4 h-4") => {
-    return (
-      <div className="flex items-center space-x-0.5">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`${sizeClass} ${
-              star <= score ? "text-amber-400 fill-amber-400" : "text-maroon-200"
-            }`}
-          />
-        ))}
-      </div>
     );
   };
 
@@ -208,51 +197,79 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
           <p className="text-xs text-maroon-700">Be the first customer to share your thoughts on this product!</p>
         </div>
       ) : (
-        <div className="divide-y divide-maroon-100">
-          {reviews.map((rev) => (
-            <div key={rev.id} className="py-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-maroon-100 flex items-center justify-center text-maroon-800 font-bold text-xs uppercase">
-                    {rev.customerName.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <h4 className="font-bold text-xs text-maroon-900">{rev.customerName}</h4>
-                      {rev.userId && (
-                        <span className="inline-flex items-center space-x-1 text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-md">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          <span>Verified Buyer</span>
-                        </span>
-                      )}
+        <div className="space-y-6">
+          <div className="divide-y divide-maroon-100">
+            {reviews.map((rev) => (
+              <div key={rev.id} className="py-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 rounded-full bg-maroon-100 flex items-center justify-center text-maroon-800 font-bold text-xs uppercase">
+                      {rev.customerName.charAt(0)}
                     </div>
-                    <span className="text-[10px] text-maroon-500 font-mono block">
-                      {new Date(rev.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    </span>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <h4 className="font-bold text-xs text-maroon-900">{rev.customerName}</h4>
+                        {rev.userId && (
+                          <span className="inline-flex items-center space-x-1 text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-md">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span>Verified Buyer</span>
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-maroon-500 font-mono block">
+                        {new Date(rev.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </span>
+                    </div>
                   </div>
+
+                  <RatingStars rating={rev.rating} />
                 </div>
 
-                <RatingStars rating={rev.rating} />
+                <p className="text-xs text-maroon-800 font-sans leading-relaxed pl-10">
+                  &quot;{rev.description}&quot;
+                </p>
+
+                {rev.imageUrl && (
+                  <div className="pl-10 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewModalImage(rev.imageUrl!)}
+                      className="inline-flex items-center space-x-1.5 text-xs text-maroon-800 font-semibold bg-off-white border border-maroon-200 px-2.5 py-1 rounded-md hover:bg-maroon-50 transition-all cursor-pointer"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5 text-maroon-600" />
+                      <span>View Customer Photo</span>
+                    </button>
+                  </div>
+                )}
               </div>
+            ))}
+          </div>
 
-              <p className="text-xs text-maroon-800 font-sans leading-relaxed pl-10">
-                "{rev.description}"
-              </p>
-
-              {rev.imageUrl && (
-                <div className="pl-10 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setPreviewModalImage(rev.imageUrl!)}
-                    className="inline-flex items-center space-x-1.5 text-xs text-maroon-800 font-semibold bg-off-white border border-maroon-200 px-2.5 py-1 rounded-md hover:bg-maroon-50 transition-all cursor-pointer"
-                  >
-                    <ImageIcon className="w-3.5 h-3.5 text-maroon-600" />
-                    <span>View Customer Photo</span>
-                  </button>
-                </div>
-              )}
+          {/* Pagination Controls */}
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between pt-4 border-t border-maroon-100 text-xs">
+              <span className="text-maroon-700">
+                Page <span className="font-bold font-mono text-maroon-900">{pagination.page}</span> of{" "}
+                <span className="font-bold font-mono text-maroon-900">{pagination.totalPages}</span>
+              </span>
+              <div className="flex items-center space-x-2">
+                <button
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="px-3 py-1 bg-white border border-maroon-200 text-maroon-800 rounded-lg text-xs font-semibold hover:bg-maroon-50 transition-all disabled:opacity-40 cursor-pointer shadow-2xs"
+                >
+                  Previous
+                </button>
+                <button
+                  disabled={page >= pagination.totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="px-3 py-1 bg-white border border-maroon-200 text-maroon-800 rounded-lg text-xs font-semibold hover:bg-maroon-50 transition-all disabled:opacity-40 cursor-pointer shadow-2xs"
+                >
+                  Next
+                </button>
+              </div>
             </div>
-          ))}
+          )}
         </div>
       )}
 
@@ -269,6 +286,8 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
                 <button
                   key={star}
                   type="button"
+                  aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
+                  aria-pressed={star === rating}
                   onMouseEnter={() => setHoverRating(star)}
                   onMouseLeave={() => setHoverRating(0)}
                   onClick={() => setRating(star)}
@@ -360,7 +379,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
           <div className="pt-2 flex justify-end space-x-2 border-t border-maroon-100">
             <button
               type="button"
-              onClick={() => setIsWriteModalOpen(false)}
+              onClick={handleCloseWriteModal}
               className="px-4 py-2 border border-maroon-200 text-maroon-800 text-xs font-semibold rounded-xl hover:bg-maroon-50 transition-all cursor-pointer"
             >
               Cancel
@@ -389,7 +408,7 @@ export function ProductReviewsSection({ productId }: ProductReviewsSectionProps)
             </div>
             <div className="flex justify-end">
               <button
-                onClick={() => setPreviewModalImage(null)}
+                onClick={handleClosePreviewModal}
                 className="px-4 py-2 bg-maroon-900 text-white rounded-xl text-xs font-semibold hover:bg-maroon-800 transition-all cursor-pointer"
               >
                 Close

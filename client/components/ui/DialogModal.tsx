@@ -36,7 +36,7 @@ export function DialogModal({
 
         if (e.key === "Tab" && dialogRef.current) {
           const focusables = dialogRef.current.querySelectorAll<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            'button:not([disabled]), [href], input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])'
           );
           if (focusables.length === 0) return;
 
@@ -62,10 +62,13 @@ export function DialogModal({
       // Focus inside dialog container ONLY ONCE on mount if not already focused
       const timer = setTimeout(() => {
         if (dialogRef.current && !dialogRef.current.contains(document.activeElement)) {
-          const firstInput = dialogRef.current.querySelector<HTMLElement>("input:not([type='hidden']), textarea, select, button");
+          const firstInput = dialogRef.current.querySelector<HTMLElement>(
+            'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])'
+          );
           if (firstInput) {
             firstInput.focus();
-          } else {
+          }
+          if (!dialogRef.current.contains(document.activeElement)) {
             dialogRef.current.focus();
           }
         }
@@ -74,7 +77,12 @@ export function DialogModal({
       return () => {
         clearTimeout(timer);
         document.removeEventListener("keydown", handleKeyDown);
-        if (previousFocusRef.current && typeof previousFocusRef.current.focus === "function") {
+        if (
+          previousFocusRef.current &&
+          dialogRef.current &&
+          dialogRef.current.contains(document.activeElement) &&
+          typeof previousFocusRef.current.focus === "function"
+        ) {
           previousFocusRef.current.focus();
         }
       };

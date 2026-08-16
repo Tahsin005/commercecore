@@ -253,7 +253,7 @@ export default function AdminReviewsPage() {
                       <td className="py-4 px-5 align-top">
                         <div className="space-y-1">
                           <span className="font-bold text-xs text-maroon-900 block">{rev.customerName}</span>
-                          {userObj ? (
+                          {Boolean(rev.userId) ? (
                             <span className="inline-flex items-center space-x-1 text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-md">
                               <User className="w-3 h-3" />
                               <span>Verified User</span>

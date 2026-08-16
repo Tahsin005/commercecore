@@ -1,8 +1,22 @@
+export interface PopulatedProductRef {
+  id: string;
+  name: string;
+  slug: string;
+  code?: string;
+  images?: string[];
+}
+
+export interface PopulatedUserRef {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export interface Review {
   id: string;
-  productId: string | { id: string; name: string; slug: string; code?: string; images?: string[] };
+  productId: string | PopulatedProductRef;
   customerName: string;
-  userId?: string | { id: string; name: string; email: string } | null;
+  userId?: string | PopulatedUserRef | null;
   rating: number;
   description: string;
   imageUrl?: string | null;

@@ -16,6 +16,10 @@ export const productParamSchema = z.object({
   params: z.object({
     productId: objectIdSchema,
   }),
+  query: z.object({
+    page: z.string().optional().refine((val) => !val || (parseInt(val, 10) > 0), 'Page must be a positive integer'),
+    limit: z.string().optional().refine((val) => !val || (parseInt(val, 10) > 0 && parseInt(val, 10) <= 100), 'Limit must be between 1 and 100'),
+  }).optional(),
 });
 
 export const createReviewSchema = z.object({

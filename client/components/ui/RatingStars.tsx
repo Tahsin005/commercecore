@@ -11,7 +11,11 @@ export function RatingStars({ rating, sizeClass = "w-4 h-4" }: RatingStarsProps)
   const baseId = useId();
 
   return (
-    <div className="flex items-center space-x-0.5">
+    <div
+      className="flex items-center space-x-0.5"
+      role="img"
+      aria-label={`Rating: ${rating.toFixed(1)} out of 5 stars`}
+    >
       {[1, 2, 3, 4, 5].map((starIndex) => {
         const fillPercentage = Math.max(0, Math.min(100, (rating - (starIndex - 1)) * 100));
         const gradientId = `${baseId}-star-grad-${starIndex}`;
