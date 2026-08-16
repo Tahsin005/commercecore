@@ -17,6 +17,14 @@ import {
   FooterSettingsInput,
 } from "@/lib/validations/settings";
 
+const formatLocalDateForInput = (dateStr?: string | null) => {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 export function SiteSettingsTab() {
   const { data: settings, isLoading } = useSiteSettingsQuery();
   const updateSettingMutation = useUpdateSettingMutation();
@@ -76,8 +84,8 @@ export function SiteSettingsTab() {
       if (settings.site_discount) {
         resetDiscount({
           discountPercentage: settings.site_discount.discountPercentage ?? 0,
-          startDate: settings.site_discount.startDate ? new Date(settings.site_discount.startDate).toISOString().slice(0, 16) : "",
-          endDate: settings.site_discount.endDate ? new Date(settings.site_discount.endDate).toISOString().slice(0, 16) : "",
+          startDate: formatLocalDateForInput(settings.site_discount.startDate),
+          endDate: formatLocalDateForInput(settings.site_discount.endDate),
           isActive: settings.site_discount.isActive ?? false,
         });
       }

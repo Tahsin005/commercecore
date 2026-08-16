@@ -22,7 +22,7 @@ import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useProductDetailsQuery, ProductVariant } from "@/hooks/useProductQueries";
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
-import { getDiscountedPrice, isDiscountActive } from "@/lib/discount";
+import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
 import { ProductDetailsSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
@@ -36,7 +36,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   const { t } = useLanguage();
   const { data: siteSettings } = useSiteSettingsQuery();
   const discountSetting = siteSettings?.site_discount;
-  const hasSitewideDiscount = isDiscountActive(discountSetting);
+  const hasSitewideDiscount = useActiveDiscount(discountSetting);
 
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);

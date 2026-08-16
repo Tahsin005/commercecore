@@ -8,13 +8,21 @@ export const deliveryChargeSchema = z.object({
 export const siteDiscountSchema = z
   .object({
     discountPercentage: z.number().min(0, "Discount percentage must be between 0 and 100").max(100, "Discount percentage must be between 0 and 100"),
-    startDate: z.string().nullable().optional(),
-    endDate: z.string().nullable().optional(),
+    startDate: z
+      .string()
+      .nullable()
+      .optional()
+      .refine((val) => !val || !isNaN(new Date(val).getTime()), { message: "Invalid start date format" }),
+    endDate: z
+      .string()
+      .nullable()
+      .optional()
+      .refine((val) => !val || !isNaN(new Date(val).getTime()), { message: "Invalid end date format" }),
     isActive: z.boolean(),
   })
   .refine(
     (data) => {
-      if (data.startDate && data.endDate) {
+      if (data.startDate && data.endDate && !isNaN(new Date(data.startDate).getTime()) && !isNaN(new Date(data.endDate).getTime())) {
         return new Date(data.endDate) >= new Date(data.startDate);
       }
       return true;

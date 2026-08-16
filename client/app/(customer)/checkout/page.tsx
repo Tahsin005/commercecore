@@ -34,7 +34,7 @@ import { CheckoutSkeleton, OrderSuccessSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
-import { getDiscountAmount, isDiscountActive } from "@/lib/discount";
+import { getDiscountAmount, useActiveDiscount } from "@/lib/discount";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -80,7 +80,7 @@ export default function CheckoutPage() {
 
   // sitewide discount deduction
   const siteDiscount = siteSettings?.site_discount;
-  const hasActiveDiscount = isDiscountActive(siteDiscount);
+  const hasActiveDiscount = useActiveDiscount(siteDiscount);
   const discountAmount = getDiscountAmount(subtotal, siteDiscount);
   const totalAmount = Math.max(0, subtotal + deliveryCharge - discountAmount);
 
@@ -319,7 +319,7 @@ export default function CheckoutPage() {
                           <span className="text-xs font-bold">{t.checkout.insideDhaka}</span>
                         </div>
                         <span className={`text-xs font-mono font-bold ${deliveryZone === "inside_dhaka" ? "text-cream" : "text-maroon-700"}`}>
-                          ৳60
+                          ৳{insideDhakaRate}
                         </span>
                       </label>
 
@@ -340,7 +340,7 @@ export default function CheckoutPage() {
                           <span className="text-xs font-bold">{t.checkout.outsideDhaka}</span>
                         </div>
                         <span className={`text-xs font-mono font-bold ${deliveryZone === "outside_dhaka" ? "text-cream" : "text-maroon-700"}`}>
-                          ৳120
+                          ৳{outsideDhakaRate}
                         </span>
                       </label>
                     </div>
@@ -476,7 +476,7 @@ export default function CheckoutPage() {
                     <span className="font-mono font-semibold">৳{deliveryCharge.toFixed(2)}</span>
                   </div>
 
-                  {hasActiveDiscount && (
+                  {hasActiveDiscount && discountAmount > 0 && (
                     <div className="flex items-center justify-between text-emerald-700 font-semibold pt-1">
                       <span className="flex items-center space-x-1">
                         <span>Sitewide Discount ({siteDiscount?.discountPercentage}% OFF)</span>

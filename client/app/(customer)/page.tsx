@@ -15,7 +15,7 @@ import { useWishlist } from "@/hooks/useWishlist";
 import { useProductsQuery, Product } from "@/hooks/useProductQueries";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
-import { getDiscountedPrice, isDiscountActive } from "@/lib/discount";
+import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
 import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
@@ -24,7 +24,7 @@ export default function Home() {
   const { t } = useLanguage();
   const { data: siteSettings } = useSiteSettingsQuery();
   const discountSetting = siteSettings?.site_discount;
-  const hasSitewideDiscount = isDiscountActive(discountSetting);
+  const hasSitewideDiscount = useActiveDiscount(discountSetting);
 
   // react Query Hooks
   const { data: categoriesResponse, isLoading: isCategoriesLoading } = useCategoriesQuery();
