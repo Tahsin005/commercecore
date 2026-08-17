@@ -99,12 +99,14 @@ export const addToCartService = async (userId, productId, productVariantId = nul
     throw new ApiError(404, 'Product not found or inactive');
   }
 
+  if (!productVariantId) {
+    throw new ApiError(400, 'Product variant selection is required');
+  }
+
   let availableStock = 0;
-  if (productVariantId) {
-    const link = await validateProductVariant(pId, productVariantId);
-    if (link && link.quantity !== undefined && link.quantity !== null) {
-      availableStock = link.quantity;
-    }
+  const link = await validateProductVariant(pId, productVariantId);
+  if (link && link.quantity !== undefined && link.quantity !== null) {
+    availableStock = link.quantity;
   }
 
   const cart = await getOrCreateCart(userId);

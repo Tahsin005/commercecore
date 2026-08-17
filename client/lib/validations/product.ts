@@ -30,7 +30,6 @@ export const productSchema = z.object({
   price: z
     .number({ message: "Base price is required and must be a valid number" })
     .min(0, { message: "Base price cannot be negative" }),
-  quantity: z.number().optional(),
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
   images: z.array(cloudinaryImageUrl).optional(),

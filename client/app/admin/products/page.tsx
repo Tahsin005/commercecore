@@ -240,6 +240,12 @@ export default function AdminProductsPage() {
   };
 
   const onCreateSubmit = (data: ProductInput) => {
+    const isActiveProduct = data.isActive !== false;
+    if (isActiveProduct && selectedVariantIds.length === 0) {
+      toast.error("Active products require at least one selected variant.");
+      return;
+    }
+
     const variantsPayload = selectedVariantIds.map((vId) => {
       const cfg = createVariantConfigs[vId];
       return {
@@ -280,6 +286,12 @@ export default function AdminProductsPage() {
 
   const onEditSubmit = (data: ProductInput) => {
     if (!editingProduct) return;
+
+    const isActiveProduct = data.isActive !== false;
+    if (isActiveProduct && selectedVariantIds.length === 0) {
+      toast.error("Active products require at least one selected variant.");
+      return;
+    }
 
     const variantsPayload = selectedVariantIds.map((vId) => {
       const cfg = editVariantConfigs[vId];
@@ -1256,7 +1268,9 @@ export default function AdminProductsPage() {
                   Select Age/Size Variants
                 </label>
                 <div className="p-3 bg-off-white border border-maroon-100 rounded-xl space-y-3">
-                  {globalVariants.length === 0 ? (
+                  {isVariantsLoading ? (
+                    <p className="text-xs text-maroon-600">Loading variants...</p>
+                  ) : globalVariants.length === 0 ? (
                     <p className="text-xs text-maroon-600">No global variants configured yet.</p>
                   ) : (
                     <>

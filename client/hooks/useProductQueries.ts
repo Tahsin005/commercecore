@@ -44,7 +44,6 @@ export interface CreateProductPayload {
   categoryId?: string | null;
   description?: string;
   price: number;
-  quantity?: number;
   isFeatured?: boolean;
   isActive?: boolean;
   images?: string[];
@@ -60,7 +59,6 @@ export interface UpdateProductPayload {
   categoryId?: string | null;
   description?: string;
   price?: number;
-  quantity?: number;
   isFeatured?: boolean;
   isActive?: boolean;
   images?: string[];
