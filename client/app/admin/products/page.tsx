@@ -63,6 +63,8 @@ export default function AdminProductsPage() {
   const [deletingVariant, setDeletingVariant] = useState<ProductVariant | null>(null);
 
   const [selectedVariantIds, setSelectedVariantIds] = useState<string[]>([]);
+  const [createVariantConfigs, setCreateVariantConfigs] = useState<Record<string, { price: string; quantity: number }>>({});
+  const [editVariantConfigs, setEditVariantConfigs] = useState<Record<string, { price: string; quantity: number }>>({});
   const [createImages, setCreateImages] = useState<string[]>([]);
   const [editImages, setEditImages] = useState<string[]>([]);
 
@@ -95,7 +97,6 @@ export default function AdminProductsPage() {
       categoryId: null,
       description: "",
       price: 0,
-      quantity: 0,
       isFeatured: false,
       isActive: true,
     },
@@ -122,11 +123,11 @@ export default function AdminProductsPage() {
       categoryId: null,
       description: "",
       price: 0,
-      quantity: 0,
       isFeatured: false,
       isActive: true,
     });
     setSelectedVariantIds([]);
+    setCreateVariantConfigs({});
     setCreateImages([]);
     setIsCreateModalOpen(true);
   };
@@ -137,6 +138,15 @@ export default function AdminProductsPage() {
     setSelectedVariantIds(existingVariantIds);
     setEditImages(prod.images || []);
 
+    const configs: Record<string, { price: string; quantity: number }> = {};
+    (prod.variants || []).forEach((v) => {
+      configs[v.id] = {
+        price: v.overridePrice !== undefined && v.overridePrice !== null ? String(v.overridePrice) : (v.price !== undefined && v.price !== prod.price ? String(v.price) : ""),
+        quantity: v.quantity !== undefined ? v.quantity : 10,
+      };
+    });
+    setEditVariantConfigs(configs);
+
     editForm.reset({
       name: prod.name,
       slug: prod.slug,
@@ -144,7 +154,6 @@ export default function AdminProductsPage() {
       categoryId: prod.categoryId?.id || null,
       description: prod.description || "",
       price: prod.price,
-      quantity: prod.quantity || 0,
       isFeatured: prod.isFeatured || false,
       isActive: prod.isActive !== false,
     });
@@ -196,13 +205,50 @@ export default function AdminProductsPage() {
     }
   };
 
-  const toggleVariantSelection = (variantId: string) => {
-    setSelectedVariantIds((prev) =>
-      prev.includes(variantId) ? prev.filter((id) => id !== variantId) : [...prev, variantId]
-    );
+  const toggleCreateVariant = (variantId: string) => {
+    if (selectedVariantIds.includes(variantId)) {
+      setSelectedVariantIds((prev) => prev.filter((id) => id !== variantId));
+      setCreateVariantConfigs((prev) => {
+        const next = { ...prev };
+        delete next[variantId];
+        return next;
+      });
+    } else {
+      setSelectedVariantIds((prev) => [...prev, variantId]);
+      setCreateVariantConfigs((prev) => ({
+        ...prev,
+        [variantId]: { price: "", quantity: 10 },
+      }));
+    }
+  };
+
+  const toggleEditVariant = (variantId: string) => {
+    if (selectedVariantIds.includes(variantId)) {
+      setSelectedVariantIds((prev) => prev.filter((id) => id !== variantId));
+      setEditVariantConfigs((prev) => {
+        const next = { ...prev };
+        delete next[variantId];
+        return next;
+      });
+    } else {
+      setSelectedVariantIds((prev) => [...prev, variantId]);
+      setEditVariantConfigs((prev) => ({
+        ...prev,
+        [variantId]: { price: "", quantity: 10 },
+      }));
+    }
   };
 
   const onCreateSubmit = (data: ProductInput) => {
+    const variantsPayload = selectedVariantIds.map((vId) => {
+      const cfg = createVariantConfigs[vId];
+      return {
+        productVariantId: vId,
+        price: cfg && cfg.price.trim() !== "" ? Number(cfg.price) : null,
+        quantity: cfg ? Number(cfg.quantity) || 0 : 0,
+      };
+    });
+
     const payload = {
       name: data.name.trim(),
       slug: data.slug?.trim() ? slugify(data.slug) : slugify(data.name),
@@ -210,11 +256,11 @@ export default function AdminProductsPage() {
       categoryId: data.categoryId || null,
       description: data.description?.trim() || "",
       price: data.price,
-      quantity: data.quantity,
       isFeatured: data.isFeatured,
       isActive: data.isActive,
       images: createImages,
       variantIds: selectedVariantIds,
+      variants: variantsPayload,
     };
 
     createProductMutation.mutate(payload, {
@@ -223,6 +269,7 @@ export default function AdminProductsPage() {
         setIsCreateModalOpen(false);
         createForm.reset();
         setSelectedVariantIds([]);
+        setCreateVariantConfigs({});
         setCreateImages([]);
       },
       onError: (err) => {
@@ -234,6 +281,15 @@ export default function AdminProductsPage() {
   const onEditSubmit = (data: ProductInput) => {
     if (!editingProduct) return;
 
+    const variantsPayload = selectedVariantIds.map((vId) => {
+      const cfg = editVariantConfigs[vId];
+      return {
+        productVariantId: vId,
+        price: cfg && cfg.price.trim() !== "" ? Number(cfg.price) : null,
+        quantity: cfg ? Number(cfg.quantity) || 0 : 0,
+      };
+    });
+
     const payload = {
       id: editingProduct.id,
       name: data.name.trim(),
@@ -242,11 +298,11 @@ export default function AdminProductsPage() {
       categoryId: data.categoryId || null,
       description: data.description?.trim() || "",
       price: data.price,
-      quantity: data.quantity,
       isFeatured: data.isFeatured,
       isActive: data.isActive,
       images: editImages,
       variantIds: selectedVariantIds,
+      variants: variantsPayload,
     };
 
     updateProductMutation.mutate(payload, {
@@ -255,6 +311,7 @@ export default function AdminProductsPage() {
         setEditingProduct(null);
         editForm.reset();
         setSelectedVariantIds([]);
+        setEditVariantConfigs({});
       },
       onError: (err) => {
         toast.error(err.message || "Failed to update product");
@@ -866,37 +923,20 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
-                    Price (৳) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="1850"
-                    {...createForm.register("price", { valueAsNumber: true })}
-                    className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
-                  />
-                  {createForm.formState.errors.price && (
-                    <p className="text-xs text-red-600 mt-1">{createForm.formState.errors.price.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
-                    Stock Quantity *
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="50"
-                    {...createForm.register("quantity", { valueAsNumber: true })}
-                    className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
-                  />
-                  {createForm.formState.errors.quantity && (
-                    <p className="text-xs text-red-600 mt-1">{createForm.formState.errors.quantity.message}</p>
-                  )}
-                </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
+                  Base Price (৳) *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="1850"
+                  {...createForm.register("price", { valueAsNumber: true })}
+                  className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
+                />
+                {createForm.formState.errors.price && (
+                  <p className="text-xs text-red-600 mt-1">{createForm.formState.errors.price.message}</p>
+                )}
               </div>
 
               <div>
@@ -915,32 +955,86 @@ export default function AdminProductsPage() {
                 <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-2">
                   Select Age/Size Variants
                 </label>
-                <div className="p-3 bg-off-white border border-maroon-100 rounded-xl space-y-2">
+                <div className="p-3 bg-off-white border border-maroon-100 rounded-xl space-y-3">
                   {isVariantsLoading ? (
                     <p className="text-xs text-maroon-600">Loading variants...</p>
                   ) : globalVariants.length === 0 ? (
                     <p className="text-xs text-maroon-600">No global variants configured yet.</p>
                   ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {globalVariants.map((v) => {
-                        const isSelected = selectedVariantIds.includes(v.id);
-                        return (
-                          <button
-                            key={v.id}
-                            type="button"
-                            onClick={() => toggleVariantSelection(v.id)}
-                            className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                              isSelected
-                                ? "bg-maroon-900 text-white border-maroon-900 shadow-xs"
-                                : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-100"
-                            }`}
-                          >
-                            {isSelected && <Check className="w-3.5 h-3.5 text-cream" />}
-                            <span>{v.label || v.size}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <>
+                      <div className="flex flex-wrap gap-2">
+                        {globalVariants.map((v) => {
+                          const isSelected = selectedVariantIds.includes(v.id);
+                          return (
+                            <button
+                              key={v.id}
+                              type="button"
+                              onClick={() => toggleCreateVariant(v.id)}
+                              className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-maroon-900 text-white border-maroon-900 shadow-xs"
+                                  : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-100"
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3.5 h-3.5 text-cream" />}
+                              <span>{v.label || v.size}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {selectedVariantIds.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-maroon-200/60 space-y-2">
+                          <p className="text-xs font-bold text-maroon-900">Configure Variant Prices & Stock</p>
+                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                            {globalVariants
+                              .filter((v) => selectedVariantIds.includes(v.id))
+                              .map((v) => {
+                                const cfg = createVariantConfigs[v.id] || { price: "", quantity: 10 };
+                                return (
+                                  <div key={v.id} className="p-2 bg-white rounded-lg border border-maroon-200 flex items-center justify-between gap-3 text-xs">
+                                    <span className="font-bold text-maroon-900 w-28 shrink-0">{v.label || v.size}</span>
+                                    <div className="flex items-center space-x-2 flex-1">
+                                      <div className="flex-1">
+                                        <label className="text-[10px] text-maroon-600 block">Price (৳) [Blank = Base Price]</label>
+                                        <input
+                                          type="number"
+                                          step="0.01"
+                                          placeholder={`Default (৳${createForm.watch("price") || 0})`}
+                                          value={cfg.price}
+                                          onChange={(e) =>
+                                            setCreateVariantConfigs((prev) => ({
+                                              ...prev,
+                                              [v.id]: { ...cfg, price: e.target.value },
+                                            }))
+                                          }
+                                          className="w-full px-2 py-1 bg-off-white border border-maroon-200 rounded text-xs font-mono"
+                                        />
+                                      </div>
+                                      <div className="w-24">
+                                        <label className="text-[10px] text-maroon-600 block">Stock Qty *</label>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          placeholder="10"
+                                          value={cfg.quantity}
+                                          onChange={(e) =>
+                                            setCreateVariantConfigs((prev) => ({
+                                              ...prev,
+                                              [v.id]: { ...cfg, quantity: Math.max(0, parseInt(e.target.value || "0", 10)) },
+                                            }))
+                                          }
+                                          className="w-full px-2 py-1 bg-off-white border border-maroon-200 rounded text-xs font-mono font-bold"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -1131,35 +1225,19 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
-                    Price (৳) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    {...editForm.register("price", { valueAsNumber: true })}
-                    className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
-                  />
-                  {editForm.formState.errors.price && (
-                    <p className="text-xs text-red-600 mt-1">{editForm.formState.errors.price.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
-                    Stock Quantity *
-                  </label>
-                  <input
-                    type="number"
-                    {...editForm.register("quantity", { valueAsNumber: true })}
-                    className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
-                  />
-                  {editForm.formState.errors.quantity && (
-                    <p className="text-xs text-red-600 mt-1">{editForm.formState.errors.quantity.message}</p>
-                  )}
-                </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
+                  Base Price (৳) *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  {...editForm.register("price", { valueAsNumber: true })}
+                  className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
+                />
+                {editForm.formState.errors.price && (
+                  <p className="text-xs text-red-600 mt-1">{editForm.formState.errors.price.message}</p>
+                )}
               </div>
 
               <div>
@@ -1177,30 +1255,84 @@ export default function AdminProductsPage() {
                 <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-2">
                   Select Age/Size Variants
                 </label>
-                <div className="p-3 bg-off-white border border-maroon-100 rounded-xl space-y-2">
+                <div className="p-3 bg-off-white border border-maroon-100 rounded-xl space-y-3">
                   {globalVariants.length === 0 ? (
                     <p className="text-xs text-maroon-600">No global variants configured yet.</p>
                   ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {globalVariants.map((v) => {
-                        const isSelected = selectedVariantIds.includes(v.id);
-                        return (
-                          <button
-                            key={v.id}
-                            type="button"
-                            onClick={() => toggleVariantSelection(v.id)}
-                            className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                              isSelected
-                                ? "bg-maroon-900 text-white border-maroon-900 shadow-xs"
-                                : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-100"
-                            }`}
-                          >
-                            {isSelected && <Check className="w-3.5 h-3.5 text-cream" />}
-                            <span>{v.label || v.size}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <>
+                      <div className="flex flex-wrap gap-2">
+                        {globalVariants.map((v) => {
+                          const isSelected = selectedVariantIds.includes(v.id);
+                          return (
+                            <button
+                              key={v.id}
+                              type="button"
+                              onClick={() => toggleEditVariant(v.id)}
+                              className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-maroon-900 text-white border-maroon-900 shadow-xs"
+                                  : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-100"
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3.5 h-3.5 text-cream" />}
+                              <span>{v.label || v.size}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {selectedVariantIds.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-maroon-200/60 space-y-2">
+                          <p className="text-xs font-bold text-maroon-900">Configure Variant Prices & Stock</p>
+                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                            {globalVariants
+                              .filter((v) => selectedVariantIds.includes(v.id))
+                              .map((v) => {
+                                const cfg = editVariantConfigs[v.id] || { price: "", quantity: 10 };
+                                return (
+                                  <div key={v.id} className="p-2 bg-white rounded-lg border border-maroon-200 flex items-center justify-between gap-3 text-xs">
+                                    <span className="font-bold text-maroon-900 w-28 shrink-0">{v.label || v.size}</span>
+                                    <div className="flex items-center space-x-2 flex-1">
+                                      <div className="flex-1">
+                                        <label className="text-[10px] text-maroon-600 block">Price (৳) [Blank = Base Price]</label>
+                                        <input
+                                          type="number"
+                                          step="0.01"
+                                          placeholder={`Default (৳${editForm.watch("price") || 0})`}
+                                          value={cfg.price}
+                                          onChange={(e) =>
+                                            setEditVariantConfigs((prev) => ({
+                                              ...prev,
+                                              [v.id]: { ...cfg, price: e.target.value },
+                                            }))
+                                          }
+                                          className="w-full px-2 py-1 bg-off-white border border-maroon-200 rounded text-xs font-mono"
+                                        />
+                                      </div>
+                                      <div className="w-24">
+                                        <label className="text-[10px] text-maroon-600 block">Stock Qty *</label>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          placeholder="10"
+                                          value={cfg.quantity}
+                                          onChange={(e) =>
+                                            setEditVariantConfigs((prev) => ({
+                                              ...prev,
+                                              [v.id]: { ...cfg, quantity: Math.max(0, parseInt(e.target.value || "0", 10)) },
+                                            }))
+                                          }
+                                          className="w-full px-2 py-1 bg-off-white border border-maroon-200 rounded text-xs font-mono font-bold"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

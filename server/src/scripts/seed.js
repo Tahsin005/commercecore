@@ -520,7 +520,7 @@ const seedDatabase = async () => {
     let totalLinks = 0;
     let productIndex = 1;
     for (const p of sampleProducts) {
-      const { categorySlug, variantLabels, imageFile, ...productData } = p;
+      const { categorySlug, variantLabels, imageFile, quantity: _q, ...productData } = p;
       const imagePath = path.join(PRODUCTS_ASSET_DIR, imageFile);
       logger.info(`[${productIndex}/${sampleProducts.length}] Uploading product image (${imageFile}) for "${p.name}"...`);
 
@@ -531,9 +531,8 @@ const seedDatabase = async () => {
         logger.warn(`Failed to upload product image for ${p.name}: ${err.message}`);
       }
 
-      const { quantity: _q, ...productDataWithoutQty } = productData;
       const product = await Product.create({
-        ...productDataWithoutQty,
+        ...productData,
         categoryId: categoryMap[categorySlug] || null,
         images: imageUrl ? [imageUrl] : [],
       });
@@ -544,8 +543,8 @@ const seedDatabase = async () => {
           .map((label, idx) => ({
             productId: product.id,
             productVariantId: variantMap[label],
-            price: product.price + idx * 50,
-            quantity: 10 + idx * 5,
+            price: product.price + idx * 100,
+            quantity: 12 + idx * 4,
           }));
         if (linksToInsert.length > 0) {
           const createdLinks = await ProductVariantLink.insertMany(linksToInsert);

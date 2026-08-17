@@ -8,6 +8,15 @@ export interface ProductVariant {
   size?: string;
   order?: number;
   isActive?: boolean;
+  price?: number;
+  overridePrice?: number | null;
+  quantity?: number;
+}
+
+export interface VariantPayloadItem {
+  productVariantId: string;
+  price?: number | null;
+  quantity: number;
 }
 
 export interface Product {
@@ -35,11 +44,12 @@ export interface CreateProductPayload {
   categoryId?: string | null;
   description?: string;
   price: number;
-  quantity: number;
+  quantity?: number;
   isFeatured?: boolean;
   isActive?: boolean;
   images?: string[];
   variantIds?: string[];
+  variants?: VariantPayloadItem[];
 }
 
 export interface UpdateProductPayload {
@@ -55,6 +65,7 @@ export interface UpdateProductPayload {
   isActive?: boolean;
   images?: string[];
   variantIds?: string[];
+  variants?: VariantPayloadItem[];
 }
 
 export interface CreateVariantPayload {

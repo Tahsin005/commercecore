@@ -104,11 +104,13 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
     );
   }
 
-  const currentPrice = product.price !== undefined && product.price !== null
-    ? product.price
-    : (product.defaultPrice || 0);
+  const currentPrice = selectedVariant?.price !== undefined && selectedVariant?.price !== null
+    ? selectedVariant.price
+    : (product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0));
 
-  const stockQuantity = product.quantity !== undefined ? product.quantity : 0;
+  const stockQuantity = selectedVariant?.quantity !== undefined && selectedVariant?.quantity !== null
+    ? selectedVariant.quantity
+    : (product.quantity !== undefined ? product.quantity : 0);
   const isOutOfStock = stockQuantity <= 0;
   const wishlisted = isInWishlist(product.id);
 
@@ -338,6 +340,8 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                     {product.variants.map((variant) => {
                       const isSelected = selectedVariant?.id === variant.id;
                       const label = variant.label || variant.size || t.common.standard;
+                      const vPrice = variant.price !== undefined && variant.price !== null ? variant.price : product.price;
+                      const isVOutOfStock = variant.quantity !== undefined && variant.quantity <= 0;
 
                       return (
                         <button
@@ -347,13 +351,25 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                             setSelectedVariant(variant);
                             setQuantity(1);
                           }}
-                          className={`px-3 py-1.5 rounded-md border text-xs font-semibold transition-all cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-md border text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1.5 ${
                             isSelected
                               ? "bg-maroon-900 text-cream border-maroon-900 shadow-xs ring-1 ring-maroon-700"
+                              : isVOutOfStock
+                              ? "bg-stone-100 text-stone-400 border-stone-200 line-through opacity-70"
                               : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
                           }`}
                         >
                           <span>{label}</span>
+                          {vPrice !== product.price && (
+                            <span className={`text-[10px] ${isSelected ? "text-cream/80" : "text-maroon-600"}`}>
+                              (৳{vPrice})
+                            </span>
+                          )}
+                          {isVOutOfStock && (
+                            <span className="text-[9px] uppercase tracking-tight font-mono text-red-500 font-normal">
+                              ({t.common.outOfStock})
+                            </span>
+                          )}
                         </button>
                       );
                     })}
