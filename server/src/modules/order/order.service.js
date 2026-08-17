@@ -110,10 +110,11 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
         productVariantId: { $in: variantIds },
       }).populate('productVariantId')
     : [];
-  const productVariantLinkSet = new Set(
+
+  const variantLinkMapByPair = new Map(
     allVariantLinks
       .filter((l) => l.productVariantId && l.productVariantId.isActive === true)
-      .map((l) => `${l.productId.toString()}_${l.productVariantId.id ? l.productVariantId.id.toString() : l.productVariantId.toString()}`)
+      .map((l) => [`${l.productId.toString()}_${l.productVariantId.id ? l.productVariantId.id.toString() : l.productVariantId.toString()}`, l])
   );
 
   let subtotal = 0;
@@ -143,9 +144,11 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
 
     let variant = null;
     let selectedVariantLabel = '';
+    let link = null;
     if (pvId) {
-      const isValidLink = productVariantLinkSet.has(`${pId.toString()}_${pvId.toString()}`);
-      if (!isValidLink) {
+      const pairKey = `${pId.toString()}_${pvId.toString()}`;
+      link = variantLinkMapByPair.get(pairKey);
+      if (!link || !link.productVariantId || link.productVariantId.isActive !== true) {
         throw new ApiError(400, `Invalid product variant for product "${product.name}"`);
       }
       variant = variantMap.get(pvId.toString());
@@ -154,7 +157,11 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
 
     const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
 
-    const unitPrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
+    let unitPrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
+    if (link && link.price !== undefined && link.price !== null) {
+      unitPrice = link.price;
+    }
+
     const itemSubtotal = unitPrice * qty;
     subtotal += itemSubtotal;
 
@@ -171,26 +178,30 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
   }
 
   // Atomic stock deduction before persisting order records
-  const deductedProducts = [];
+  const deductedItems = [];
   try {
     for (const item of processedItems) {
-      const updatedProduct = await Product.findOneAndUpdate(
-        { _id: item.productId, quantity: { $gte: item.quantity } },
-        { $inc: { quantity: -item.quantity } },
-        { new: true }
-      );
-
-      if (!updatedProduct) {
-        throw new ApiError(
-          400,
-          `Insufficient stock for "${item.productName}" (${item.selectedVariantLabel}).`
+      if (item.productVariantId) {
+        const updatedLink = await ProductVariantLink.findOneAndUpdate(
+          { productId: item.productId, productVariantId: item.productVariantId, quantity: { $gte: item.quantity } },
+          { $inc: { quantity: -item.quantity } },
+          { new: true }
         );
+        if (!updatedLink) {
+          throw new ApiError(
+            400,
+            `Insufficient stock for "${item.productName}" (${item.selectedVariantLabel}).`
+          );
+        }
+        deductedItems.push({ productId: item.productId, productVariantId: item.productVariantId, quantity: item.quantity });
       }
-      deductedProducts.push({ productId: item.productId, quantity: item.quantity });
     }
   } catch (error) {
-    for (const dp of deductedProducts) {
-      await Product.updateOne({ _id: dp.productId }, { $inc: { quantity: dp.quantity } });
+    for (const di of deductedItems) {
+      await ProductVariantLink.updateOne(
+        { productId: di.productId, productVariantId: di.productVariantId },
+        { $inc: { quantity: di.quantity } }
+      );
     }
     throw error;
   }

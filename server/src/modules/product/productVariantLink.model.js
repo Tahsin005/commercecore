@@ -14,6 +14,20 @@ const productVariantLinkSchema = new mongoose.Schema(
       required: [true, 'Product Variant ID is required'],
       index: true,
     },
+    price: {
+      type: Number,
+      min: [0, 'Price cannot be negative'],
+      default: null,
+    },
+    quantity: {
+      type: Number,
+      min: [0, 'Quantity cannot be negative'],
+      default: 0,
+      validate: {
+        validator: Number.isInteger,
+        message: '{VALUE} is not an integer quantity',
+      },
+    },
   },
   {
     timestamps: true,

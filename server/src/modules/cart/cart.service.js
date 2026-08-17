@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { Cart, CartItem } from './cart.model.js';
 import Product from '../product/product.model.js';
+import ProductVariantLink from '../product/productVariantLink.model.js';
 import { resolveProductId, validateProductVariant } from '../product/product.service.js';
 import ApiError from '../../utils/ApiError.js';
 
@@ -18,6 +19,22 @@ export const getUserCartService = async (userId) => {
     .populate('productId', 'name slug code price quantity isFeatured isActive images')
     .populate('productVariantId', 'label order isActive');
 
+  const variantLinkQueries = items
+    .filter((item) => item.productId && item.productVariantId)
+    .map((item) => ({
+      productId: item.productId._id || item.productId.id,
+      productVariantId: item.productVariantId._id || item.productVariantId.id,
+    }));
+
+  const links = variantLinkQueries.length > 0
+    ? await ProductVariantLink.find({ $or: variantLinkQueries })
+    : [];
+
+  const linkMap = new Map();
+  links.forEach((l) => {
+    linkMap.set(`${l.productId.toString()}_${l.productVariantId.toString()}`, l);
+  });
+
   const formattedItems = items.map((item) => {
     const itemObj = item.toJSON();
     const product = item.productId;
@@ -26,19 +43,39 @@ export const getUserCartService = async (userId) => {
     const prodObj = product && product.toJSON ? product.toJSON() : product;
     const varObj = variant && variant.toJSON ? variant.toJSON() : variant;
 
-    if (prodObj) {
-      prodObj.defaultPrice = prodObj.price;
-    }
-
     const prodIdStr = prodObj ? (prodObj.id || prodObj._id || '').toString() : (itemObj.productId ? itemObj.productId.toString() : '');
     const varIdStr = varObj ? (varObj.id || varObj._id || '').toString() : null;
+
+    let unitPrice = prodObj ? prodObj.price : 0;
+    let variantStock = prodObj ? prodObj.quantity : 0;
+
+    if (prodIdStr && varIdStr) {
+      const link = linkMap.get(`${prodIdStr}_${varIdStr}`);
+      if (link) {
+        if (link.price !== undefined && link.price !== null) {
+          unitPrice = link.price;
+        }
+        if (link.quantity !== undefined && link.quantity !== null) {
+          variantStock = link.quantity;
+        }
+      }
+    }
+
+    if (prodObj) {
+      prodObj.defaultPrice = prodObj.price;
+      prodObj.price = unitPrice;
+    }
 
     return {
       ...itemObj,
       productId: prodObj,
+      price: unitPrice,
+      unitPrice,
       productVariantId: {
         id: varIdStr || prodIdStr,
         size: varObj ? (varObj.label || varObj.size) : 'Standard',
+        price: unitPrice,
+        quantity: variantStock,
         productId: prodObj,
       },
     };
@@ -62,8 +99,12 @@ export const addToCartService = async (userId, productId, productVariantId = nul
     throw new ApiError(404, 'Product not found or inactive');
   }
 
+  let availableStock = 0;
   if (productVariantId) {
-    await validateProductVariant(pId, productVariantId);
+    const link = await validateProductVariant(pId, productVariantId);
+    if (link && link.quantity !== undefined && link.quantity !== null) {
+      availableStock = link.quantity;
+    }
   }
 
   const cart = await getOrCreateCart(userId);
@@ -75,8 +116,8 @@ export const addToCartService = async (userId, productId, productVariantId = nul
   });
 
   const totalQuantity = (cartItem ? cartItem.quantity : 0) + quantity;
-  if (totalQuantity > product.quantity) {
-    throw new ApiError(400, `Requested quantity exceeds available stock (${product.quantity})`);
+  if (totalQuantity > availableStock) {
+    throw new ApiError(400, `Requested quantity exceeds available stock (${availableStock})`);
   }
 
   if (cartItem) {
@@ -127,6 +168,16 @@ export const updateCartQuantityService = async (userId, itemId, quantity) => {
 
   if (!cartItem) {
     throw new ApiError(404, 'Cart item not found');
+  }
+
+  if (cartItem.productId && cartItem.productVariantId) {
+    const link = await ProductVariantLink.findOne({
+      productId: cartItem.productId,
+      productVariantId: cartItem.productVariantId,
+    });
+    if (link && quantity > link.quantity) {
+      throw new ApiError(400, `Requested quantity exceeds available stock (${link.quantity})`);
+    }
   }
 
   cartItem.quantity = quantity;
