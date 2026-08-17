@@ -110,10 +110,11 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
         productVariantId: { $in: variantIds },
       }).populate('productVariantId')
     : [];
-  const productVariantLinkSet = new Set(
+
+  const variantLinkMapByPair = new Map(
     allVariantLinks
       .filter((l) => l.productVariantId && l.productVariantId.isActive === true)
-      .map((l) => `${l.productId.toString()}_${l.productVariantId.id ? l.productVariantId.id.toString() : l.productVariantId.toString()}`)
+      .map((l) => [`${l.productId.toString()}_${l.productVariantId.id ? l.productVariantId.id.toString() : l.productVariantId.toString()}`, l])
   );
 
   let subtotal = 0;
@@ -143,9 +144,11 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
 
     let variant = null;
     let selectedVariantLabel = '';
+    let link = null;
     if (pvId) {
-      const isValidLink = productVariantLinkSet.has(`${pId.toString()}_${pvId.toString()}`);
-      if (!isValidLink) {
+      const pairKey = `${pId.toString()}_${pvId.toString()}`;
+      link = variantLinkMapByPair.get(pairKey);
+      if (!link || !link.productVariantId || link.productVariantId.isActive !== true) {
         throw new ApiError(400, `Invalid product variant for product "${product.name}"`);
       }
       variant = variantMap.get(pvId.toString());
@@ -154,7 +157,11 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
 
     const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
 
-    const unitPrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
+    let unitPrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
+    if (link && link.price !== undefined && link.price !== null) {
+      unitPrice = link.price;
+    }
+
     const itemSubtotal = unitPrice * qty;
     subtotal += itemSubtotal;
 
@@ -170,84 +177,89 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
     });
   }
 
-  // Atomic stock deduction before persisting order records
-  const deductedProducts = [];
+  // Atomic stock deduction & order persistence with rollback compensation
+  const deductedItems = [];
   try {
     for (const item of processedItems) {
-      const updatedProduct = await Product.findOneAndUpdate(
-        { _id: item.productId, quantity: { $gte: item.quantity } },
+      if (!item.productVariantId) {
+        throw new ApiError(400, `Product variant selection is required for "${item.productName}".`);
+      }
+      const updatedLink = await ProductVariantLink.findOneAndUpdate(
+        { productId: item.productId, productVariantId: item.productVariantId, quantity: { $gte: item.quantity } },
         { $inc: { quantity: -item.quantity } },
         { new: true }
       );
-
-      if (!updatedProduct) {
+      if (!updatedLink) {
         throw new ApiError(
           400,
           `Insufficient stock for "${item.productName}" (${item.selectedVariantLabel}).`
         );
       }
-      deductedProducts.push({ productId: item.productId, quantity: item.quantity });
+      deductedItems.push({ productId: item.productId, productVariantId: item.productVariantId, quantity: item.quantity });
     }
+
+    const roundedSubtotal = Math.round(subtotal * 100) / 100;
+
+    let discountAmount = 0;
+    const siteDiscount = siteSettings?.site_discount;
+
+    if (siteDiscount && siteDiscount.isActive && siteDiscount.discountPercentage > 0) {
+      const now = new Date();
+      const startValid = !siteDiscount.startDate || new Date(siteDiscount.startDate) <= now;
+      const endValid = !siteDiscount.endDate || new Date(siteDiscount.endDate) >= now;
+
+      if (startValid && endValid) {
+        discountAmount = Math.round(((roundedSubtotal * siteDiscount.discountPercentage) / 100) * 100) / 100;
+      }
+    }
+
+    const rawTotal = roundedSubtotal + deliveryCharge - discountAmount;
+    const total = Math.max(0, Math.round(rawTotal * 100) / 100);
+
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const randomSeq = Math.floor(1000 + Math.random() * 9000);
+    const orderNumber = `CC-${dateStr}-${randomSeq}`;
+
+    const order = await Order.create({
+      orderNumber,
+      userId: user.id,
+      customerName: customerName.trim(),
+      phone: phone.trim(),
+      email: email ? email.trim() : user.email,
+      shippingAddress: shippingAddress.trim(),
+      notes: notes ? notes.trim() : '',
+      deliveryZone,
+      deliveryCharge,
+      subtotal,
+      discountAmount,
+      total,
+      status: 'PENDING',
+    });
+
+    const orderItems = await OrderItem.insertMany(
+      processedItems.map(({ product, ...item }) => ({
+        ...item,
+        orderId: order.id,
+      }))
+    );
+
+    await clearUserCartService(user.id);
+
+    return {
+      order: order.toJSON(),
+      items: orderItems,
+      user: user.toJSON(),
+      token,
+    };
   } catch (error) {
-    for (const dp of deductedProducts) {
-      await Product.updateOne({ _id: dp.productId }, { $inc: { quantity: dp.quantity } });
+    for (const di of deductedItems) {
+      await ProductVariantLink.updateOne(
+        { productId: di.productId, productVariantId: di.productVariantId },
+        { $inc: { quantity: di.quantity } }
+      );
     }
     throw error;
   }
-
-  const roundedSubtotal = Math.round(subtotal * 100) / 100;
-
-  let discountAmount = 0;
-  const siteDiscount = siteSettings?.site_discount;
-
-  if (siteDiscount && siteDiscount.isActive && siteDiscount.discountPercentage > 0) {
-    const now = new Date();
-    const startValid = !siteDiscount.startDate || new Date(siteDiscount.startDate) <= now;
-    const endValid = !siteDiscount.endDate || new Date(siteDiscount.endDate) >= now;
-
-    if (startValid && endValid) {
-      discountAmount = Math.round(((roundedSubtotal * siteDiscount.discountPercentage) / 100) * 100) / 100;
-    }
-  }
-
-  const rawTotal = roundedSubtotal + deliveryCharge - discountAmount;
-  const total = Math.max(0, Math.round(rawTotal * 100) / 100);
-
-  const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  const randomSeq = Math.floor(1000 + Math.random() * 9000);
-  const orderNumber = `CC-${dateStr}-${randomSeq}`;
-
-  const order = await Order.create({
-    orderNumber,
-    userId: user.id,
-    customerName: customerName.trim(),
-    phone: phone.trim(),
-    email: email ? email.trim() : user.email,
-    shippingAddress: shippingAddress.trim(),
-    notes: notes ? notes.trim() : '',
-    deliveryZone,
-    deliveryCharge,
-    subtotal,
-    discountAmount,
-    total,
-    status: 'PENDING',
-  });
-
-  const orderItems = await OrderItem.insertMany(
-    processedItems.map(({ product, ...item }) => ({
-      ...item,
-      orderId: order.id,
-    }))
-  );
-
-  await clearUserCartService(user.id);
-
-  return {
-    order: order.toJSON(),
-    items: orderItems,
-    user: user.toJSON(),
-    token,
-  };
 };
 
 export const getOrderByNumberService = async (orderNumber) => {

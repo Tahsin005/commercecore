@@ -440,46 +440,7 @@ const sampleProducts = [
     categorySlug: 'bridal-sarees',
     imageFile: 'img29.png',
     variantLabels: ['1-2 years', '2-3 years', '3-4 years', '4-5 years'],
-  },
-  {
-    name: 'Floral Embroidered Sheer Net Sharee',
-    slug: 'floral-embroidered-sheer-net-sharee',
-    code: 'PTY-FLR-030',
-    description: 'Delicate net Sharee with embroidered floral vine borders and satin piping details.',
-    price: 6900,
-    quantity: 23,
-    isFeatured: false,
-    isActive: true,
-    categorySlug: 'partywear-sarees',
-    imageFile: 'img30.png',
-    variantLabels: ['0-6 months', '6-12 months', '1-2 years', '2-3 years'],
-  },
-  {
-    name: 'Natural Tussar Silk Handloom Sharee',
-    slug: 'natural-tussar-silk-handloom-sharee',
-    code: 'KTN-TSS-031',
-    description: 'Natural textured Tussar silk Sharee featuring hand-embroidered tribal motifs along the pallu.',
-    price: 10500,
-    quantity: 17,
-    isFeatured: false,
-    isActive: true,
-    categorySlug: 'katan-silk-sarees',
-    imageFile: 'img31.png',
-    variantLabels: ['1-2 years', '2-3 years', '3-4 years', '4-5 years'],
-  },
-  {
-    name: 'Lustrous Satin Silk Cocktail Sharee',
-    slug: 'lustrous-satin-silk-cocktail-sharee',
-    code: 'PTY-STN-032',
-    description: 'Smooth lustrous satin silk Sharee in vibrant jewel tones, designed for evening gala events.',
-    price: 6400,
-    quantity: 30,
-    isFeatured: true,
-    isActive: true,
-    categorySlug: 'partywear-sarees',
-    imageFile: 'img32.png',
-    variantLabels: ['0-6 months', '6-12 months', '1-2 years', '2-3 years'],
-  },
+  }
 ];
 
 // Helper to upload a local image file buffer to Cloudinary
@@ -559,7 +520,7 @@ const seedDatabase = async () => {
     let totalLinks = 0;
     let productIndex = 1;
     for (const p of sampleProducts) {
-      const { categorySlug, variantLabels, imageFile, ...productData } = p;
+      const { categorySlug, variantLabels, imageFile, quantity: _q, ...productData } = p;
       const imagePath = path.join(PRODUCTS_ASSET_DIR, imageFile);
       logger.info(`[${productIndex}/${sampleProducts.length}] Uploading product image (${imageFile}) for "${p.name}"...`);
 
@@ -579,9 +540,11 @@ const seedDatabase = async () => {
       if (variantLabels && variantLabels.length > 0) {
         const linksToInsert = variantLabels
           .filter((label) => variantMap[label])
-          .map((label) => ({
+          .map((label, idx) => ({
             productId: product.id,
             productVariantId: variantMap[label],
+            price: product.price + idx * 100,
+            quantity: 12 + idx * 4,
           }));
         if (linksToInsert.length > 0) {
           const createdLinks = await ProductVariantLink.insertMany(linksToInsert);

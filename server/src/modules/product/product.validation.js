@@ -37,6 +37,12 @@ const cloudinaryImageUrl = z
     }
   }, 'Must be a valid HTTPS Cloudinary URL (https://res.cloudinary.com/...)');
 
+const variantInputSchema = z.object({
+  productVariantId: objectIdString,
+  price: z.number().min(0, 'Variant price cannot be negative').nullable().optional(),
+  quantity: z.number().int().min(0, 'Variant quantity cannot be negative').optional(),
+});
+
 export const createProductSchema = z.object({
   body: z.object({
     name: z.string().trim().min(2, 'Product name must be at least 2 characters long'),
@@ -45,11 +51,11 @@ export const createProductSchema = z.object({
     categoryId: objectIdString.nullable().optional(),
     description: z.string().trim().optional(),
     price: z.number().min(0, 'Price cannot be negative'),
-    quantity: z.number().int().min(0, 'Quantity cannot be negative'),
     isFeatured: z.boolean().optional(),
     isActive: z.boolean().optional(),
     images: z.array(cloudinaryImageUrl).optional(),
     variantIds: z.array(objectIdString).optional(),
+    variants: z.array(variantInputSchema).optional(),
   }),
 });
 
@@ -64,11 +70,11 @@ export const updateProductSchema = z.object({
     categoryId: objectIdString.nullable().optional(),
     description: z.string().trim().optional(),
     price: z.number().min(0, 'Price cannot be negative').optional(),
-    quantity: z.number().int().min(0, 'Quantity cannot be negative').optional(),
     isFeatured: z.boolean().optional(),
     isActive: z.boolean().optional(),
     images: z.array(cloudinaryImageUrl).optional(),
     variantIds: z.array(objectIdString).optional(),
+    variants: z.array(variantInputSchema).optional(),
   }),
 });
 

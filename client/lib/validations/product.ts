@@ -12,6 +12,12 @@ const cloudinaryImageUrl = z
     }
   }, { message: "Must be a valid HTTPS Cloudinary URL (https://res.cloudinary.com/...)" });
 
+export const variantInputItemSchema = z.object({
+  productVariantId: z.string(),
+  price: z.number().min(0, { message: "Price cannot be negative" }).nullable().optional(),
+  quantity: z.number().int({ message: "Stock quantity must be an integer" }).min(0, { message: "Quantity cannot be negative" }),
+});
+
 export const productSchema = z.object({
   name: z
     .string()
@@ -22,16 +28,13 @@ export const productSchema = z.object({
   categoryId: z.string().nullable().optional(),
   description: z.string().trim().optional(),
   price: z
-    .number({ message: "Price is required and must be a valid number" })
-    .min(0, { message: "Price cannot be negative" }),
-  quantity: z
-    .number({ message: "Quantity is required and must be a valid integer" })
-    .int({ message: "Quantity must be an integer" })
-    .min(0, { message: "Quantity cannot be negative" }),
+    .number({ message: "Base price is required and must be a valid number" })
+    .min(0, { message: "Base price cannot be negative" }),
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
   images: z.array(cloudinaryImageUrl).optional(),
   variantIds: z.array(z.string()).optional(),
+  variants: z.array(variantInputItemSchema).optional(),
 });
 
 export const variantSchema = z.object({
