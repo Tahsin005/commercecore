@@ -2,7 +2,7 @@ import { TranslationType } from "./bn";
 
 export const en: TranslationType = {
   common: {
-    commerceCore: "Rupzon Collection",
+    rupzonCollection: "Rupzon Collection",
     tagline: "Premium Full-Stack E-Commerce Platform",
     currencySymbol: "৳",
     loading: "Loading...",

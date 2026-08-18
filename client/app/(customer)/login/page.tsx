@@ -217,7 +217,7 @@ export default function LoginPage() {
               />
             </div>
             <h2 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-wide">
-              {t.common.commerceCore}
+              {t.common.rupzonCollection}
             </h2>
             <p className="text-xs text-maroon-200 mt-2 max-w-xs leading-relaxed font-sans">
               {t.login.brandTag}

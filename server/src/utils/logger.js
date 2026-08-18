@@ -13,8 +13,8 @@ const logger = winston.createLogger({
       format: winston.format.combine(
         winston.format.colorize(),
         winston.format.printf(
-          ({ level, message, timestamp, stack }) =>
-            `${timestamp} ${level}: ${stack || message}`
+          ({ level, message, timestamp, stack, service }) =>
+            `${timestamp} [${service || 'rupzon-collection-api'}] ${level}: ${stack || message}`
         )
       ),
     }),

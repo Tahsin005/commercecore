@@ -169,7 +169,7 @@ export function Navbar() {
               />
             </div>
             <span className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-white group-hover:text-cream transition-colors whitespace-nowrap hidden sm:inline">
-              {t.common.commerceCore}
+              {t.common.rupzonCollection}
             </span>
           </Link>
 

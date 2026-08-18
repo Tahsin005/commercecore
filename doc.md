@@ -183,7 +183,7 @@ Stores single-row configuration objects in a polymorphic `{ key, value }` collec
 ### Public storefront
 - Home: banners slider, marquee ticker, featured categories, featured products
 - Category listing → product grid, filter by category
-- Product detail: images, age size selector (pulls linked global ProductVariants), product price & stock quantity, quantity selector, add to cart/wishlist, reviews list, product info bullets, "questions? call us" block
+- Product detail: images, age size selector (pulls linked global ProductVariants with per-variant stock & price overrides), base price from Product, stock quantity from linked ProductVariantLink, quantity selector, add to cart/wishlist, reviews list, product info bullets, "questions? call us" block
 - Reviews: submit (name, rating, description, optional image) → goes to pending queue
 - Cart: guest = localStorage, logged-in = DB-backed; merge localStorage cart into DB cart on login
 - Wishlist: same behavior as cart — guest = localStorage, logged-in = DB-backed, merge on login

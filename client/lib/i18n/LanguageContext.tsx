@@ -27,12 +27,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    const savedLang = (localStorage.getItem("rupzon_lang") || localStorage.getItem("commercecore_lang")) as Language | null;
-    if (savedLang === "bn" || savedLang === "en") {
-      setLanguageState(savedLang);
-    } else {
-      setLanguageState("bn");
+    let resolvedLang: Language = "bn";
+    try {
+      const rupzonVal = localStorage.getItem("rupzon_lang");
+      if (rupzonVal === "bn" || rupzonVal === "en") {
+        resolvedLang = rupzonVal;
+      }
+    } catch {
+      // fallback to bn
     }
+
+    setLanguageState(resolvedLang);
     setIsHydrated(true);
   }, []);
 

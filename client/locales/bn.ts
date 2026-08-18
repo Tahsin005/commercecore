@@ -1,7 +1,7 @@
 export const bn = {
   // Common / General
   common: {
-    commerceCore: "রূপজোন কালেকশন",
+    rupzonCollection: "রূপজোন কালেকশন",
     tagline: "প্রিমিয়াম ফুল-স্ট্যাক ই-কমার্স প্ল্যাটফর্ম",
     currencySymbol: "৳",
     loading: "লোড হচ্ছে...",

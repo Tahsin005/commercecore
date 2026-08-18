@@ -48,7 +48,7 @@ Referenced directly from [`client/app/globals.css`](client/app/globals.css).
 
 ## 3. Typography & Hierarchy
 
-CommerceCore uses two primary Google Fonts loaded via Next.js Font Optimization in [`client/app/layout.tsx`](client/app/layout.tsx):
+Rupzon Collection uses two primary Google Fonts loaded via Next.js Font Optimization in [`client/app/layout.tsx`](client/app/layout.tsx):
 
 1. **Serif Heading Font**: `Playfair Display` (`--font-playfair`, Tailwind class `font-serif`)
 2. **Sans-Serif Body Font**: `Poppins` (`--font-poppins`, Tailwind class `font-sans`, weights: 400, 500, 600, 700)

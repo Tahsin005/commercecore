@@ -73,7 +73,7 @@ export function Footer() {
               />
             </div>
             <span className="font-serif text-2xl font-bold tracking-tight text-white group-hover:text-cream transition-colors">
-              {t.common.commerceCore}
+              {t.common.rupzonCollection}
             </span>
           </Link>
 
@@ -131,7 +131,7 @@ export function Footer() {
 
       <div className="border-t border-maroon-800/80 bg-maroon-900 py-4 text-xs text-maroon-200 font-sans">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-          <p>&copy; {new Date().getFullYear()} {t.common.commerceCore}। {t.footer.copyright}</p>
+          <p>&copy; {new Date().getFullYear()} {t.common.rupzonCollection}। {t.footer.copyright}</p>
           <p className="flex items-center justify-center space-x-1 text-[11px] text-maroon-200">
             <span>{t.footer.craftedWith}</span>
             <Heart className="w-3 h-3 text-red-500 fill-red-500" />
