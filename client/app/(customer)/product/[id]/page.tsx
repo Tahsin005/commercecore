@@ -277,17 +277,17 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
           <div className="lg:col-span-4 flex flex-col justify-between space-y-5">
             <div className="space-y-4">
               <div>
-                <h1 className="text-xl sm:text-2xl font-serif font-bold text-maroon-900 tracking-tight leading-snug">
-                  {product.name}
-                </h1>
-
                 {product.categoryId && (
-                  <div className="mt-1">
-                    <span className="inline-block bg-maroon-100/70 border border-maroon-200/80 text-maroon-900 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded">
+                  <div className="mb-1">
+                    <span className="inline-block bg-maroon-100/70 border border-maroon-200/80 text-maroon-900 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded">
                       {product.categoryId.name}
                     </span>
                   </div>
                 )}
+
+                <h1 className="text-xl sm:text-2xl font-serif font-bold text-maroon-900 tracking-tight leading-snug">
+                  {product.name}
+                </h1>
 
                 {whatsappChannel && (() => {
                   const rawNum = whatsappChannel.phoneNumber.replace(/\D/g, "");

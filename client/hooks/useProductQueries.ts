@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { ApiResponse } from "@/types/api";
 
@@ -162,6 +162,76 @@ export function useProductsQuery(
 
       return rawRes as ApiResponse<ProductsResponsePayload>;
     },
+  });
+}
+
+export function useInfiniteProductsQuery(
+  paramsOrCategory?: string | ProductQueryParams,
+  isFeaturedFlag?: boolean
+) {
+  const queryParams: ProductQueryParams =
+    typeof paramsOrCategory === "string"
+      ? { categoryId: paramsOrCategory, isFeatured: isFeaturedFlag }
+      : paramsOrCategory || {};
+
+  const { categoryId, isFeatured, search, minPrice, maxPrice, sortBy, limit = 8 } = queryParams;
+
+  return useInfiniteQuery<ApiResponse<ProductsResponsePayload>, ApiError>({
+    queryKey: [
+      "products",
+      "infinite",
+      categoryId || "all",
+      isFeatured ? "featured" : "all",
+      search || "",
+      minPrice !== undefined ? String(minPrice) : "",
+      maxPrice !== undefined ? String(maxPrice) : "",
+      sortBy || "default",
+      limit,
+    ],
+    queryFn: async ({ pageParam = 1 }) => {
+      const params = new URLSearchParams();
+      if (categoryId && categoryId !== "all") params.append("categoryId", categoryId);
+      if (isFeatured) params.append("isFeatured", "true");
+      if (search && search.trim()) params.append("search", search.trim());
+      if (minPrice !== undefined && minPrice !== "") params.append("minPrice", String(minPrice));
+      if (maxPrice !== undefined && maxPrice !== "") params.append("maxPrice", String(maxPrice));
+      if (sortBy) params.append("sortBy", sortBy);
+      params.append("page", String(pageParam));
+      params.append("limit", String(limit));
+
+      const queryString = params.toString();
+      const url = queryString ? `/products?${queryString}` : "/products";
+      const rawRes = await apiClient<ApiResponse<ProductsResponsePayload | Product[]>>(url);
+
+      if (Array.isArray(rawRes.data)) {
+        const rawArray = rawRes.data;
+        return {
+          ...rawRes,
+          data: {
+            products: rawArray,
+            pagination: {
+              totalProducts: rawArray.length,
+              totalPages: 1,
+              currentPage: Number(pageParam),
+              limit: rawArray.length,
+              hasNextPage: false,
+              hasPrevPage: false,
+            },
+          },
+        };
+      }
+
+      return rawRes as ApiResponse<ProductsResponsePayload>;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage?.data?.pagination;
+      if (pagination && pagination.hasNextPage) {
+        return pagination.currentPage + 1;
+      }
+      return undefined;
+    },
+    enabled: queryParams.search !== undefined ? Boolean(queryParams.search.trim()) : true,
   });
 }
 

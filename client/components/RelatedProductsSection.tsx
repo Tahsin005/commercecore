@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Heart, Package, Eye } from "lucide-react";
+import { Heart, Package, ShoppingCart, ShoppingBag } from "lucide-react";
 
 import { useWishlist } from "@/hooks/useWishlist";
+import { useCart } from "@/hooks/useCart";
 import { useProductsQuery, Product } from "@/hooks/useProductQueries";
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
 import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
@@ -18,10 +19,12 @@ interface RelatedProductsSectionProps {
 
 export function RelatedProductsSection({ categoryId, currentProductId }: RelatedProductsSectionProps) {
   const { t } = useLanguage();
+  const router = useRouter();
   const { data: siteSettings } = useSiteSettingsQuery();
   const discountSetting = siteSettings?.site_discount;
   const hasSitewideDiscount = useActiveDiscount(discountSetting);
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const { addItem: addToCart } = useCart();
 
   const { data: response, isLoading } = useProductsQuery({
     categoryId: categoryId || undefined,
@@ -59,6 +62,39 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
     }
   };
 
+  const handleAddToCart = (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const v = product.variants && product.variants.length > 0
+      ? (product.variants.find((v) => v.isActive !== false) || product.variants[0])
+      : null;
+    const basePrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
+    const effectivePrice = hasSitewideDiscount
+      ? getDiscountedPrice(basePrice, discountSetting)
+      : (v?.overridePrice ?? v?.price ?? basePrice);
+
+    addToCart(
+      {
+        productVariantId: v?.id,
+        productId: product.id,
+        name: product.name,
+        slug: product.slug,
+        size: v?.size || v?.label || "Standard",
+        price: effectivePrice,
+        imageUrl: product.images?.[0],
+      },
+      1
+    );
+    toast.success(t.productDetails?.addedToCart || "Added to cart!");
+  };
+
+  const handleBuyNow = (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation();
+    e.preventDefault();
+    handleAddToCart(e, product);
+    router.push("/checkout");
+  };
+
   return (
     <div className="w-full space-y-6 mt-12 font-sans pt-6 border-t border-maroon-100">
       <div className="flex items-center justify-between">
@@ -81,9 +117,16 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
           return (
             <div
               key={product.id}
-              className="bg-white rounded-xl shadow-md border border-maroon-100 overflow-hidden hover:shadow-xl transition-all flex flex-col justify-between group"
+              onClick={() => router.push(`/product/${product.id}`)}
+              className="bg-white rounded-xl shadow-md border border-maroon-100 hover:shadow-xl transition-all flex flex-col justify-between group relative cursor-pointer"
             >
-              <div className="bg-off-white p-6 relative flex items-center justify-center border-b border-maroon-100/60 h-48 overflow-hidden">
+              {hasSitewideDiscount && (
+                <span className="absolute -top-2.5 -right-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-mono text-[10px] font-black tracking-wider px-2 py-0.5 rounded-md shadow-md border-2 border-white uppercase z-20 pointer-events-none">
+                  {discountSetting?.discountPercentage}% OFF
+                </span>
+              )}
+
+              <div className="bg-off-white p-6 relative flex items-center justify-center border-b border-maroon-100/60 h-48 overflow-hidden rounded-t-xl">
                 {hasImage ? (
                   <Image
                     src={product.images![0]}
@@ -98,8 +141,11 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
 
                 <button
                   type="button"
-                  onClick={() => handleToggleWishlist(product)}
-                  className={`absolute top-3 right-3 p-2 rounded-full border transition-all cursor-pointer shadow-sm ${
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleWishlist(product);
+                  }}
+                  className={`absolute top-3 left-3 p-2 rounded-full border transition-all cursor-pointer shadow-sm z-10 ${
                     wishlisted
                       ? "bg-maroon-900 text-cream border-maroon-800"
                       : "bg-white text-maroon-600 border-maroon-200 hover:bg-maroon-50"
@@ -109,62 +155,67 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
                   <Heart className={`w-4 h-4 ${wishlisted ? "fill-cream" : ""}`} />
                 </button>
 
-                {product.categoryId && (
-                  <span className="absolute bottom-3 left-3 bg-white/90 border border-maroon-200 text-maroon-800 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm">
-                    {product.categoryId.name}
-                  </span>
-                )}
-
-                {hasSitewideDiscount ? (
-                  <span className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow">
-                    {discountSetting?.discountPercentage}% OFF
-                  </span>
-                ) : product.isFeatured ? (
-                  <span className="absolute top-3 left-3 bg-maroon-900 text-cream text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow">
+                {product.isFeatured && !hasSitewideDiscount && (
+                  <span className="absolute top-3 right-3 bg-maroon-900 text-cream text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow z-10">
                     {t.common.featured}
                   </span>
-                ) : null}
+                )}
               </div>
 
-              <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+              <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                 <div>
+                  {product.categoryId && (
+                    <div className="mb-1">
+                      <span className="inline-block bg-maroon-100/70 border border-maroon-200/80 text-maroon-900 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded">
+                        {typeof product.categoryId === "object" ? product.categoryId.name : ""}
+                      </span>
+                    </div>
+                  )}
                   <h3 className="font-serif font-bold text-base text-maroon-900 line-clamp-1 group-hover:text-maroon-700 transition-colors">
                     {product.name}
                   </h3>
-                  <p className="text-xs text-maroon-700/80 line-clamp-2 mt-1 font-sans">
-                    {product.description || t.home.noDescription}
-                  </p>
                 </div>
 
-                <div className="pt-3 border-t border-maroon-100 flex items-end justify-between">
-                  <div>
-                    <span className="text-[10px] font-semibold text-maroon-500 uppercase tracking-wider block mb-0.5">
+                <div className="pt-3 border-t border-maroon-100 space-y-2.5">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-[10px] font-semibold text-maroon-500 uppercase tracking-wider">
                       {t.common.price}
                     </span>
                     {hasSitewideDiscount ? (
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-mono text-maroon-700/60 line-through leading-none mb-0.5">
+                      <div className="flex items-baseline space-x-1.5">
+                        <span className="text-[11px] font-mono text-maroon-700/60 line-through">
                           ৳{price.toFixed(2)}
                         </span>
-                        <span className="text-base font-bold font-mono text-maroon-900 leading-tight">
+                        <span className="text-base font-bold font-mono text-maroon-900">
                           ৳{getDiscountedPrice(price, discountSetting).toFixed(2)}
                         </span>
                       </div>
                     ) : (
-                      <span className="text-base font-bold font-mono text-maroon-900 leading-tight block">
+                      <span className="text-base font-bold font-mono text-maroon-900">
                         ৳{price.toFixed(2)}
                       </span>
                     )}
                   </div>
 
-                  <Link
-                    href={`/product/${product.id}`}
-                    className="px-3 py-1.5 bg-maroon-900 hover:bg-maroon-800 active:scale-95 text-white font-medium text-xs rounded-md transition-all flex items-center space-x-1 shadow-sm cursor-pointer"
-                    title={t.common.viewDetails}
-                  >
-                    <Eye className="w-3.5 h-3.5 text-cream" />
-                    <span>{t.common.viewDetails}</span>
-                  </Link>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => handleAddToCart(e, product)}
+                      className="py-2 px-2 bg-maroon-800 hover:bg-maroon-700 active:scale-95 text-white font-semibold text-[11px] rounded-md transition-all flex items-center justify-center space-x-1 shadow-xs cursor-pointer"
+                    >
+                      <ShoppingCart className="w-3.5 h-3.5 text-cream shrink-0" />
+                      <span className="truncate">{t.productDetails?.addToCart || "Add to Cart"}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => handleBuyNow(e, product)}
+                      className="py-2 px-2 bg-maroon-900 hover:bg-maroon-800 active:scale-95 text-white font-semibold text-[11px] rounded-md transition-all flex items-center justify-center space-x-1 shadow-md cursor-pointer"
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5 text-cream shrink-0" />
+                      <span className="truncate">{t.productDetails?.orderNow || "Buy Now"}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
