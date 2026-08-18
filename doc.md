@@ -1,4 +1,4 @@
-# commercecore — DB Schema & Feature List (v1)
+# Rupzon Collection — DB Schema & Feature List (v1)
 
 Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Postgres + Prisma-style modeling below (adjust ORM syntax as needed).
 
@@ -45,8 +45,7 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 | slug | string, unique | |
 | code | string | product code |
 | description | text | |
-| price | decimal | single price for the whole product |
-| quantity | int | stock lives here, not on variants |
+| price | decimal | |
 | images | string[] | simple array of image URLs |
 | isFeatured | boolean | |
 | isActive | boolean | for hiding without deleting |
@@ -68,6 +67,8 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 | id | PK | |
 | productId | FK → Product | |
 | productVariantId | FK → ProductVariant | |
+| price | decimal, nullable | variant price override |
+| quantity | int | variant stock quantity |
 | unique(productId, productVariantId) | | prevents linking the same variant twice to one product |
 
 ### Review
@@ -182,7 +183,7 @@ Stores single-row configuration objects in a polymorphic `{ key, value }` collec
 ### Public storefront
 - Home: banners slider, marquee ticker, featured categories, featured products
 - Category listing → product grid, filter by category
-- Product detail: images, age size selector (pulls linked global ProductVariants), product price & stock quantity, quantity selector, add to cart/wishlist, reviews list, product info bullets, "questions? call us" block
+- Product detail: images, age size selector (pulls linked global ProductVariants with per-variant stock & price overrides), base price from Product, stock quantity from linked ProductVariantLink, quantity selector, add to cart/wishlist, reviews list, product info bullets, "questions? call us" block
 - Reviews: submit (name, rating, description, optional image) → goes to pending queue
 - Cart: guest = localStorage, logged-in = DB-backed; merge localStorage cart into DB cart on login
 - Wishlist: same behavior as cart — guest = localStorage, logged-in = DB-backed, merge on login
@@ -195,9 +196,9 @@ Stores single-row configuration objects in a polymorphic `{ key, value }` collec
 ### Admin panel
 - Auth (separate admin role or `isAdmin` flag on User)
 - Category CRUD (with Cloudinary image uploads)
-- Product CRUD (flat price, stock quantity, category, details)
+- Product CRUD (base price, category, code, details, images)
 - Master Global Age Variant CRUD (standalone catalog: label, display order, active status)
-- Product-Variant Linker (attach/detach global age labels to products via ProductVariantLink)
+- Product-Variant Linker (link/unlink global variants to products with per-variant stock quantity & optional price override via ProductVariantLink)
 - Review moderation queue (approve/reject)
 - Order management: view, update status, view/edit shipping info manually, view order notes
 - Site Settings & Rates management (Delivery charges, Sitewide discount, Header marquee ticker, Footer info)

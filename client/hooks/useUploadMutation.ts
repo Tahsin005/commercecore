@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { ApiError } from "@/lib/api-client";
+import { ApiError, getStoredAuthToken } from "@/lib/api-client";
 import { ApiResponse } from "@/types/api";
 
 export interface UploadImageResponse {
@@ -13,18 +13,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/a
 export function useUploadImageMutation() {
   return useMutation<ApiResponse<UploadImageResponse>, ApiError, File>({
     mutationFn: async (file: File) => {
-      let token: string | null = null;
-      if (typeof window !== "undefined") {
-        try {
-          const storedAuth = localStorage.getItem("commercecore_auth_store");
-          if (storedAuth) {
-            const parsed = JSON.parse(storedAuth);
-            token = parsed?.state?.token || null;
-          }
-        } catch {
-          // ignore
-        }
-      }
+      const token = getStoredAuthToken();
 
       const formData = new FormData();
       formData.append("image", file);

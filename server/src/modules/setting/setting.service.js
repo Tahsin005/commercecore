@@ -16,11 +16,11 @@ export const DEFAULT_SETTINGS = {
     isActive: false,
   },
   marquee: {
-    text: "Welcome to CommerceCore! Fast Cash-on-Delivery nationwide.",
+    text: "Welcome to Rupzon Collection! Fast Cash-on-Delivery nationwide.",
     isActive: true,
   },
   footer_settings: {
-    description: "CommerceCore is a premium full-stack e-commerce platform delivering high quality collections.",
+    description: "Rupzon Collection is a premium full-stack e-commerce platform delivering high quality collections.",
     helpline: "01700000000",
     socialLinks: [],
   },

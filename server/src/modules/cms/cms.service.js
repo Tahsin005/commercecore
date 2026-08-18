@@ -50,12 +50,12 @@ export const DEFAULT_CONTENT_BLOCKS = [
   {
     key: 'about_us',
     title: 'About Us',
-    body: 'Welcome to CommerceCore! We are dedicated to providing high quality e-commerce products and fast Cash-on-Delivery nationwide.',
+    body: 'Welcome to Rupzon Collection! We are dedicated to providing high quality e-commerce products and fast Cash-on-Delivery nationwide.',
   },
   {
     key: 'contact_us',
     title: 'Contact Us',
-    body: 'For customer support, order inquiries, or assistance, reach out to us at support@commercecore.com or call 01700000000.',
+    body: 'For customer support, order inquiries, or assistance, reach out to us at support@rupzoncollection.com or call 01700000000.',
   },
   {
     key: 'how_to_buy',

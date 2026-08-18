@@ -66,7 +66,7 @@ export function AdminSidebar({ collapsed, onToggleCollapse }: AdminSidebarProps)
                   <div className="p-1 bg-white rounded-md shrink-0">
                     <Image
                       src="/logo.png"
-                      alt="CommerceCore Admin"
+                      alt="Rupzon Collection Admin"
                       width={28}
                       height={28}
                       className="w-6 h-6 object-contain"

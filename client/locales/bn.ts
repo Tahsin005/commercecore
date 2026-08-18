@@ -1,7 +1,7 @@
 export const bn = {
   // Common / General
   common: {
-    commerceCore: "CommerceCore",
+    rupzonCollection: "রূপজোন কালেকশন",
     tagline: "প্রিমিয়াম ফুল-স্ট্যাক ই-কমার্স প্ল্যাটফর্ম",
     currencySymbol: "৳",
     loading: "লোড হচ্ছে...",
@@ -70,7 +70,7 @@ export const bn = {
     codDesc: "পণ্য হাতে পেয়ে নিরাপদে মূল্য পরিশোধ করুন",
     qualityTitle: "১০০% খাঁটি কোয়ালিটি",
     qualityDesc: "বাছাইকৃত প্রিমিয়াম ফেব্রিক্স ও সামগ্রী",
-    brandDesc: "CommerceCore একটি প্রিমিয়াম ই-কমার্স প্ল্যাটফর্ম যা আপনাকে দেয় সেরা মানের পণ্য, সহজ ভ্যারিয়েন্ট বাছাই ও সারাদেশে দ্রুত ক্যাশ-অন-ডেলিভারি সুবিধা।",
+    brandDesc: "রূপজোন কালেকশন একটি প্রিমিয়াম ই-কমার্স প্ল্যাটফর্ম যা আপনাকে দেয় সেরা মানের পণ্য, সহজ ভ্যারিয়েন্ট বাছাই ও সারাদেশে দ্রুত ক্যাশ-অন-ডেলিভারি সুবিধা।",
     quickNav: "দ্রুত লিংকসমূহ",
     shopProducts: "পণ্যসমূহ দেখুন",
     viewCheckout: "চেকআউট পৃষ্ঠা",
@@ -199,7 +199,7 @@ export const bn = {
   // Login Page
   login: {
     title: "পুনরায় স্বাগতম",
-    subtitle: "আপনার CommerceCore অ্যাকাউন্টে লগইন করুন",
+    subtitle: "আপনার রূপজোন কালেকশন অ্যাকাউন্টে লগইন করুন",
     identifierLabel: "ইমেইল অথবা মোবাইল নম্বর",
     identifierPlaceholder: "name@example.com বা 01700000000",
     passwordLabel: "পাসওয়ার্ড",
@@ -215,7 +215,7 @@ export const bn = {
   // Signup Page
   signup: {
     title: "অ্যাকাউন্ট তৈরি করুন",
-    subtitle: "সহজ কেনাকাটার জন্য আজই CommerceCore-এ যোগ দিন",
+    subtitle: "সহজ কেনাকাটার জন্য আজই রূপজোন কালেকশন-এ যোগ দিন",
     brandTag: "আজই যোগ দিন এবং কেনাকাটা শুরু করুন",
     nameLabel: "পূর্ণ নাম",
     namePlaceholder: "আপনার নাম",

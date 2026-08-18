@@ -209,7 +209,7 @@ export default function LoginPage() {
             <div className="p-3 bg-white/10 border border-maroon-700/60 rounded-2xl backdrop-blur-sm mb-4 shadow-inner">
               <Image
                 src="/logo.png"
-                alt="CommerceCore Logo"
+                alt="Rupzon Collection Logo"
                 width={96}
                 height={96}
                 className="w-20 h-20 sm:w-24 sm:h-24 object-contain"
@@ -217,7 +217,7 @@ export default function LoginPage() {
               />
             </div>
             <h2 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-wide">
-              {t.common.commerceCore}
+              {t.common.rupzonCollection}
             </h2>
             <p className="text-xs text-maroon-200 mt-2 max-w-xs leading-relaxed font-sans">
               {t.login.brandTag}

@@ -16,24 +16,32 @@ export class ApiError extends Error {
   }
 }
 
+export function getStoredAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const stored = localStorage.getItem("rupzon_auth_store");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      const token = parsed?.state?.token;
+      if (typeof token === "string" && token.trim().length > 0) {
+        return token.trim();
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  return null;
+}
+
 export async function apiClient<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 
-  let token: string | null = null;
-  if (typeof window !== "undefined") {
-    try {
-      const storedAuth = localStorage.getItem("commercecore_auth_store");
-      if (storedAuth) {
-        const parsed = JSON.parse(storedAuth);
-        token = parsed?.state?.token || null;
-      }
-    } catch {
-      // ignore parsing errors
-    }
-  }
+  const token = getStoredAuthToken();
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

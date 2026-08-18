@@ -15,8 +15,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "CommerceCore",
-  description: "Modern Full-Stack E-Commerce Platform",
+  title: "Rupzon Collection",
+  description: "Rupzon Collection - Premium Fashion & Lifestyle E-Commerce Platform",
 };
 
 export default function RootLayout({
