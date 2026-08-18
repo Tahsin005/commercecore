@@ -25,7 +25,7 @@ export async function apiClient<T>(
   let token: string | null = null;
   if (typeof window !== "undefined") {
     try {
-      const storedAuth = localStorage.getItem("commercecore_auth_store");
+      const storedAuth = localStorage.getItem("rupzon_auth_store") || localStorage.getItem("commercecore_auth_store");
       if (storedAuth) {
         const parsed = JSON.parse(storedAuth);
         token = parsed?.state?.token || null;

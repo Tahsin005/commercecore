@@ -6,7 +6,7 @@ const AUTHENTICATED_ROUTES = ["/profile"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get("commercecore_token")?.value;
+  const token = request.cookies.get("rupzon_token")?.value || request.cookies.get("commercecore_token")?.value;
 
   // Server-side instant edge redirect for authenticated users trying to access guest routes
   if (token && GUEST_ONLY_ROUTES.some((route) => pathname.startsWith(route))) {

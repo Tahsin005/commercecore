@@ -1,12 +1,12 @@
-# CommerceCore — UI Design System & Aesthetic Guide
+# Rupzon Collection — UI Design System & Aesthetic Guide
 
-This document serves as the authoritative visual design guide for **CommerceCore**. All future UI components, pages, and feature additions must strictly adhere to the visual tokens, typography hierarchies, border specifications, and design patterns outlined below.
+This document serves as the authoritative visual design guide for **Rupzon Collection**. All future UI components, pages, and feature additions must strictly adhere to the visual tokens, typography hierarchies, border specifications, and design patterns outlined below.
 
 ---
 
 ## 1. Core Visual Identity & Philosophy
 
-CommerceCore embodies an **elegant, high-contrast, luxury e-commerce aesthetic**. It blends rich deep maroon shades with warm cream accents, soft rose blush tones, crisp white surfaces, and refined serif/sans-serif typography.
+Rupzon Collection embodies an **elegant, high-contrast, luxury e-commerce aesthetic**. It blends rich deep maroon shades with warm cream accents, soft rose blush tones, crisp white surfaces, and refined serif/sans-serif typography.
 
 ### Key Aesthetic Principles:
 - **Rich Palette**: Deep maroon hues (`--maroon-900`) for headers, primary actions, and hero sections paired with warm cream (`--cream`) and rose blush (`--maroon-100` / `--maroon-50`).

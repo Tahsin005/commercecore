@@ -66,7 +66,7 @@ export function Footer() {
             <div className="p-1.5 bg-white rounded-lg shadow-sm group-hover:bg-cream transition-colors shrink-0">
               <Image
                 src="/logo.png"
-                alt="CommerceCore Logo"
+                alt="Rupzon Collection Logo"
                 width={32}
                 height={32}
                 className="w-7 h-7 object-contain"

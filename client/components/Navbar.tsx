@@ -162,7 +162,7 @@ export function Navbar() {
             <div className="p-1.5 bg-white rounded-lg shadow-sm group-hover:bg-cream transition-colors shrink-0">
               <Image
                 src="/logo.png"
-                alt="CommerceCore Logo"
+                alt="Rupzon Collection Logo"
                 width={36}
                 height={36}
                 className="w-7 h-7 object-contain"

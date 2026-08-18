@@ -209,7 +209,7 @@ export default function LoginPage() {
             <div className="p-3 bg-white/10 border border-maroon-700/60 rounded-2xl backdrop-blur-sm mb-4 shadow-inner">
               <Image
                 src="/logo.png"
-                alt="CommerceCore Logo"
+                alt="Rupzon Collection Logo"
                 width={96}
                 height={96}
                 className="w-20 h-20 sm:w-24 sm:h-24 object-contain"

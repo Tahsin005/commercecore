@@ -42,7 +42,7 @@ export function HomepageBanners() {
       <div className="relative w-full rounded-2xl overflow-hidden shadow-xl border border-maroon-100 bg-black/5 aspect-21/9 min-h-[180px] sm:min-h-[280px] md:min-h-[360px] my-2">
         <Image
           src="/banner.png"
-          alt="CommerceCore Collection Banner"
+          alt="Rupzon Collection Banner"
           fill
           sizes="100vw"
           priority
