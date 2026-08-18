@@ -50,16 +50,17 @@ export function Navbar() {
   const [logoutWarningOpen, setLogoutWarningOpen] = useState(false);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
 
-  // Search state & debounce
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
   const searchRef = useRef<HTMLDivElement>(null);
 
   // Debounce search query input (300ms)
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(searchQuery.trim());
+      setActiveIndex(-1);
     }, 300);
     return () => clearTimeout(handler);
   }, [searchQuery]);
@@ -73,6 +74,7 @@ export function Navbar() {
     isLoading: isSearchLoading,
     isFetching: isSearchFetching,
     isFetchingNextPage,
+    isError: isSearchError,
     fetchNextPage,
     hasNextPage,
   } = useInfiniteProductsQuery({
@@ -92,6 +94,7 @@ export function Navbar() {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setIsSearchFocused(false);
+        setActiveIndex(-1);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -106,8 +109,30 @@ export function Navbar() {
 
   const handleSelectProduct = (productId: string) => {
     setIsSearchFocused(false);
+    setActiveIndex(-1);
     setSearchQuery("");
     router.push(`/product/${productId}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showDropdown || searchResults.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev < searchResults.length - 1 ? prev + 1 : 0));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev > 0 ? prev - 1 : searchResults.length - 1));
+    } else if (e.key === "Enter") {
+      if (activeIndex >= 0 && activeIndex < searchResults.length) {
+        e.preventDefault();
+        handleSelectProduct(searchResults[activeIndex].id);
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setIsSearchFocused(false);
+      setActiveIndex(-1);
+    }
   };
 
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
@@ -153,9 +178,23 @@ export function Navbar() {
               <Search className="w-4 h-4 text-cream/70 absolute left-3 pointer-events-none" />
               <input
                 type="text"
+                role="combobox"
+                aria-expanded={showDropdown}
+                aria-controls="search-results-listbox"
+                aria-autocomplete="list"
+                aria-label={t.home?.searchPlaceholder || "Search products, code..."}
+                aria-activedescendant={
+                  activeIndex >= 0 && searchResults[activeIndex]
+                    ? `search-option-${searchResults[activeIndex].id}`
+                    : undefined
+                }
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setActiveIndex(-1);
+                }}
                 onFocus={() => setIsSearchFocused(true)}
+                onKeyDown={handleKeyDown}
                 placeholder={t.home?.searchPlaceholder || "Search products, code..."}
                 className="w-full pl-9 pr-9 py-1.5 bg-maroon-800/80 border border-maroon-700 focus:border-cream rounded-full text-xs text-white placeholder-cream/60 focus:outline-none focus:ring-1 focus:ring-cream/50 transition-all shadow-inner"
               />
@@ -166,8 +205,12 @@ export function Navbar() {
                 {searchQuery && (
                   <button
                     type="button"
-                    onClick={() => setSearchQuery("")}
+                    onClick={() => {
+                      setSearchQuery("");
+                      setActiveIndex(-1);
+                    }}
                     className="p-0.5 hover:bg-maroon-700 rounded-full text-cream/70 hover:text-white transition-colors cursor-pointer"
+                    aria-label="Clear search"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -179,68 +222,82 @@ export function Navbar() {
               <div className="absolute top-full left-0 right-0 mt-2 bg-white text-maroon-900 rounded-xl shadow-2xl border border-maroon-100 overflow-hidden z-50 animate-in fade-in-50 slide-in-from-top-1 duration-150">
                 {searchResults.length > 0 ? (
                   <div id="searchScrollableDiv" className="max-h-80 overflow-y-auto scrollbar-thin">
-                    <InfiniteScroll
-                      dataLength={searchResults.length}
-                      next={fetchMoreProducts}
-                      hasMore={Boolean(hasNextPage)}
-                      scrollableTarget="searchScrollableDiv"
-                      loader={
-                        <div className="p-3 text-center text-xs text-maroon-800 font-semibold bg-maroon-50/60 flex items-center justify-center space-x-2 border-t border-maroon-100">
-                          <Loader2 className="w-4 h-4 animate-spin text-maroon-900 shrink-0" />
-                          <span>Loading more items...</span>
-                        </div>
-                      }
-                      className="divide-y divide-maroon-50"
-                    >
-                      {searchResults.map((product) => {
-                        const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
-                        const hasImage = Boolean(product.images && product.images.length > 0);
-                        const effectivePrice = hasSitewideDiscount
-                          ? getDiscountedPrice(price, discountSetting)
-                          : price;
+                    <div id="search-results-listbox" role="listbox" aria-label={t.navbar?.categories || "Search Results"}>
+                      <InfiniteScroll
+                        dataLength={searchResults.length}
+                        next={fetchMoreProducts}
+                        hasMore={Boolean(hasNextPage)}
+                        scrollableTarget="searchScrollableDiv"
+                        loader={
+                          <div className="p-3 text-center text-xs text-maroon-800 font-semibold bg-maroon-50/60 flex items-center justify-center space-x-2 border-t border-maroon-100">
+                            <Loader2 className="w-4 h-4 animate-spin text-maroon-900 shrink-0" />
+                            <span>{t.common?.loading || "Loading more items..."}</span>
+                          </div>
+                        }
+                        className="divide-y divide-maroon-50"
+                      >
+                        {searchResults.map((product, index) => {
+                          const isSelected = activeIndex === index;
+                          const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
+                          const hasImage = Boolean(product.images && product.images.length > 0);
+                          const effectivePrice = hasSitewideDiscount
+                            ? getDiscountedPrice(price, discountSetting)
+                            : price;
 
-                        return (
-                          <div
-                            key={product.id}
-                            onClick={() => handleSelectProduct(product.id)}
-                            className="p-2.5 hover:bg-maroon-50/90 flex items-center space-x-3 cursor-pointer transition-colors group animate-in fade-in slide-in-from-bottom-2 duration-200"
-                          >
-                            <div className="relative w-11 h-11 rounded-lg bg-off-white overflow-hidden shrink-0 border border-maroon-100 flex items-center justify-center">
-                              {hasImage ? (
-                                <Image
-                                  src={product.images![0]}
-                                  alt={product.name}
-                                  fill
-                                  sizes="44px"
-                                  className="object-cover group-hover:scale-105 transition-transform"
-                                />
-                              ) : (
-                                <Package className="w-5 h-5 text-maroon-300" />
-                              )}
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-xs font-bold text-maroon-900 group-hover:text-maroon-700 truncate">
-                                {product.name}
-                              </h4>
-                              {product.categoryId && typeof product.categoryId === "object" && (
-                                <span className="text-[10px] text-maroon-600 font-medium block truncate">
-                                  {product.categoryId.name}
-                                </span>
-                              )}
-                              <div className="flex items-baseline space-x-1.5 mt-0.5 font-mono text-xs font-bold text-maroon-900">
-                                <span>৳{effectivePrice.toFixed(2)}</span>
-                                {hasSitewideDiscount && (
-                                  <span className="text-[10px] text-maroon-700/50 line-through font-normal">
-                                    ৳{price.toFixed(2)}
-                                  </span>
+                          return (
+                            <button
+                              key={product.id}
+                              type="button"
+                              role="option"
+                              id={`search-option-${product.id}`}
+                              aria-selected={isSelected}
+                              onClick={() => handleSelectProduct(product.id)}
+                              onMouseEnter={() => setActiveIndex(index)}
+                              className={`w-full text-left p-2.5 flex items-center space-x-3 cursor-pointer transition-colors group animate-in fade-in slide-in-from-bottom-2 duration-200 ${
+                                isSelected ? "bg-maroon-100/90" : "hover:bg-maroon-50/90"
+                              }`}
+                            >
+                              <div className="relative w-11 h-11 rounded-lg bg-off-white overflow-hidden shrink-0 border border-maroon-100 flex items-center justify-center">
+                                {hasImage ? (
+                                  <Image
+                                    src={product.images![0]}
+                                    alt={product.name}
+                                    fill
+                                    sizes="44px"
+                                    className="object-cover group-hover:scale-105 transition-transform"
+                                  />
+                                ) : (
+                                  <Package className="w-5 h-5 text-maroon-300" />
                                 )}
                               </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </InfiniteScroll>
+
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-xs font-bold text-maroon-900 group-hover:text-maroon-700 truncate">
+                                  {product.name}
+                                </h4>
+                                {product.categoryId && typeof product.categoryId === "object" && (
+                                  <span className="text-[10px] text-maroon-600 font-medium block truncate">
+                                    {product.categoryId.name}
+                                  </span>
+                                )}
+                                <div className="flex items-baseline space-x-1.5 mt-0.5 font-mono text-xs font-bold text-maroon-900">
+                                  <span>৳{effectivePrice.toFixed(2)}</span>
+                                  {hasSitewideDiscount && (
+                                    <span className="text-[10px] text-maroon-700/50 line-through font-normal">
+                                      ৳{price.toFixed(2)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </InfiniteScroll>
+                    </div>
+                  </div>
+                ) : isSearchError ? (
+                  <div className="p-4 text-center text-xs text-red-600 font-medium">
+                    {t.common?.error || "An error occurred"}
                   </div>
                 ) : isSearchLoading || isDebouncing ? (
                   <div className="p-4 flex items-center justify-center space-x-2 text-xs text-maroon-600 font-medium">
@@ -249,7 +306,9 @@ export function Navbar() {
                   </div>
                 ) : (
                   <div className="p-4 text-center text-xs text-maroon-600 font-medium">
-                    No products found for "{searchQuery}"
+                    {t.navbar?.noProductsFoundFor
+                      ? t.navbar.noProductsFoundFor(searchQuery)
+                      : `No products found for "${searchQuery}"`}
                   </div>
                 )}
               </div>

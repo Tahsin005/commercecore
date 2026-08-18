@@ -55,12 +55,18 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   const [zoomPos, setZoomPos] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
 
-  const handleCopyCode = () => {
+  const handleCopyCode = async () => {
     if (!product?.code) return;
-    navigator.clipboard.writeText(product.code);
-    setCopiedCode(true);
-    toast.success("Product code copied!");
-    setTimeout(() => setCopiedCode(false), 2000);
+    try {
+      if (typeof navigator !== "undefined" && navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(product.code);
+        setCopiedCode(true);
+        toast.success(t.productDetails?.productCodeCopied || "Product code copied!");
+        setTimeout(() => setCopiedCode(false), 2000);
+      }
+    } catch {
+      // Handled without reporting false success
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -277,7 +283,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
           <div className="lg:col-span-4 flex flex-col justify-between space-y-5">
             <div className="space-y-4">
               <div>
-                {product.categoryId && (
+                {product.categoryId && typeof product.categoryId === "object" && product.categoryId.name && (
                   <div className="mb-1">
                     <span className="inline-block bg-maroon-100/70 border border-maroon-200/80 text-maroon-900 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded">
                       {product.categoryId.name}
@@ -462,7 +468,8 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   type="button"
                   onClick={handleCopyCode}
                   className="p-0.5 hover:bg-maroon-100 text-maroon-600 hover:text-maroon-900 rounded transition-colors cursor-pointer ml-1"
-                  title="Copy product code"
+                  title={t.productDetails?.copyProductCode || "Copy product code"}
+                  aria-label={t.productDetails?.copyProductCode || "Copy product code"}
                 >
                   {copiedCode ? (
                     <Check className="w-3 h-3 text-emerald-600" />

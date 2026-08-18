@@ -1,13 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
 import { Heart, Package, ShoppingCart, ShoppingBag } from "lucide-react";
 
 import { useWishlist } from "@/hooks/useWishlist";
-import { useCart } from "@/hooks/useCart";
-import { useProductsQuery, Product } from "@/hooks/useProductQueries";
+import { useProductsQuery } from "@/hooks/useProductQueries";
+import { useProductCardActions, getProductStock } from "@/hooks/useProductCardActions";
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
 import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -23,8 +23,12 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
   const { data: siteSettings } = useSiteSettingsQuery();
   const discountSetting = siteSettings?.site_discount;
   const hasSitewideDiscount = useActiveDiscount(discountSetting);
-  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
-  const { addItem: addToCart } = useCart();
+  const { isInWishlist } = useWishlist();
+
+  const { handleAddToCart, handleBuyNow, handleToggleWishlist } = useProductCardActions(
+    discountSetting,
+    hasSitewideDiscount
+  );
 
   const { data: response, isLoading } = useProductsQuery({
     categoryId: categoryId || undefined,
@@ -39,61 +43,6 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
   if (isLoading || relatedProducts.length === 0) {
     return null;
   }
-
-  const handleToggleWishlist = (product: Product) => {
-    const wishlisted = isInWishlist(product.id);
-    const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
-    const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
-
-    if (wishlisted) {
-      removeFromWishlist(product.id);
-      toast.success(`"${product.name}" ${t.home.removeFromWishlist}`);
-    } else {
-      addToWishlist({
-        productId: product.id,
-        productVariantId: defaultVariant?.id,
-        name: product.name,
-        slug: product.slug,
-        size: defaultVariant?.label || defaultVariant?.size || t.common.standard,
-        price,
-        imageUrl: product.images?.[0],
-      });
-      toast.success(`"${product.name}" ${t.home.addToWishlist}`);
-    }
-  };
-
-  const handleAddToCart = (e: React.MouseEvent, product: Product) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const v = product.variants && product.variants.length > 0
-      ? (product.variants.find((v) => v.isActive !== false) || product.variants[0])
-      : null;
-    const basePrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
-    const effectivePrice = hasSitewideDiscount
-      ? getDiscountedPrice(basePrice, discountSetting)
-      : (v?.overridePrice ?? v?.price ?? basePrice);
-
-    addToCart(
-      {
-        productVariantId: v?.id,
-        productId: product.id,
-        name: product.name,
-        slug: product.slug,
-        size: v?.size || v?.label || "Standard",
-        price: effectivePrice,
-        imageUrl: product.images?.[0],
-      },
-      1
-    );
-    toast.success(t.productDetails?.addedToCart || "Added to cart!");
-  };
-
-  const handleBuyNow = (e: React.MouseEvent, product: Product) => {
-    e.stopPropagation();
-    e.preventDefault();
-    handleAddToCart(e, product);
-    router.push("/checkout");
-  };
 
   return (
     <div className="w-full space-y-6 mt-12 font-sans pt-6 border-t border-maroon-100">
@@ -113,6 +62,8 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
           const wishlisted = isInWishlist(product.id);
           const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
           const hasImage = Boolean(product.images && product.images.length > 0);
+          const stock = getProductStock(product);
+          const isOutOfStock = stock <= 0;
 
           return (
             <div
@@ -122,7 +73,7 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
             >
               {hasSitewideDiscount && (
                 <span className="absolute -top-2.5 -right-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-mono text-[10px] font-black tracking-wider px-2 py-0.5 rounded-md shadow-md border-2 border-white uppercase z-20 pointer-events-none">
-                  {discountSetting?.discountPercentage}% OFF
+                  {discountSetting?.discountPercentage}% {t.common?.off || "OFF"}
                 </span>
               )}
 
@@ -164,15 +115,21 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
 
               <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                 <div>
-                  {product.categoryId && (
+                  {product.categoryId && typeof product.categoryId === "object" && product.categoryId.name && (
                     <div className="mb-1">
                       <span className="inline-block bg-maroon-100/70 border border-maroon-200/80 text-maroon-900 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded">
-                        {typeof product.categoryId === "object" ? product.categoryId.name : ""}
+                        {product.categoryId.name}
                       </span>
                     </div>
                   )}
                   <h3 className="font-serif font-bold text-base text-maroon-900 line-clamp-1 group-hover:text-maroon-700 transition-colors">
-                    {product.name}
+                    <Link
+                      href={`/product/${product.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="hover:underline"
+                    >
+                      {product.name}
+                    </Link>
                   </h3>
                 </div>
 
@@ -200,20 +157,30 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
+                      disabled={isOutOfStock}
                       onClick={(e) => handleAddToCart(e, product)}
-                      className="py-2 px-2 bg-maroon-800 hover:bg-maroon-700 active:scale-95 text-white font-semibold text-[11px] rounded-md transition-all flex items-center justify-center space-x-1 shadow-xs cursor-pointer"
+                      className="py-2 px-2 bg-maroon-800 hover:bg-maroon-700 active:scale-95 text-white font-semibold text-[11px] rounded-md transition-all flex items-center justify-center space-x-1 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShoppingCart className="w-3.5 h-3.5 text-cream shrink-0" />
-                      <span className="truncate">{t.productDetails?.addToCart || "Add to Cart"}</span>
+                      <span className="truncate">
+                        {isOutOfStock
+                          ? t.productDetails?.outOfStockMsg || t.common?.outOfStock || "Out of Stock"
+                          : t.productDetails?.addToCart || "Add to Cart"}
+                      </span>
                     </button>
 
                     <button
                       type="button"
+                      disabled={isOutOfStock}
                       onClick={(e) => handleBuyNow(e, product)}
-                      className="py-2 px-2 bg-maroon-900 hover:bg-maroon-800 active:scale-95 text-white font-semibold text-[11px] rounded-md transition-all flex items-center justify-center space-x-1 shadow-md cursor-pointer"
+                      className="py-2 px-2 bg-maroon-900 hover:bg-maroon-800 active:scale-95 text-white font-semibold text-[11px] rounded-md transition-all flex items-center justify-center space-x-1 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShoppingBag className="w-3.5 h-3.5 text-cream shrink-0" />
-                      <span className="truncate">{t.productDetails?.orderNow || "Buy Now"}</span>
+                      <span className="truncate">
+                        {isOutOfStock
+                          ? t.productDetails?.outOfStockMsg || t.common?.outOfStock || "Out of Stock"
+                          : t.productDetails?.orderNow || "Buy Now"}
+                      </span>
                     </button>
                   </div>
                 </div>

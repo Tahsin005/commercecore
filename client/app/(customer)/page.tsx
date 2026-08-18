@@ -21,8 +21,8 @@ import {
 } from "lucide-react";
 
 import { useWishlist } from "@/hooks/useWishlist";
-import { useCart } from "@/hooks/useCart";
 import { useProductsQuery, Product } from "@/hooks/useProductQueries";
+import { useProductCardActions, getProductStock } from "@/hooks/useProductCardActions";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
 import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
@@ -59,17 +59,13 @@ export default function Home() {
   const homepageCategories = useMemo(() => sortedCategories.slice(0, 4), [sortedCategories]);
 
   const discountPercentage = hasSitewideDiscount && discountSetting?.discountPercentage ? discountSetting.discountPercentage : 0;
-  const discountMultiplier = discountPercentage > 0 ? (100 - discountPercentage) / 100 : 1;
-
-  const effectiveMinPrice = minPrice !== "" ? Number(minPrice) / discountMultiplier : undefined;
-  const effectiveMaxPrice = maxPrice !== "" ? Number(maxPrice) / discountMultiplier : undefined;
 
   const { data: response, isLoading, error } = useProductsQuery({
-    categoryId: selectedCategory !== "all" ? selectedCategory : undefined,
+    categoryId: selectedCategory === "all" ? undefined : selectedCategory,
     search: searchQuery,
     sortBy,
-    minPrice: effectiveMinPrice,
-    maxPrice: effectiveMaxPrice,
+    minPrice: minPrice !== "" ? minPrice : undefined,
+    maxPrice: maxPrice !== "" ? maxPrice : undefined,
     page,
     limit,
   });
@@ -80,42 +76,12 @@ export default function Home() {
   const totalPages = pagination?.totalPages ?? 1;
   const currentPage = pagination?.currentPage ?? page;
 
-  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
-  const { addItem: addToCart } = useCart();
+  const { isInWishlist } = useWishlist();
+  const { handleAddToCart, handleBuyNow, handleToggleWishlist } = useProductCardActions(
+    discountSetting,
+    hasSitewideDiscount
+  );
   const router = useRouter();
-
-  const handleAddToCart = (e: React.MouseEvent, product: Product) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const v = product.variants && product.variants.length > 0
-      ? (product.variants.find((v) => v.isActive !== false) || product.variants[0])
-      : null;
-    const basePrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
-    const effectivePrice = hasSitewideDiscount
-      ? getDiscountedPrice(basePrice, discountSetting)
-      : (v?.overridePrice ?? v?.price ?? basePrice);
-
-    addToCart(
-      {
-        productVariantId: v?.id,
-        productId: product.id,
-        name: product.name,
-        slug: product.slug,
-        size: v?.size || v?.label || "Standard",
-        price: effectivePrice,
-        imageUrl: product.images?.[0],
-      },
-      1
-    );
-    toast.success(t.productDetails?.addedToCart || "Added to cart!");
-  };
-
-  const handleBuyNow = (e: React.MouseEvent, product: Product) => {
-    e.stopPropagation();
-    e.preventDefault();
-    handleAddToCart(e, product);
-    router.push("/checkout");
-  };
 
   const handleCategorySelect = (catId: string) => {
     setSelectedCategory(catId);
@@ -157,28 +123,6 @@ export default function Home() {
     sortBy !== "newest" ||
     minPrice !== "" ||
     maxPrice !== "";
-
-  const handleToggleWishlist = (product: Product) => {
-    const wishlisted = isInWishlist(product.id);
-    const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
-    const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
-
-    if (wishlisted) {
-      removeFromWishlist(product.id);
-      toast.success(`"${product.name}" ${t.home.removeFromWishlist}`);
-    } else {
-      addToWishlist({
-        productId: product.id,
-        productVariantId: defaultVariant?.id,
-        name: product.name,
-        slug: product.slug,
-        size: defaultVariant?.label || defaultVariant?.size || t.common.standard,
-        price,
-        imageUrl: product.images?.[0],
-      });
-      toast.success(`"${product.name}" ${t.home.addToWishlist}`);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
@@ -404,6 +348,9 @@ export default function Home() {
                 const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
                 const hasImage = Boolean(product.images && product.images.length > 0);
 
+                const stock = getProductStock(product);
+                const isOutOfStock = stock <= 0;
+
                 return (
                   <div
                     key={product.id}
@@ -412,7 +359,7 @@ export default function Home() {
                   >
                     {hasSitewideDiscount && (
                       <span className="absolute -top-2.5 -right-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-mono text-[10px] font-black tracking-wider px-2 py-0.5 rounded-md shadow-md border-2 border-white uppercase z-20 pointer-events-none">
-                        {discountSetting?.discountPercentage}% OFF
+                        {discountSetting?.discountPercentage}% {t.common?.off || "OFF"}
                       </span>
                     )}
 
@@ -454,7 +401,7 @@ export default function Home() {
 
                     <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                       <div>
-                        {product.categoryId && (
+                        {product.categoryId && typeof product.categoryId === "object" && product.categoryId.name && (
                           <div className="mb-1">
                             <span className="inline-block bg-maroon-100/70 border border-maroon-200/80 text-maroon-900 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded">
                               {product.categoryId.name}
@@ -462,7 +409,13 @@ export default function Home() {
                           </div>
                         )}
                         <h3 className="font-serif font-bold text-base text-maroon-900 line-clamp-1 group-hover:text-maroon-700 transition-colors">
-                          {product.name}
+                          <Link
+                            href={`/product/${product.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="hover:underline"
+                          >
+                            {product.name}
+                          </Link>
                         </h3>
                       </div>
 
@@ -490,20 +443,30 @@ export default function Home() {
                         <div className="grid grid-cols-2 gap-2">
                           <button
                             type="button"
+                            disabled={isOutOfStock}
                             onClick={(e) => handleAddToCart(e, product)}
-                            className="py-2 px-2 bg-maroon-800 hover:bg-maroon-700 active:scale-95 text-white font-semibold text-[11px] rounded-md transition-all flex items-center justify-center space-x-1 shadow-xs cursor-pointer"
+                            className="py-2 px-2 bg-maroon-800 hover:bg-maroon-700 active:scale-95 text-white font-semibold text-[11px] rounded-md transition-all flex items-center justify-center space-x-1 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <ShoppingCart className="w-3.5 h-3.5 text-cream shrink-0" />
-                            <span className="truncate">{t.productDetails?.addToCart || "Add to Cart"}</span>
+                            <span className="truncate">
+                              {isOutOfStock
+                                ? t.productDetails?.outOfStockMsg || t.common?.outOfStock || "Out of Stock"
+                                : t.productDetails?.addToCart || "Add to Cart"}
+                            </span>
                           </button>
 
                           <button
                             type="button"
+                            disabled={isOutOfStock}
                             onClick={(e) => handleBuyNow(e, product)}
-                            className="py-2 px-2 bg-maroon-900 hover:bg-maroon-800 active:scale-95 text-white font-semibold text-[11px] rounded-md transition-all flex items-center justify-center space-x-1 shadow-md cursor-pointer"
+                            className="py-2 px-2 bg-maroon-900 hover:bg-maroon-800 active:scale-95 text-white font-semibold text-[11px] rounded-md transition-all flex items-center justify-center space-x-1 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <ShoppingBag className="w-3.5 h-3.5 text-cream shrink-0" />
-                            <span className="truncate">{t.productDetails?.orderNow || "Buy Now"}</span>
+                            <span className="truncate">
+                              {isOutOfStock
+                                ? t.productDetails?.outOfStockMsg || t.common?.outOfStock || "Out of Stock"
+                                : t.productDetails?.orderNow || "Buy Now"}
+                            </span>
                           </button>
                         </div>
                       </div>

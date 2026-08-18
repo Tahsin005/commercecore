@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { ApiResponse } from "@/types/api";
 
@@ -104,6 +104,47 @@ export interface ProductQueryParams {
   limit?: number;
 }
 
+export function buildProductQueryString(params: ProductQueryParams, pageOverride?: number): string {
+  const { categoryId, isFeatured, search, minPrice, maxPrice, sortBy, page, limit } = params;
+  const urlParams = new URLSearchParams();
+  if (categoryId && categoryId !== "all") urlParams.append("categoryId", categoryId);
+  if (isFeatured) urlParams.append("isFeatured", "true");
+  if (search && search.trim()) urlParams.append("search", search.trim());
+  if (minPrice !== undefined && minPrice !== "") urlParams.append("minPrice", String(minPrice));
+  if (maxPrice !== undefined && maxPrice !== "") urlParams.append("maxPrice", String(maxPrice));
+  if (sortBy) urlParams.append("sortBy", sortBy);
+
+  const targetPage = pageOverride ?? page;
+  if (targetPage) urlParams.append("page", String(targetPage));
+  if (limit !== undefined) urlParams.append("limit", String(limit));
+
+  return urlParams.toString();
+}
+
+export function normalizeProductsResponse(
+  rawRes: ApiResponse<ProductsResponsePayload | Product[]>,
+  currentPage = 1
+): ApiResponse<ProductsResponsePayload> {
+  if (Array.isArray(rawRes.data)) {
+    const rawArray = rawRes.data;
+    return {
+      ...rawRes,
+      data: {
+        products: rawArray,
+        pagination: {
+          totalProducts: rawArray.length,
+          totalPages: 1,
+          currentPage,
+          limit: rawArray.length,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      },
+    };
+  }
+  return rawRes as ApiResponse<ProductsResponsePayload>;
+}
+
 export function useProductsQuery(
   paramsOrCategory?: string | ProductQueryParams,
   isFeaturedFlag?: boolean
@@ -128,39 +169,10 @@ export function useProductsQuery(
       limit || "default",
     ],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (categoryId && categoryId !== "all") params.append("categoryId", categoryId);
-      if (isFeatured) params.append("isFeatured", "true");
-      if (search && search.trim()) params.append("search", search.trim());
-      if (minPrice !== undefined && minPrice !== "") params.append("minPrice", String(minPrice));
-      if (maxPrice !== undefined && maxPrice !== "") params.append("maxPrice", String(maxPrice));
-      if (sortBy) params.append("sortBy", sortBy);
-      if (page) params.append("page", String(page));
-      if (limit !== undefined) params.append("limit", String(limit));
-
-      const queryString = params.toString();
+      const queryString = buildProductQueryString(queryParams);
       const url = queryString ? `/products?${queryString}` : "/products";
       const rawRes = await apiClient<ApiResponse<ProductsResponsePayload | Product[]>>(url);
-
-      if (Array.isArray(rawRes.data)) {
-        const rawArray = rawRes.data;
-        return {
-          ...rawRes,
-          data: {
-            products: rawArray,
-            pagination: {
-              totalProducts: rawArray.length,
-              totalPages: 1,
-              currentPage: 1,
-              limit: rawArray.length,
-              hasNextPage: false,
-              hasPrevPage: false,
-            },
-          },
-        };
-      }
-
-      return rawRes as ApiResponse<ProductsResponsePayload>;
+      return normalizeProductsResponse(rawRes, Number(page || 1));
     },
   });
 }
@@ -176,7 +188,13 @@ export function useInfiniteProductsQuery(
 
   const { categoryId, isFeatured, search, minPrice, maxPrice, sortBy, limit = 8 } = queryParams;
 
-  return useInfiniteQuery<ApiResponse<ProductsResponsePayload>, ApiError>({
+  return useInfiniteQuery<
+    ApiResponse<ProductsResponsePayload>,
+    ApiError,
+    InfiniteData<ApiResponse<ProductsResponsePayload>, number>,
+    unknown[],
+    number
+  >({
     queryKey: [
       "products",
       "infinite",
@@ -188,48 +206,27 @@ export function useInfiniteProductsQuery(
       sortBy || "default",
       limit,
     ],
-    queryFn: async ({ pageParam = 1 }) => {
-      const params = new URLSearchParams();
-      if (categoryId && categoryId !== "all") params.append("categoryId", categoryId);
-      if (isFeatured) params.append("isFeatured", "true");
-      if (search && search.trim()) params.append("search", search.trim());
-      if (minPrice !== undefined && minPrice !== "") params.append("minPrice", String(minPrice));
-      if (maxPrice !== undefined && maxPrice !== "") params.append("maxPrice", String(maxPrice));
-      if (sortBy) params.append("sortBy", sortBy);
-      params.append("page", String(pageParam));
-      params.append("limit", String(limit));
-
-      const queryString = params.toString();
+    queryFn: async ({ pageParam }) => {
+      const queryString = buildProductQueryString({ ...queryParams, limit }, pageParam);
       const url = queryString ? `/products?${queryString}` : "/products";
       const rawRes = await apiClient<ApiResponse<ProductsResponsePayload | Product[]>>(url);
-
-      if (Array.isArray(rawRes.data)) {
-        const rawArray = rawRes.data;
-        return {
-          ...rawRes,
-          data: {
-            products: rawArray,
-            pagination: {
-              totalProducts: rawArray.length,
-              totalPages: 1,
-              currentPage: Number(pageParam),
-              limit: rawArray.length,
-              hasNextPage: false,
-              hasPrevPage: false,
-            },
-          },
-        };
-      }
-
-      return rawRes as ApiResponse<ProductsResponsePayload>;
+      return normalizeProductsResponse(rawRes, pageParam);
     },
     initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
+    getNextPageParam: (lastPage, allPages) => {
       const pagination = lastPage?.data?.pagination;
-      if (pagination && pagination.hasNextPage) {
-        return pagination.currentPage + 1;
+      if (!pagination || !pagination.hasNextPage) {
+        return undefined;
       }
-      return undefined;
+      const nextPage =
+        typeof pagination.currentPage === "number" && pagination.currentPage > 0
+          ? pagination.currentPage + 1
+          : allPages.length + 1;
+
+      if (pagination.totalPages && nextPage > pagination.totalPages) {
+        return undefined;
+      }
+      return nextPage;
     },
     enabled: queryParams.search !== undefined ? Boolean(queryParams.search.trim()) : true,
   });
