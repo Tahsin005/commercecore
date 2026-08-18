@@ -59,6 +59,7 @@ export const bn = {
     profileTooltip: "প্রোফাইল ও অর্ডার দেখুন",
     toggleMenu: "নেভিগেশন মেনু খুলুন/বন্ধ করুন",
     openCart: "কার্ট খুলুন",
+    noProductsFoundFor: (query: string) => `"${query}" এর জন্য কোনো পণ্য পাওয়া যায়নি`,
   },
 
   // Footer
@@ -161,6 +162,8 @@ export const bn = {
     deliveryChargeOutside: "ঢাকার বাইরে ডেলিভারি চার্জ",
     howToBuyFallback: "পছন্দের পণ্য নির্বাচন করে কার্টে যোগ করুন বা 'এখনই অর্ডার করুন' বাটনে ক্লিক করুন, আপনার তথ্য দিন এবং ক্যাশ অন ডেলিভারি অর্ডার নিশ্চিত করুন।",
     returnPolicyFallback: "পণ্য গ্রহণের ৭ দিনের মধ্যে অব্যবহৃত এবং মূল প্যাকেজিং সহ পণ্য পরিবর্তন বা রিটার্ন সুবিধা প্রযোজ্য। যেকোনো সহায়তায় আমাদের কল করুন।",
+    productCodeCopied: "পণ্য কোড কপি করা হয়েছে!",
+    copyProductCode: "পণ্য কোড কপি করুন",
   },
 
   // Checkout Page

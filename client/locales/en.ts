@@ -54,6 +54,7 @@ export const en: TranslationType = {
     profileTooltip: "View Profile & Orders",
     toggleMenu: "Toggle Navigation Menu",
     openCart: "Open Cart",
+    noProductsFoundFor: (query: string) => `No products found for "${query}"`,
   },
   footer: {
     fastDeliveryTitle: "Fast Nationwide Delivery",
@@ -148,6 +149,8 @@ export const en: TranslationType = {
     deliveryChargeOutside: "Delivery Charge Outside Dhaka",
     howToBuyFallback: "Select desired items, add to cart or click 'Order Now', fill out customer details, and confirm Cash-on-Delivery order.",
     returnPolicyFallback: "Returns accepted within 7 days of delivery for unused items in original packaging. Contact customer support for hassle-free returns.",
+    productCodeCopied: "Product code copied!",
+    copyProductCode: "Copy product code",
   },
   checkout: {
     title: "Order Checkout",
