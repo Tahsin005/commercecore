@@ -79,11 +79,20 @@ export function ProductImageGallery({
 
         <div
           ref={containerRef}
+          role="button"
+          tabIndex={0}
+          aria-label={`View ${productName} image in full-screen gallery`}
           onMouseMove={handleMouseMove}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onClick={handleOpenLightbox}
-          className="relative w-full h-96 sm:h-[460px] rounded-xl overflow-hidden flex items-center justify-center bg-off-white border border-maroon-100/80 shadow-xs cursor-zoom-in group select-none"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleOpenLightbox();
+            }
+          }}
+          className="relative w-full h-96 sm:h-[460px] rounded-xl overflow-hidden flex items-center justify-center bg-off-white border border-maroon-100/80 shadow-xs cursor-zoom-in group select-none focus-visible:ring-2 focus-visible:ring-maroon-700 focus-visible:outline-none"
           title="Click or tap to view full screen with pinch zoom"
         >
           {currentImage ? (

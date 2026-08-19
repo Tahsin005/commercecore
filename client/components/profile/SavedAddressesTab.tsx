@@ -352,6 +352,20 @@ export function SavedAddressesTab({ isAuthenticated }: SavedAddressesTabProps) {
                   onChange={(e) => setAddressForm((prev) => ({ ...prev, city: e.target.value }))}
                   className="w-full p-2.5 bg-white text-maroon-900 border border-maroon-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-maroon-700 cursor-pointer"
                 >
+                  {addressForm.city &&
+                    ![
+                      "Dhaka",
+                      "Chittagong",
+                      "Sylhet",
+                      "Rajshahi",
+                      "Khulna",
+                      "Barisal",
+                      "Rangpur",
+                      "Mymensingh",
+                      "Other",
+                    ].includes(addressForm.city) && (
+                      <option value={addressForm.city}>{addressForm.city}</option>
+                    )}
                   <option value="Dhaka">Dhaka (ঢাকা)</option>
                   <option value="Chittagong">Chittagong (চট্টগ্রাম)</option>
                   <option value="Sylhet">Sylhet (সিলেট)</option>

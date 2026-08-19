@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
@@ -39,6 +39,10 @@ export default function AdminVariantsPage() {
   const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(null);
   const [deletingVariant, setDeletingVariant] = useState<ProductVariant | null>(null);
 
+  const triggerRef = useRef<HTMLElement | null>(null);
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const deleteModalRef = useRef<HTMLDivElement | null>(null);
+
   // Queries & Mutations
   const { data: response, isLoading, error, refetch, isFetching } = useGlobalVariantsQuery(true);
   const variants = response?.data || [];
@@ -56,7 +60,10 @@ export default function AdminVariantsPage() {
     },
   });
 
-  const handleOpenCreateModal = () => {
+  const handleOpenCreateModal = (e?: React.MouseEvent) => {
+    if (e?.currentTarget) {
+      triggerRef.current = e.currentTarget as HTMLElement;
+    }
     setEditingVariant(null);
     form.reset({
       label: "",
@@ -66,7 +73,10 @@ export default function AdminVariantsPage() {
     setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (variant: ProductVariant) => {
+  const handleOpenEditModal = (variant: ProductVariant, e?: React.MouseEvent) => {
+    if (e?.currentTarget) {
+      triggerRef.current = e.currentTarget as HTMLElement;
+    }
     setEditingVariant(variant);
     form.reset({
       label: variant.label || variant.size || "",
@@ -80,7 +90,104 @@ export default function AdminVariantsPage() {
     setIsModalOpen(false);
     setEditingVariant(null);
     form.reset();
+    if (triggerRef.current) {
+      triggerRef.current.focus();
+      triggerRef.current = null;
+    }
   };
+
+  const handleOpenDeleteModal = (variant: ProductVariant, e?: React.MouseEvent) => {
+    if (e?.currentTarget) {
+      triggerRef.current = e.currentTarget as HTMLElement;
+    }
+    setDeletingVariant(variant);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setDeletingVariant(null);
+    if (triggerRef.current) {
+      triggerRef.current.focus();
+      triggerRef.current = null;
+    }
+  };
+
+  // Keyboard navigation & focus trap for edit/create modal
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const modalEl = modalRef.current;
+    if (!modalEl) return;
+
+    const focusableElements = modalEl.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusableElements.length > 0) {
+      focusableElements[0].focus();
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        handleCloseModal();
+      } else if (e.key === "Tab") {
+        const focusable = modalEl.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isModalOpen]);
+
+  // Keyboard navigation & focus trap for delete modal
+  useEffect(() => {
+    if (!deletingVariant) return;
+    const deleteModalEl = deleteModalRef.current;
+    if (!deleteModalEl) return;
+
+    const focusableElements = deleteModalEl.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusableElements.length > 0) {
+      focusableElements[0].focus();
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        handleCloseDeleteModal();
+      } else if (e.key === "Tab") {
+        const focusable = deleteModalEl.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [deletingVariant]);
 
   const onSubmit = async (data: VariantInput) => {
     try {
@@ -404,22 +511,30 @@ export default function AdminVariantsPage() {
                 <thead>
                   <tr className="bg-maroon-900 text-cream text-[11px] font-bold uppercase tracking-wider">
                     <th
-                      onClick={() => toggleSort("order")}
-                      className="py-3.5 px-4 cursor-pointer hover:bg-maroon-800 transition-colors w-24"
+                      aria-sort={sortBy === "order" ? (sortOrder === "asc" ? "ascending" : "descending") : "none"}
+                      className="py-3.5 px-4 w-24"
                     >
-                      <div className="flex items-center space-x-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleSort("order")}
+                        className="flex items-center space-x-1 cursor-pointer hover:text-white transition-colors focus:outline-none focus:ring-1 focus:ring-cream/60 rounded px-1 -mx-1"
+                      >
                         <span>Order</span>
                         <ArrowUpDown className="w-3 h-3 text-cream/70" />
-                      </div>
+                      </button>
                     </th>
                     <th
-                      onClick={() => toggleSort("label")}
-                      className="py-3.5 px-4 cursor-pointer hover:bg-maroon-800 transition-colors"
+                      aria-sort={sortBy === "label" ? (sortOrder === "asc" ? "ascending" : "descending") : "none"}
+                      className="py-3.5 px-4"
                     >
-                      <div className="flex items-center space-x-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleSort("label")}
+                        className="flex items-center space-x-1 cursor-pointer hover:text-white transition-colors focus:outline-none focus:ring-1 focus:ring-cream/60 rounded px-1 -mx-1"
+                      >
                         <span>Variant Label (Age / Size)</span>
                         <ArrowUpDown className="w-3 h-3 text-cream/70" />
-                      </div>
+                      </button>
                     </th>
                     <th className="py-3.5 px-4 text-center w-36">Status</th>
                     <th className="py-3.5 px-4 text-right w-36">Actions</th>
@@ -466,14 +581,14 @@ export default function AdminVariantsPage() {
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end space-x-1.5">
                             <button
-                              onClick={() => handleOpenEditModal(variant)}
+                              onClick={(e) => handleOpenEditModal(variant, e)}
                               className="p-1.5 text-maroon-700 hover:text-maroon-900 hover:bg-maroon-100 rounded-lg transition-colors cursor-pointer"
                               title="Edit Variant"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => setDeletingVariant(variant)}
+                              onClick={(e) => handleOpenDeleteModal(variant, e)}
                               className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                               title="Delete Variant"
                             >
@@ -497,10 +612,16 @@ export default function AdminVariantsPage() {
             className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
             onClick={handleCloseModal}
           />
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-maroon-100 p-6 space-y-5 z-10 animate-in zoom-in-95 duration-200">
+          <div
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="variant-modal-title"
+            className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-maroon-100 p-6 space-y-5 z-10 animate-in zoom-in-95 duration-200"
+          >
             <div className="flex items-center justify-between border-b border-maroon-100 pb-3">
               <div>
-                <h3 className="font-serif font-bold text-lg text-maroon-900">
+                <h3 id="variant-modal-title" className="font-serif font-bold text-lg text-maroon-900">
                   {editingVariant ? "Edit Variant" : "Add New Variant"}
                 </h3>
                 <p className="text-xs text-maroon-700">
@@ -510,7 +631,9 @@ export default function AdminVariantsPage() {
                 </p>
               </div>
               <button
+                type="button"
                 onClick={handleCloseModal}
+                aria-label="Close variant dialog"
                 className="p-1.5 text-maroon-500 hover:text-maroon-800 hover:bg-maroon-50 rounded-full transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -588,14 +711,20 @@ export default function AdminVariantsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
-            onClick={() => setDeletingVariant(null)}
+            onClick={handleCloseDeleteModal}
           />
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-red-100 p-6 space-y-4 z-10 animate-in zoom-in-95 duration-200">
+          <div
+            ref={deleteModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-modal-title"
+            className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-red-100 p-6 space-y-4 z-10 animate-in zoom-in-95 duration-200"
+          >
             <div className="flex items-center space-x-3 text-red-600">
               <div className="p-2.5 bg-red-100 rounded-full shrink-0">
                 <AlertTriangle className="w-6 h-6 text-red-600" />
               </div>
-              <h3 className="font-serif font-bold text-lg text-maroon-900">Delete Variant</h3>
+              <h3 id="delete-modal-title" className="font-serif font-bold text-lg text-maroon-900">Delete Variant</h3>
             </div>
 
             <p className="text-xs text-maroon-700 leading-relaxed">
@@ -607,7 +736,7 @@ export default function AdminVariantsPage() {
             <div className="pt-3 border-t border-maroon-100 flex items-center justify-end space-x-3">
               <button
                 type="button"
-                onClick={() => setDeletingVariant(null)}
+                onClick={handleCloseDeleteModal}
                 className="px-4 py-2 bg-off-white hover:bg-maroon-100 border border-maroon-200 text-maroon-900 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
               >
                 Cancel

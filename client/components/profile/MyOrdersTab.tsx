@@ -30,7 +30,8 @@ interface MyOrdersTabProps {
 }
 
 export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dateLocale = language === "bn" ? "bn-BD" : "en-US";
   const [ordersPage, setOrdersPage] = useState(1);
   const { data: ordersRes, isLoading: isOrdersLoading } = useCustomerOrdersQuery(ordersPage, 10, isAuthenticated);
   const ordersData = ordersRes?.data;
@@ -95,7 +96,7 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                   <div className="flex items-center space-x-1 text-[11px] text-maroon-600 font-sans">
                     <Calendar className="w-3 h-3 text-maroon-500 shrink-0" />
                     <span>
-                      {new Date(order.createdAt).toLocaleDateString("en-US", {
+                      {new Date(order.createdAt).toLocaleDateString(dateLocale, {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
@@ -183,7 +184,7 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                         {t.profile.orderNumberLabel || "Order #"} {order.orderNumber}
                       </span>
                       <span className="text-[11px] text-maroon-600 block">
-                        {new Date(order.createdAt).toLocaleDateString("en-US", {
+                        {new Date(order.createdAt).toLocaleDateString(dateLocale, {
                           month: "short",
                           day: "numeric",
                           year: "numeric",
@@ -282,7 +283,7 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                 </span>
               </div>
               <p className="text-xs text-maroon-600 font-mono">
-                Placed on {new Date(selectedOrder.createdAt).toLocaleString("en-US")}
+                Placed on {new Date(selectedOrder.createdAt).toLocaleString(dateLocale)}
               </p>
             </div>
 
