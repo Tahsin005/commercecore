@@ -35,15 +35,21 @@ const validateAndVerifyVariantIds = async (variantIds = [], session = null) => {
 const normalizeAndValidateVariants = async (variantsInput, variantIdsInput, session = null) => {
   let normalized = [];
   if (Array.isArray(variantsInput) && variantsInput.length > 0) {
-    normalized = variantsInput.map((v) => ({
-      productVariantId: typeof v === 'string' ? v : v.productVariantId || v.variantId || v.id,
-      price: typeof v === 'object' && v.price !== undefined && v.price !== null ? Number(v.price) : null,
-      quantity: typeof v === 'object' && v.quantity !== undefined ? Number(v.quantity) : 0,
-    }));
+    normalized = variantsInput.map((v) => {
+      const vPrice = typeof v === 'object' && v.price !== undefined && v.price !== null && String(v.price).trim() !== '' ? Number(v.price) : null;
+      const vDiscountPrice = typeof v === 'object' && v.discountPrice !== undefined && v.discountPrice !== null && String(v.discountPrice).trim() !== '' ? Number(v.discountPrice) : null;
+      return {
+        productVariantId: typeof v === 'string' ? v : v.productVariantId || v.variantId || v.id,
+        price: vPrice,
+        discountPrice: vDiscountPrice,
+        quantity: typeof v === 'object' && v.quantity !== undefined ? Number(v.quantity) : 0,
+      };
+    });
   } else if (Array.isArray(variantIdsInput) && variantIdsInput.length > 0) {
     normalized = variantIdsInput.map((vId) => ({
       productVariantId: vId,
       price: null,
+      discountPrice: null,
       quantity: 0,
     }));
   } else {
@@ -56,17 +62,20 @@ const normalizeAndValidateVariants = async (variantsInput, variantIdsInput, sess
   return normalized;
 };
 
-const processAndSortVariants = (links, defaultPrice = 0) => {
+const processAndSortVariants = (links, defaultPrice = 0, defaultDiscountPrice = null) => {
   return links
     .filter((l) => l.productVariantId && l.productVariantId.isActive === true)
     .map((l) => {
       const v = l.productVariantId.toJSON ? l.productVariantId.toJSON() : l.productVariantId;
       const variantPrice = l.price !== undefined && l.price !== null ? l.price : defaultPrice;
+      const variantDiscountPrice = l.discountPrice !== undefined && l.discountPrice !== null ? l.discountPrice : defaultDiscountPrice;
       return {
         ...v,
         size: v.label,
         price: variantPrice,
         overridePrice: l.price ?? null,
+        discountPrice: variantDiscountPrice ?? null,
+        overrideDiscountPrice: l.discountPrice ?? null,
         quantity: l.quantity ?? 0,
       };
     })
@@ -176,11 +185,13 @@ export const getAllProductsService = async (query = {}) => {
   }, {});
 
   const formattedProducts = products.map((p) => {
-    const variants = processAndSortVariants(linksByProduct[p.id] || [], p.price);
+    const variants = processAndSortVariants(linksByProduct[p.id] || [], p.price, p.discountPrice);
     const totalQuantity = variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
     return {
       ...p.toJSON(),
       defaultPrice: p.price,
+      discountPrice: p.discountPrice ?? null,
+      defaultDiscountPrice: p.discountPrice ?? null,
       quantity: totalQuantity,
       variants,
     };
@@ -208,12 +219,14 @@ export const getProductByIdService = async (productId) => {
     throw new ApiError(404, 'Product not found');
   }
   const links = await ProductVariantLink.find({ productId: product.id }).populate('productVariantId');
-  const variants = processAndSortVariants(links, product.price);
+  const variants = processAndSortVariants(links, product.price, product.discountPrice);
   const totalQuantity = variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
 
   return {
     ...product.toJSON(),
     defaultPrice: product.price,
+    discountPrice: product.discountPrice ?? null,
+    defaultDiscountPrice: product.discountPrice ?? null,
     quantity: totalQuantity,
     variants,
   };
@@ -225,12 +238,14 @@ export const getProductBySlugService = async (slug) => {
     throw new ApiError(404, 'Product not found');
   }
   const links = await ProductVariantLink.find({ productId: product.id }).populate('productVariantId');
-  const variants = processAndSortVariants(links, product.price);
+  const variants = processAndSortVariants(links, product.price, product.discountPrice);
   const totalQuantity = variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
 
   return {
     ...product.toJSON(),
     defaultPrice: product.price,
+    discountPrice: product.discountPrice ?? null,
+    defaultDiscountPrice: product.discountPrice ?? null,
     quantity: totalQuantity,
     variants,
   };
@@ -242,7 +257,7 @@ export const getProductVariantsService = async (productId) => {
     throw new ApiError(404, 'Product not found');
   }
   const links = await ProductVariantLink.find({ productId: product.id }).populate('productVariantId');
-  return processAndSortVariants(links, product.price);
+  return processAndSortVariants(links, product.price, product.discountPrice);
 };
 
 export const getGlobalVariantsService = async (includeAll = false) => {
@@ -254,9 +269,10 @@ export const createProductService = async ({
   name,
   slug,
   code = '',
-  categoryId = null,
+  categoryId,
   description = '',
   price,
+  discountPrice = null,
   quantity = 0,
   isFeatured = false,
   isActive = true,
@@ -269,6 +285,15 @@ export const createProductService = async ({
     throw new ApiError(400, 'Invalid product name or slug');
   }
 
+  if (!categoryId) {
+    throw new ApiError(400, 'Product category is required');
+  }
+
+  const categoryObj = await Category.findById(categoryId);
+  if (!categoryObj) {
+    throw new ApiError(404, 'Selected category does not exist');
+  }
+
   const normalizedVariants = await normalizeAndValidateVariants(variants, variantIds);
 
   const existing = await Product.findOne({ slug: finalSlug });
@@ -276,11 +301,12 @@ export const createProductService = async ({
     throw new ApiError(400, 'Product with this slug already exists');
   }
 
-  if (categoryId) {
-    const categoryObj = await Category.findById(categoryId);
-    if (!categoryObj) {
-      throw new ApiError(404, 'Selected category does not exist');
-    }
+  const cleanDiscountPrice =
+    discountPrice !== undefined && discountPrice !== null && String(discountPrice).trim() !== '' && Number(discountPrice) > 0
+      ? Number(discountPrice)
+      : null;
+  if (cleanDiscountPrice !== null && cleanDiscountPrice >= Number(price)) {
+    throw new ApiError(400, 'Discount price must be less than regular price');
   }
 
   let session = null;
@@ -302,9 +328,10 @@ export const createProductService = async ({
           name,
           slug: finalSlug,
           code,
-          categoryId: categoryId || null,
+          categoryId,
           description,
-          price,
+          price: Number(price),
+          discountPrice: cleanDiscountPrice,
           isFeatured: Boolean(isFeatured),
           isActive: Boolean(isActive),
           images: Array.isArray(images) ? images : [],
@@ -318,6 +345,7 @@ export const createProductService = async ({
         productId: product.id,
         productVariantId: item.productVariantId,
         price: item.price,
+        discountPrice: item.discountPrice,
         quantity: item.quantity,
       }));
       await ProductVariantLink.insertMany(linkDocs, opts);
@@ -348,6 +376,7 @@ export const updateProductService = async (
     categoryId,
     description,
     price,
+    discountPrice,
     quantity,
     isFeatured,
     isActive,
@@ -382,21 +411,31 @@ export const updateProductService = async (
     if (name !== undefined) product.name = name;
     if (code !== undefined) product.code = code;
     if (description !== undefined) product.description = description;
-    if (price !== undefined) product.price = price;
+    if (price !== undefined) product.price = Number(price);
+    if (discountPrice !== undefined) {
+      const cleanDiscountPrice =
+        discountPrice !== null && String(discountPrice).trim() !== '' && Number(discountPrice) > 0
+          ? Number(discountPrice)
+          : null;
+      const effectivePrice = price !== undefined ? Number(price) : product.price;
+      if (cleanDiscountPrice !== null && cleanDiscountPrice >= effectivePrice) {
+        throw new ApiError(400, 'Discount price must be less than regular price');
+      }
+      product.discountPrice = cleanDiscountPrice;
+    }
     if (isFeatured !== undefined) product.isFeatured = Boolean(isFeatured);
     if (isActive !== undefined) product.isActive = Boolean(isActive);
     if (images !== undefined) product.images = Array.isArray(images) ? images : [];
 
     if (categoryId !== undefined) {
-      if (categoryId) {
-        const categoryObj = await Category.findById(categoryId).session(session || null);
-        if (!categoryObj) {
-          throw new ApiError(404, 'Selected category does not exist');
-        }
-        product.categoryId = categoryId;
-      } else {
-        product.categoryId = null;
+      if (!categoryId) {
+        throw new ApiError(400, 'Product category cannot be empty');
       }
+      const categoryObj = await Category.findById(categoryId).session(session || null);
+      if (!categoryObj) {
+        throw new ApiError(404, 'Selected category does not exist');
+      }
+      product.categoryId = categoryId;
     }
 
     if (slug !== undefined || name !== undefined) {
@@ -419,6 +458,7 @@ export const updateProductService = async (
           productId: id,
           productVariantId: item.productVariantId,
           price: item.price,
+          discountPrice: item.discountPrice,
           quantity: item.quantity,
         }));
         await ProductVariantLink.insertMany(linkDocs, opts);

@@ -5,37 +5,6 @@ export const deliveryChargeSchema = z.object({
   outsideDhaka: z.number().min(0, 'Outside Dhaka delivery charge must be at least 0'),
 });
 
-export const siteDiscountSchema = z
-  .object({
-    discountPercentage: z
-      .number()
-      .min(0, 'Discount percentage must be between 0 and 100')
-      .max(100, 'Discount percentage must be between 0 and 100'),
-    startDate: z
-      .string()
-      .nullable()
-      .optional()
-      .refine((val) => !val || !isNaN(new Date(val).getTime()), { message: 'Invalid start date format' }),
-    endDate: z
-      .string()
-      .nullable()
-      .optional()
-      .refine((val) => !val || !isNaN(new Date(val).getTime()), { message: 'Invalid end date format' }),
-    isActive: z.boolean(),
-  })
-  .refine(
-    (data) => {
-      if (data.startDate && data.endDate && !isNaN(new Date(data.startDate).getTime()) && !isNaN(new Date(data.endDate).getTime())) {
-        return new Date(data.endDate) >= new Date(data.startDate);
-      }
-      return true;
-    },
-    {
-      message: 'End date must be after or equal to start date',
-      path: ['endDate'],
-    }
-  );
-
 export const marqueeSchema = z.object({
   text: z.string().trim().min(1, 'Marquee text is required'),
   isActive: z.boolean(),
@@ -56,7 +25,7 @@ export const footerSettingsSchema = z.object({
 
 export const updateSettingSchema = z.object({
   params: z.object({
-    key: z.enum(['delivery_charge', 'site_discount', 'marquee', 'footer_settings']),
+    key: z.enum(['delivery_charge', 'marquee', 'footer_settings']),
   }),
   body: z.object({
     value: z.any().refine((val) => val !== undefined, { message: 'Value is required' }),

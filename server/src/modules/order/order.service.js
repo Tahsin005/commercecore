@@ -157,10 +157,20 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
 
     const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
 
-    let unitPrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
-    if (link && link.price !== undefined && link.price !== null) {
-      unitPrice = link.price;
+    let regularPrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
+    let discountPrice = product.discountPrice !== undefined ? product.discountPrice : null;
+
+    if (link) {
+      if (link.price !== undefined && link.price !== null) {
+        regularPrice = link.price;
+      }
+      if (link.discountPrice !== undefined && link.discountPrice !== null) {
+        discountPrice = link.discountPrice;
+      }
     }
+
+    const isOnSale = discountPrice !== null && discountPrice > 0 && discountPrice < regularPrice;
+    const unitPrice = isOnSale ? discountPrice : regularPrice;
 
     const itemSubtotal = unitPrice * qty;
     subtotal += itemSubtotal;
@@ -199,21 +209,7 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
     }
 
     const roundedSubtotal = Math.round(subtotal * 100) / 100;
-
-    let discountAmount = 0;
-    const siteDiscount = siteSettings?.site_discount;
-
-    if (siteDiscount && siteDiscount.isActive && siteDiscount.discountPercentage > 0) {
-      const now = new Date();
-      const startValid = !siteDiscount.startDate || new Date(siteDiscount.startDate) <= now;
-      const endValid = !siteDiscount.endDate || new Date(siteDiscount.endDate) >= now;
-
-      if (startValid && endValid) {
-        discountAmount = Math.round(((roundedSubtotal * siteDiscount.discountPercentage) / 100) * 100) / 100;
-      }
-    }
-
-    const rawTotal = roundedSubtotal + deliveryCharge - discountAmount;
+    const rawTotal = roundedSubtotal + deliveryCharge;
     const total = Math.max(0, Math.round(rawTotal * 100) / 100);
 
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -230,8 +226,8 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
       notes: notes ? notes.trim() : '',
       deliveryZone,
       deliveryCharge,
-      subtotal,
-      discountAmount,
+      subtotal: roundedSubtotal,
+      discountAmount: 0,
       total,
       status: 'PENDING',
     });

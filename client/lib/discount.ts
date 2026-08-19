@@ -1,83 +1,56 @@
-import { useState, useEffect } from "react";
-import { SiteDiscountSetting } from "@/hooks/useSettingsQueries";
+/**
+ * Product-based discount utility functions.
+ */
 
-export function isDiscountActive(discountSetting?: SiteDiscountSetting | null): boolean {
-  if (!discountSetting || !discountSetting.isActive || !discountSetting.discountPercentage || discountSetting.discountPercentage <= 0) {
+/**
+ * Checks if a product or variant is currently on sale.
+ */
+export function isProductOnSale(
+  regularPrice: number,
+  discountPrice?: number | null
+): boolean {
+  if (discountPrice === undefined || discountPrice === null || discountPrice <= 0) {
     return false;
   }
-
-  const now = new Date();
-
-  if (discountSetting.startDate) {
-    const start = new Date(discountSetting.startDate);
-    if (isNaN(start.getTime()) || now < start) {
-      return false;
-    }
-  }
-
-  if (discountSetting.endDate) {
-    const end = new Date(discountSetting.endDate);
-    if (isNaN(end.getTime()) || now > end) {
-      return false;
-    }
-  }
-
-  return true;
+  return discountPrice < regularPrice;
 }
 
-export function useActiveDiscount(discountSetting?: SiteDiscountSetting | null): boolean {
-  const [, setTick] = useState(0);
-
-  useEffect(() => {
-    if (!discountSetting || !discountSetting.isActive) return;
-
-    const now = Date.now();
-    const timers: NodeJS.Timeout[] = [];
-
-    if (discountSetting.startDate) {
-      const startMs = new Date(discountSetting.startDate).getTime();
-      if (!isNaN(startMs) && startMs > now) {
-        const delay = startMs - now;
-        if (delay < 2147483647) {
-          timers.push(setTimeout(() => setTick((t) => t + 1), delay));
-        }
-      }
-    }
-
-    if (discountSetting.endDate) {
-      const endMs = new Date(discountSetting.endDate).getTime();
-      if (!isNaN(endMs) && endMs > now) {
-        const delay = endMs - now;
-        if (delay < 2147483647) {
-          timers.push(setTimeout(() => setTick((t) => t + 1), delay));
-        }
-      }
-    }
-
-    return () => {
-      timers.forEach((timer) => clearTimeout(timer));
-    };
-  }, [discountSetting?.isActive, discountSetting?.startDate, discountSetting?.endDate]);
-
-  return isDiscountActive(discountSetting);
-}
-
-export function getDiscountedPrice(price: number, discountSetting?: SiteDiscountSetting | null): number {
-  if (!isDiscountActive(discountSetting)) {
-    return price;
+/**
+ * Returns the effective selling price for a product or variant.
+ */
+export function getProductEffectivePrice(
+  regularPrice: number,
+  discountPrice?: number | null
+): number {
+  if (isProductOnSale(regularPrice, discountPrice)) {
+    return discountPrice!;
   }
-
-  const percentage = discountSetting?.discountPercentage || 0;
-  const discounted = price - (price * percentage) / 100;
-  return Math.max(0, Math.round(discounted * 100) / 100);
+  return regularPrice;
 }
 
-export function getDiscountAmount(subtotal: number, discountSetting?: SiteDiscountSetting | null): number {
-  if (!isDiscountActive(discountSetting)) {
+/**
+ * Returns the discount percentage rounded to the nearest integer (e.g. 20 for 20% off).
+ */
+export function getProductDiscountPercentage(
+  regularPrice: number,
+  discountPrice?: number | null
+): number {
+  if (!isProductOnSale(regularPrice, discountPrice) || regularPrice <= 0) {
     return 0;
   }
+  const diff = regularPrice - discountPrice!;
+  return Math.round((diff / regularPrice) * 100);
+}
 
-  const percentage = discountSetting?.discountPercentage || 0;
-  const rawAmount = (subtotal * percentage) / 100;
-  return Math.max(0, Math.round(rawAmount * 100) / 100);
+/**
+ * Returns the amount saved in currency units (e.g. 250 for ৳250 savings).
+ */
+export function getProductSavings(
+  regularPrice: number,
+  discountPrice?: number | null
+): number {
+  if (!isProductOnSale(regularPrice, discountPrice)) {
+    return 0;
+  }
+  return Math.max(0, Math.round((regularPrice - discountPrice!) * 100) / 100);
 }

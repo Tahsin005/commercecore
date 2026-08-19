@@ -19,6 +19,11 @@ const productVariantLinkSchema = new mongoose.Schema(
       min: [0, 'Price cannot be negative'],
       default: null,
     },
+    discountPrice: {
+      type: Number,
+      min: [0, 'Variant discount price cannot be negative'],
+      default: null,
+    },
     quantity: {
       type: Number,
       min: [0, 'Quantity cannot be negative'],

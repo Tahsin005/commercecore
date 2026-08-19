@@ -34,7 +34,6 @@ import { CheckoutSkeleton, OrderSuccessSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
-import { getDiscountAmount, useActiveDiscount } from "@/lib/discount";
 import { useUserAddressesQuery } from "@/hooks/useAddressQueries";
 
 export default function CheckoutPage() {
@@ -97,12 +96,7 @@ export default function CheckoutPage() {
   const insideDhakaRate = siteSettings?.delivery_charge?.insideDhaka ?? 60;
   const outsideDhakaRate = siteSettings?.delivery_charge?.outsideDhaka ?? 120;
   const deliveryCharge = deliveryZone === "outside_dhaka" ? outsideDhakaRate : insideDhakaRate;
-
-  // sitewide discount deduction
-  const siteDiscount = siteSettings?.site_discount;
-  const hasActiveDiscount = useActiveDiscount(siteDiscount);
-  const discountAmount = getDiscountAmount(subtotal, siteDiscount);
-  const totalAmount = Math.max(0, subtotal + deliveryCharge - discountAmount);
+  const totalAmount = Math.max(0, subtotal + deliveryCharge);
 
   const onSubmit = (data: CheckoutInput) => {
     if (cartItems.length === 0) {
@@ -539,15 +533,6 @@ export default function CheckoutPage() {
                     <span>{t.checkout.deliveryCharge} ({deliveryZone === "inside_dhaka" ? t.checkout.insideDhaka : t.checkout.outsideDhaka})</span>
                     <span className="font-mono font-semibold">৳{deliveryCharge.toFixed(2)}</span>
                   </div>
-
-                  {hasActiveDiscount && discountAmount > 0 && (
-                    <div className="flex items-center justify-between text-emerald-700 font-semibold pt-1">
-                      <span className="flex items-center space-x-1">
-                        <span>Sitewide Discount ({siteDiscount?.discountPercentage}% OFF)</span>
-                      </span>
-                      <span className="font-mono text-xs font-bold">-৳{discountAmount.toFixed(2)}</span>
-                    </div>
-                  )}
 
                   <div className="pt-3 border-t border-maroon-100 flex items-center justify-between text-sm font-bold text-maroon-900">
                     <span>{t.checkout.totalAmount}</span>

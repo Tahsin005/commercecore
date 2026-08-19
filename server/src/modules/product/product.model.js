@@ -7,7 +7,7 @@ const productSchema = new mongoose.Schema(
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
-      default: null,
+      required: [true, 'Product category is required'],
     },
     name: {
       type: String,
@@ -35,6 +35,11 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'Product price is required'],
       min: [0, 'Price cannot be negative'],
+    },
+    discountPrice: {
+      type: Number,
+      default: null,
+      min: [0, 'Discount price cannot be negative'],
     },
     isFeatured: {
       type: Boolean,

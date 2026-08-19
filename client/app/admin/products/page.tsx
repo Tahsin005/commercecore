@@ -63,8 +63,8 @@ export default function AdminProductsPage() {
   const [deletingVariant, setDeletingVariant] = useState<ProductVariant | null>(null);
 
   const [selectedVariantIds, setSelectedVariantIds] = useState<string[]>([]);
-  const [createVariantConfigs, setCreateVariantConfigs] = useState<Record<string, { price: string; quantity: number }>>({});
-  const [editVariantConfigs, setEditVariantConfigs] = useState<Record<string, { price: string; quantity: number }>>({});
+  const [createVariantConfigs, setCreateVariantConfigs] = useState<Record<string, { price: string; discountPrice: string; quantity: number }>>({});
+  const [editVariantConfigs, setEditVariantConfigs] = useState<Record<string, { price: string; discountPrice: string; quantity: number }>>({});
   const [createImages, setCreateImages] = useState<string[]>([]);
   const [editImages, setEditImages] = useState<string[]>([]);
 
@@ -94,9 +94,10 @@ export default function AdminProductsPage() {
       name: "",
       slug: "",
       code: "",
-      categoryId: null,
+      categoryId: "",
       description: "",
       price: 0,
+      discountPrice: null,
       isFeatured: false,
       isActive: true,
     },
@@ -120,9 +121,10 @@ export default function AdminProductsPage() {
       name: "",
       slug: "",
       code: "",
-      categoryId: null,
+      categoryId: categories[0]?.id || "",
       description: "",
       price: 0,
+      discountPrice: null,
       isFeatured: false,
       isActive: true,
     });
@@ -138,10 +140,21 @@ export default function AdminProductsPage() {
     setSelectedVariantIds(existingVariantIds);
     setEditImages(prod.images || []);
 
-    const configs: Record<string, { price: string; quantity: number }> = {};
+    const configs: Record<string, { price: string; discountPrice: string; quantity: number }> = {};
     (prod.variants || []).forEach((v) => {
       configs[v.id] = {
-        price: v.overridePrice !== undefined && v.overridePrice !== null ? String(v.overridePrice) : (v.price !== undefined && v.price !== prod.price ? String(v.price) : ""),
+        price:
+          v.overridePrice !== undefined && v.overridePrice !== null
+            ? String(v.overridePrice)
+            : v.price !== undefined && v.price !== prod.price
+            ? String(v.price)
+            : "",
+        discountPrice:
+          v.overrideDiscountPrice !== undefined && v.overrideDiscountPrice !== null
+            ? String(v.overrideDiscountPrice)
+            : v.discountPrice !== undefined && v.discountPrice !== prod.discountPrice
+            ? String(v.discountPrice)
+            : "",
         quantity: v.quantity !== undefined ? v.quantity : 10,
       };
     });
@@ -151,9 +164,10 @@ export default function AdminProductsPage() {
       name: prod.name,
       slug: prod.slug,
       code: prod.code || "",
-      categoryId: prod.categoryId?.id || null,
+      categoryId: prod.categoryId?.id || "",
       description: prod.description || "",
       price: prod.price,
+      discountPrice: prod.discountPrice ?? null,
       isFeatured: prod.isFeatured || false,
       isActive: prod.isActive !== false,
     });
@@ -217,7 +231,7 @@ export default function AdminProductsPage() {
       setSelectedVariantIds((prev) => [...prev, variantId]);
       setCreateVariantConfigs((prev) => ({
         ...prev,
-        [variantId]: { price: "", quantity: 10 },
+        [variantId]: { price: "", discountPrice: "", quantity: 10 },
       }));
     }
   };
@@ -234,7 +248,7 @@ export default function AdminProductsPage() {
       setSelectedVariantIds((prev) => [...prev, variantId]);
       setEditVariantConfigs((prev) => ({
         ...prev,
-        [variantId]: { price: "", quantity: 10 },
+        [variantId]: { price: "", discountPrice: "", quantity: 10 },
       }));
     }
   };
@@ -250,18 +264,28 @@ export default function AdminProductsPage() {
       const cfg = createVariantConfigs[vId];
       return {
         productVariantId: vId,
-        price: cfg && cfg.price.trim() !== "" ? Number(cfg.price) : null,
+        price: cfg && cfg.price && cfg.price.trim() !== "" ? Number(cfg.price) : null,
+        discountPrice: cfg && cfg.discountPrice && cfg.discountPrice.trim() !== "" ? Number(cfg.discountPrice) : null,
         quantity: cfg ? Number(cfg.quantity) || 0 : 0,
       };
     });
+
+    const cleanDiscount =
+      data.discountPrice !== undefined &&
+      data.discountPrice !== null &&
+      !isNaN(Number(data.discountPrice)) &&
+      Number(data.discountPrice) > 0
+        ? Number(data.discountPrice)
+        : null;
 
     const payload = {
       name: data.name.trim(),
       slug: data.slug?.trim() ? slugify(data.slug) : slugify(data.name),
       code: data.code?.trim() || "",
-      categoryId: data.categoryId || null,
+      categoryId: data.categoryId,
       description: data.description?.trim() || "",
-      price: data.price,
+      price: Number(data.price),
+      discountPrice: cleanDiscount,
       isFeatured: data.isFeatured,
       isActive: data.isActive,
       images: createImages,
@@ -297,19 +321,29 @@ export default function AdminProductsPage() {
       const cfg = editVariantConfigs[vId];
       return {
         productVariantId: vId,
-        price: cfg && cfg.price.trim() !== "" ? Number(cfg.price) : null,
+        price: cfg && cfg.price && cfg.price.trim() !== "" ? Number(cfg.price) : null,
+        discountPrice: cfg && cfg.discountPrice && cfg.discountPrice.trim() !== "" ? Number(cfg.discountPrice) : null,
         quantity: cfg ? Number(cfg.quantity) || 0 : 0,
       };
     });
+
+    const cleanDiscount =
+      data.discountPrice !== undefined &&
+      data.discountPrice !== null &&
+      !isNaN(Number(data.discountPrice)) &&
+      Number(data.discountPrice) > 0
+        ? Number(data.discountPrice)
+        : null;
 
     const payload = {
       id: editingProduct.id,
       name: data.name.trim(),
       slug: data.slug?.trim() ? slugify(data.slug) : slugify(data.name),
       code: data.code?.trim() || "",
-      categoryId: data.categoryId || null,
+      categoryId: data.categoryId,
       description: data.description?.trim() || "",
-      price: data.price,
+      price: Number(data.price),
+      discountPrice: cleanDiscount,
       isFeatured: data.isFeatured,
       isActive: data.isActive,
       images: editImages,
@@ -702,7 +736,17 @@ export default function AdminProductsPage() {
                       )}
                     </td>
                     <td className="py-4 px-6 font-mono font-bold text-sm text-maroon-900">
-                      ৳{prod.price.toFixed(2)}
+                      {prod.discountPrice && prod.discountPrice > 0 && prod.discountPrice < prod.price ? (
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-maroon-900">৳{prod.discountPrice.toFixed(2)}</span>
+                          <span className="text-[11px] text-maroon-700/60 line-through">৳{prod.price.toFixed(2)}</span>
+                          <span className="inline-block mt-0.5 text-[9px] font-bold text-red-600 bg-red-50 border border-red-200 px-1 py-0.2 rounded w-fit">
+                            -{Math.round(((prod.price - prod.discountPrice) / prod.price) * 100)}% OFF
+                          </span>
+                        </div>
+                      ) : (
+                        <span>৳{prod.price.toFixed(2)}</span>
+                      )}
                     </td>
                     <td className="py-4 px-6 font-mono font-semibold">
                       <span
@@ -919,36 +963,59 @@ export default function AdminProductsPage() {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
-                    Category
+                    Category *
                   </label>
                   <select
                     {...createForm.register("categoryId")}
                     className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all cursor-pointer font-medium"
                   >
-                    <option value="">-- No Category --</option>
+                    <option value="">-- Select Category * --</option>
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
                       </option>
                     ))}
                   </select>
+                  {createForm.formState.errors.categoryId && (
+                    <p className="text-xs text-red-600 mt-1">{createForm.formState.errors.categoryId.message}</p>
+                  )}
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
-                  Base Price (৳) *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="1850"
-                  {...createForm.register("price", { valueAsNumber: true })}
-                  className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
-                />
-                {createForm.formState.errors.price && (
-                  <p className="text-xs text-red-600 mt-1">{createForm.formState.errors.price.message}</p>
-                )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
+                    Base Regular Price (৳) *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="1850"
+                    {...createForm.register("price", { valueAsNumber: true })}
+                    className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
+                  />
+                  {createForm.formState.errors.price && (
+                    <p className="text-xs text-red-600 mt-1">{createForm.formState.errors.price.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
+                    Discounted Price (৳) <span className="text-[10px] text-maroon-500 font-normal normal-case">(Optional)</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Optional (e.g. 1500)"
+                    {...createForm.register("discountPrice", {
+                      setValueAs: (v) => (v === "" || v === undefined || v === null ? null : Number(v)),
+                    })}
+                    className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
+                  />
+                  {createForm.formState.errors.discountPrice && (
+                    <p className="text-xs text-red-600 mt-1">{createForm.formState.errors.discountPrice.message}</p>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -998,17 +1065,17 @@ export default function AdminProductsPage() {
                       {selectedVariantIds.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-maroon-200/60 space-y-2">
                           <p className="text-xs font-bold text-maroon-900">Configure Variant Prices & Stock</p>
-                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                             {globalVariants
                               .filter((v) => selectedVariantIds.includes(v.id))
                               .map((v) => {
-                                const cfg = createVariantConfigs[v.id] || { price: "", quantity: 10 };
+                                const cfg = createVariantConfigs[v.id] || { price: "", discountPrice: "", quantity: 10 };
                                 return (
-                                  <div key={v.id} className="p-2 bg-white rounded-lg border border-maroon-200 flex items-center justify-between gap-3 text-xs">
-                                    <span className="font-bold text-maroon-900 w-28 shrink-0">{v.label || v.size}</span>
+                                  <div key={v.id} className="p-2.5 bg-white rounded-lg border border-maroon-200 flex items-center justify-between gap-3 text-xs">
+                                    <span className="font-bold text-maroon-900 w-24 shrink-0">{v.label || v.size}</span>
                                     <div className="flex items-center space-x-2 flex-1">
                                       <div className="flex-1">
-                                        <label className="text-[10px] text-maroon-600 block">Price (৳) [Blank = Base Price]</label>
+                                        <label className="text-[10px] text-maroon-600 block">Price (৳) [Blank = Base]</label>
                                         <input
                                           type="number"
                                           step="0.01"
@@ -1023,7 +1090,23 @@ export default function AdminProductsPage() {
                                           className="w-full px-2 py-1 bg-off-white border border-maroon-200 rounded text-xs font-mono"
                                         />
                                       </div>
-                                      <div className="w-24">
+                                      <div className="flex-1">
+                                        <label className="text-[10px] text-maroon-600 block">Discount (৳) [Blank = Base]</label>
+                                        <input
+                                          type="number"
+                                          step="0.01"
+                                          placeholder={createForm.watch("discountPrice") ? `Default (৳${createForm.watch("discountPrice")})` : "None"}
+                                          value={cfg.discountPrice}
+                                          onChange={(e) =>
+                                            setCreateVariantConfigs((prev) => ({
+                                              ...prev,
+                                              [v.id]: { ...cfg, discountPrice: e.target.value },
+                                            }))
+                                          }
+                                          className="w-full px-2 py-1 bg-off-white border border-maroon-200 rounded text-xs font-mono"
+                                        />
+                                      </div>
+                                      <div className="w-20">
                                         <label className="text-[10px] text-maroon-600 block">Stock Qty *</label>
                                         <input
                                           type="number"
@@ -1221,35 +1304,58 @@ export default function AdminProductsPage() {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
-                    Category
+                    Category *
                   </label>
                   <select
                     {...editForm.register("categoryId")}
                     className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all cursor-pointer font-medium"
                   >
-                    <option value="">-- No Category --</option>
+                    <option value="">-- Select Category * --</option>
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
                       </option>
                     ))}
                   </select>
+                  {editForm.formState.errors.categoryId && (
+                    <p className="text-xs text-red-600 mt-1">{editForm.formState.errors.categoryId.message}</p>
+                  )}
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
-                  Base Price (৳) *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  {...editForm.register("price", { valueAsNumber: true })}
-                  className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
-                />
-                {editForm.formState.errors.price && (
-                  <p className="text-xs text-red-600 mt-1">{editForm.formState.errors.price.message}</p>
-                )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
+                    Base Regular Price (৳) *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...editForm.register("price", { valueAsNumber: true })}
+                    className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
+                  />
+                  {editForm.formState.errors.price && (
+                    <p className="text-xs text-red-600 mt-1">{editForm.formState.errors.price.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-maroon-900 mb-1.5">
+                    Discounted Price (৳) <span className="text-[10px] text-maroon-500 font-normal normal-case">(Optional)</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Optional (e.g. 1500)"
+                    {...editForm.register("discountPrice", {
+                      setValueAs: (v) => (v === "" || v === undefined || v === null ? null : Number(v)),
+                    })}
+                    className="w-full px-3.5 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-md text-sm font-mono focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all"
+                  />
+                  {editForm.formState.errors.discountPrice && (
+                    <p className="text-xs text-red-600 mt-1">{editForm.formState.errors.discountPrice.message}</p>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -1298,17 +1404,17 @@ export default function AdminProductsPage() {
                       {selectedVariantIds.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-maroon-200/60 space-y-2">
                           <p className="text-xs font-bold text-maroon-900">Configure Variant Prices & Stock</p>
-                          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                             {globalVariants
                               .filter((v) => selectedVariantIds.includes(v.id))
                               .map((v) => {
-                                const cfg = editVariantConfigs[v.id] || { price: "", quantity: 10 };
+                                const cfg = editVariantConfigs[v.id] || { price: "", discountPrice: "", quantity: 10 };
                                 return (
-                                  <div key={v.id} className="p-2 bg-white rounded-lg border border-maroon-200 flex items-center justify-between gap-3 text-xs">
-                                    <span className="font-bold text-maroon-900 w-28 shrink-0">{v.label || v.size}</span>
+                                  <div key={v.id} className="p-2.5 bg-white rounded-lg border border-maroon-200 flex items-center justify-between gap-3 text-xs">
+                                    <span className="font-bold text-maroon-900 w-24 shrink-0">{v.label || v.size}</span>
                                     <div className="flex items-center space-x-2 flex-1">
                                       <div className="flex-1">
-                                        <label className="text-[10px] text-maroon-600 block">Price (৳) [Blank = Base Price]</label>
+                                        <label className="text-[10px] text-maroon-600 block">Price (৳) [Blank = Base]</label>
                                         <input
                                           type="number"
                                           step="0.01"
@@ -1323,7 +1429,23 @@ export default function AdminProductsPage() {
                                           className="w-full px-2 py-1 bg-off-white border border-maroon-200 rounded text-xs font-mono"
                                         />
                                       </div>
-                                      <div className="w-24">
+                                      <div className="flex-1">
+                                        <label className="text-[10px] text-maroon-600 block">Discount (৳) [Blank = Base]</label>
+                                        <input
+                                          type="number"
+                                          step="0.01"
+                                          placeholder={editForm.watch("discountPrice") ? `Default (৳${editForm.watch("discountPrice")})` : "None"}
+                                          value={cfg.discountPrice}
+                                          onChange={(e) =>
+                                            setEditVariantConfigs((prev) => ({
+                                              ...prev,
+                                              [v.id]: { ...cfg, discountPrice: e.target.value },
+                                            }))
+                                          }
+                                          className="w-full px-2 py-1 bg-off-white border border-maroon-200 rounded text-xs font-mono"
+                                        />
+                                      </div>
+                                      <div className="w-20">
                                         <label className="text-[10px] text-maroon-600 block">Stock Qty *</label>
                                         <input
                                           type="number"

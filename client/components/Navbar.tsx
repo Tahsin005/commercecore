@@ -28,8 +28,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useInfiniteProductsQuery } from "@/hooks/useProductQueries";
-import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
-import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
+import { isProductOnSale, getProductEffectivePrice } from "@/lib/discount";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { MarqueeBanner } from "@/components/MarqueeBanner";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -64,10 +63,6 @@ export function Navbar() {
     }, 300);
     return () => clearTimeout(handler);
   }, [searchQuery]);
-
-  const { data: siteSettings } = useSiteSettingsQuery();
-  const discountSetting = siteSettings?.site_discount;
-  const hasSitewideDiscount = useActiveDiscount(discountSetting);
 
   const {
     data: searchInfiniteData,
@@ -239,10 +234,10 @@ export function Navbar() {
                         {searchResults.map((product, index) => {
                           const isSelected = activeIndex === index;
                           const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
+                          const discountPrice = product.discountPrice ?? product.defaultDiscountPrice ?? null;
+                          const hasDiscount = isProductOnSale(price, discountPrice);
+                          const effectivePrice = getProductEffectivePrice(price, discountPrice);
                           const hasImage = Boolean(product.images && product.images.length > 0);
-                          const effectivePrice = hasSitewideDiscount
-                            ? getDiscountedPrice(price, discountSetting)
-                            : price;
 
                           return (
                             <button
@@ -282,7 +277,7 @@ export function Navbar() {
                                 )}
                                 <div className="flex items-baseline space-x-1.5 mt-0.5 font-mono text-xs font-bold text-maroon-900">
                                   <span>৳{effectivePrice.toFixed(2)}</span>
-                                  {hasSitewideDiscount && (
+                                  {hasDiscount && (
                                     <span className="text-[10px] text-maroon-700/50 line-through font-normal">
                                       ৳{price.toFixed(2)}
                                     </span>
