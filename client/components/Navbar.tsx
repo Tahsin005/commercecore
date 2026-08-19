@@ -214,9 +214,9 @@ export function Navbar() {
             </div>
 
             {showDropdown && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white text-maroon-900 rounded-xl shadow-2xl border border-maroon-100 overflow-hidden z-50 animate-in fade-in-50 slide-in-from-top-1 duration-150">
+              <div className="fixed inset-x-3 top-[5.25rem] sm:absolute sm:top-full sm:inset-x-auto sm:left-0 sm:right-0 sm:mt-2 bg-white text-maroon-900 rounded-2xl sm:rounded-xl shadow-2xl border border-maroon-100 overflow-hidden z-50 animate-in fade-in-50 slide-in-from-top-1 duration-150">
                 {searchResults.length > 0 ? (
-                  <div id="searchScrollableDiv" className="max-h-80 overflow-y-auto scrollbar-thin">
+                  <div id="searchScrollableDiv" className="max-h-[60vh] sm:max-h-80 overflow-y-auto scrollbar-thin">
                     <div id="search-results-listbox" role="listbox" aria-label={t.navbar?.categories || "Search Results"}>
                       <InfiniteScroll
                         dataLength={searchResults.length}
@@ -249,17 +249,17 @@ export function Navbar() {
                               aria-selected={isSelected}
                               onClick={() => handleSelectProduct(product.id)}
                               onMouseEnter={() => setActiveIndex(index)}
-                              className={`w-full text-left p-2.5 flex items-center space-x-3 cursor-pointer transition-colors group animate-in fade-in slide-in-from-bottom-2 duration-200 ${
+                              className={`w-full text-left p-3 sm:p-2.5 flex items-center space-x-3 cursor-pointer transition-colors group animate-in fade-in slide-in-from-bottom-2 duration-200 ${
                                 isSelected ? "bg-maroon-100/90" : "hover:bg-maroon-50/90"
                               }`}
                             >
-                              <div className="relative w-11 h-11 rounded-lg bg-off-white overflow-hidden shrink-0 border border-maroon-100 flex items-center justify-center">
+                              <div className="relative w-12 h-12 sm:w-11 sm:h-11 rounded-xl sm:rounded-lg bg-off-white overflow-hidden shrink-0 border border-maroon-100 flex items-center justify-center">
                                 {hasImage ? (
                                   <Image
                                     src={product.images![0]}
                                     alt={product.name}
                                     fill
-                                    sizes="44px"
+                                    sizes="48px"
                                     className="object-cover group-hover:scale-105 transition-transform"
                                   />
                                 ) : (

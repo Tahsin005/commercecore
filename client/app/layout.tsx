@@ -17,6 +17,11 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "Rupzon Collection",
   description: "Rupzon Collection - Premium Fashion & Lifestyle E-Commerce Platform",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

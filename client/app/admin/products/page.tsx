@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
@@ -515,17 +516,13 @@ export default function AdminProductsPage() {
         </div>
 
         <div className="flex items-center space-x-3 shrink-0">
-          <button
-            onClick={() => {
-              setEditingVariant(null);
-              variantForm.reset({ label: "", order: 0, isActive: true });
-              setIsVariantModalOpen(true);
-            }}
+          <Link
+            href="/admin/variants"
             className="inline-flex items-center justify-center space-x-1.5 px-3.5 py-2.5 bg-off-white hover:bg-maroon-100 border border-maroon-200 text-maroon-900 font-medium text-xs rounded-xl transition-all cursor-pointer"
           >
             <SlidersHorizontal className="w-4 h-4 text-maroon-700" />
             <span>Manage Variants</span>
-          </button>
+          </Link>
 
           <button
             onClick={handleOpenCreateModal}

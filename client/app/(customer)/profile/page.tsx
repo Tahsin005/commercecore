@@ -46,53 +46,53 @@ export default function CustomerProfilePage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8 font-sans w-full overflow-hidden">
       <ProfileHeader user={user} onEditProfileClick={() => setActiveTab("info")} />
 
-      <div className="flex items-center gap-2 border-b border-maroon-200/80 pb-3 overflow-x-auto max-w-full w-full">
+      <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 bg-maroon-100/40 sm:bg-transparent p-1.5 sm:p-0 rounded-2xl sm:rounded-none border border-maroon-200/60 sm:border-0 sm:border-b sm:border-maroon-200/80 sm:pb-3">
         <button
           onClick={() => setActiveTab("orders")}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
+          className={`flex items-center justify-center sm:justify-start space-x-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeTab === "orders"
               ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
-              : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"
+              : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200/80"
           }`}
         >
-          <ShoppingBag className="w-4 h-4" />
-          <span>{t.profile.myOrdersTab || "My Orders"}</span>
+          <ShoppingBag className="w-4 h-4 shrink-0" />
+          <span className="truncate">{t.profile.myOrdersTab || "My Orders"}</span>
         </button>
 
         <button
           onClick={() => setActiveTab("addresses")}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
+          className={`flex items-center justify-center sm:justify-start space-x-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeTab === "addresses"
               ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
-              : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"
+              : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200/80"
           }`}
         >
-          <MapPin className="w-4 h-4" />
-          <span>{t.profile.myAddressesTab || "Saved Addresses"}</span>
+          <MapPin className="w-4 h-4 shrink-0" />
+          <span className="truncate">{t.profile.myAddressesTab || "Saved Addresses"}</span>
         </button>
 
         <button
           onClick={() => setActiveTab("info")}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
+          className={`flex items-center justify-center sm:justify-start space-x-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeTab === "info"
               ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
-              : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"
+              : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200/80"
           }`}
         >
-          <User className="w-4 h-4" />
-          <span>{t.profile.editProfileTab || "Profile Details"}</span>
+          <User className="w-4 h-4 shrink-0" />
+          <span className="truncate">{t.profile.editProfileTab || "Profile Details"}</span>
         </button>
 
         <button
           onClick={() => setActiveTab("security")}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
+          className={`flex items-center justify-center sm:justify-start space-x-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeTab === "security"
               ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
-              : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"
+              : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200/80"
           }`}
         >
-          <Lock className="w-4 h-4" />
-          <span>{t.profile.securityTab || "Security & Password"}</span>
+          <Lock className="w-4 h-4 shrink-0" />
+          <span className="truncate">{t.profile.securityTab || "Security & Password"}</span>
         </button>
       </div>
 

@@ -10,6 +10,7 @@ import {
   Tag,
   Star,
   Settings,
+  SlidersHorizontal,
   ExternalLink,
   ChevronLeft,
   ChevronRight,
@@ -26,6 +27,7 @@ export function AdminSidebar({ collapsed, onToggleCollapse }: AdminSidebarProps)
   const navItems = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { label: "Products", href: "/admin/products", icon: Package },
+    { label: "Variants", href: "/admin/variants", icon: SlidersHorizontal },
     { label: "Orders", href: "/admin/orders", icon: ShoppingBag },
     { label: "Categories", href: "/admin/categories", icon: Tag },
     { label: "Reviews", href: "/admin/reviews", icon: Star },
