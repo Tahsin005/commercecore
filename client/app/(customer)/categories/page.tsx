@@ -23,7 +23,7 @@ import {
 
 import { useWishlist } from "@/hooks/useWishlist";
 import { useProductsQuery, Product } from "@/hooks/useProductQueries";
-import { useProductCardActions, getProductStock } from "@/hooks/useProductCardActions";
+import { useProductCardActions, getProductStock, getProductDisplayPricing } from "@/hooks/useProductCardActions";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { isProductOnSale, getProductEffectivePrice, getProductDiscountPercentage } from "@/lib/discount";
 import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
@@ -340,11 +340,12 @@ export default function CategoriesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product) => {
                 const wishlisted = isInWishlist(product.id);
-                const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
-                const discountPrice = product.discountPrice ?? product.defaultDiscountPrice ?? null;
-                const hasDiscount = isProductOnSale(price, discountPrice);
-                const discountPercent = getProductDiscountPercentage(price, discountPrice);
-                const effectivePrice = getProductEffectivePrice(price, discountPrice);
+                const {
+                  regularPrice,
+                  hasDiscount,
+                  discountPercent,
+                  effectivePrice,
+                } = getProductDisplayPricing(product);
                 const hasImage = Boolean(product.images && product.images.length > 0);
 
                 const stock = getProductStock(product);
@@ -426,7 +427,7 @@ export default function CategoriesPage() {
                           {hasDiscount ? (
                             <div className="flex items-baseline space-x-1.5">
                               <span className="text-[11px] font-mono text-maroon-700/60 line-through">
-                                ৳{price.toFixed(2)}
+                                ৳{regularPrice.toFixed(2)}
                               </span>
                               <span className="text-base font-bold font-mono text-maroon-900">
                                 ৳{effectivePrice.toFixed(2)}
@@ -434,7 +435,7 @@ export default function CategoriesPage() {
                             </div>
                           ) : (
                             <span className="text-base font-bold font-mono text-maroon-900">
-                              ৳{price.toFixed(2)}
+                              ৳{regularPrice.toFixed(2)}
                             </span>
                           )}
                         </div>

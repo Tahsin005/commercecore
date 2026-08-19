@@ -109,7 +109,7 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 | deliveryZone | enum: inside_dhaka / outside_dhaka | drives delivery charge |
 | deliveryCharge | decimal | snapshot of admin-configured value at order time |
 | subtotal | decimal | |
-| discountAmount | decimal | snapshot of applied sitewide discount, if any |
+| discountAmount | decimal | discount amount snapshot, if any (discounts are configured per product and variant unit price) |
 | total | decimal | |
 | status | enum (see below) | |
 | createdAt / updatedAt | timestamp | |

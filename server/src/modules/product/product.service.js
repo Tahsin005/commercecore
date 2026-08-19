@@ -32,7 +32,7 @@ const validateAndVerifyVariantIds = async (variantIds = [], session = null) => {
   }
 };
 
-const normalizeAndValidateVariants = async (variantsInput, variantIdsInput, session = null) => {
+const normalizeAndValidateVariants = async (variantsInput, variantIdsInput, session = null, productPrice = null) => {
   let normalized = [];
   if (Array.isArray(variantsInput) && variantsInput.length > 0) {
     normalized = variantsInput.map((v) => {
@@ -58,6 +58,15 @@ const normalizeAndValidateVariants = async (variantsInput, variantIdsInput, sess
 
   const vIds = normalized.map((item) => item.productVariantId);
   await validateAndVerifyVariantIds(vIds, session);
+
+  if (productPrice !== null) {
+    for (const item of normalized) {
+      const effectivePrice = item.price !== null ? item.price : productPrice;
+      if (item.discountPrice !== null && item.discountPrice >= effectivePrice) {
+        throw new ApiError(400, 'Variant discount price must be less than regular price');
+      }
+    }
+  }
 
   return normalized;
 };
@@ -294,7 +303,7 @@ export const createProductService = async ({
     throw new ApiError(404, 'Selected category does not exist');
   }
 
-  const normalizedVariants = await normalizeAndValidateVariants(variants, variantIds);
+  const normalizedVariants = await normalizeAndValidateVariants(variants, variantIds, null, Number(price));
 
   const existing = await Product.findOne({ slug: finalSlug });
   if (existing) {
@@ -385,11 +394,6 @@ export const updateProductService = async (
     variants,
   }
 ) => {
-  let normalizedVariants = null;
-  if (variants !== undefined || variantIds !== undefined) {
-    normalizedVariants = await normalizeAndValidateVariants(variants, variantIds);
-  }
-
   let session = null;
   let useTransaction = false;
   try {
@@ -417,11 +421,14 @@ export const updateProductService = async (
         discountPrice !== null && String(discountPrice).trim() !== '' && Number(discountPrice) > 0
           ? Number(discountPrice)
           : null;
-      const effectivePrice = price !== undefined ? Number(price) : product.price;
-      if (cleanDiscountPrice !== null && cleanDiscountPrice >= effectivePrice) {
+      if (cleanDiscountPrice !== null && cleanDiscountPrice >= product.price) {
         throw new ApiError(400, 'Discount price must be less than regular price');
       }
       product.discountPrice = cleanDiscountPrice;
+    } else if (price !== undefined) {
+      if (product.discountPrice !== null && product.discountPrice >= product.price) {
+        throw new ApiError(400, 'Discount price must be less than regular price');
+      }
     }
     if (isFeatured !== undefined) product.isFeatured = Boolean(isFeatured);
     if (isActive !== undefined) product.isActive = Boolean(isActive);
@@ -449,6 +456,11 @@ export const updateProductService = async (
       }
     }
 
+    let normalizedVariants = null;
+    if (variants !== undefined || variantIds !== undefined) {
+      normalizedVariants = await normalizeAndValidateVariants(variants, variantIds, session, product.price);
+    }
+
     await product.save(opts);
 
     if (normalizedVariants !== null) {
@@ -462,6 +474,15 @@ export const updateProductService = async (
           quantity: item.quantity,
         }));
         await ProductVariantLink.insertMany(linkDocs, opts);
+      }
+    } else if (price !== undefined) {
+      const invalidLink = await ProductVariantLink.findOne({
+        productId: id,
+        price: null,
+        discountPrice: { $ne: null, $gte: product.price },
+      }).session(session || null);
+      if (invalidLink) {
+        throw new ApiError(400, 'Variant discount price must be less than regular price');
       }
     }
 

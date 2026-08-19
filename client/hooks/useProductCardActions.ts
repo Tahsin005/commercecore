@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { Product, ProductVariant } from "@/hooks/useProductQueries";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useCart } from "@/hooks/useCart";
-import { getProductEffectivePrice } from "@/lib/discount";
+import { isProductOnSale, getProductEffectivePrice, getProductDiscountPercentage } from "@/lib/discount";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function getProductStock(product: Product): number {
@@ -25,6 +25,24 @@ export function getSelectedVariant(product: Product): ProductVariant | null {
     product.variants.find((v) => v.isActive !== false) ||
     product.variants[0]
   );
+}
+
+export function getProductDisplayPricing(product: Product) {
+  const v = getSelectedVariant(product);
+  const regularPrice = v?.overridePrice ?? v?.price ?? product.price ?? product.defaultPrice ?? 0;
+  const discountPrice = v?.overrideDiscountPrice ?? v?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
+  const hasDiscount = isProductOnSale(regularPrice, discountPrice);
+  const discountPercent = getProductDiscountPercentage(regularPrice, discountPrice);
+  const effectivePrice = getProductEffectivePrice(regularPrice, discountPrice);
+
+  return {
+    selectedVariant: v,
+    regularPrice,
+    discountPrice,
+    hasDiscount,
+    discountPercent,
+    effectivePrice,
+  };
 }
 
 export function useProductCardActions() {

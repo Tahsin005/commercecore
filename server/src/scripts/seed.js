@@ -531,7 +531,10 @@ const seedDatabase = async () => {
         logger.warn(`Failed to upload product image for ${p.name}: ${err.message}`);
       }
 
-      const catId = categoryMap[categorySlug] || Object.values(categoryMap)[0];
+      const catId = categoryMap[categorySlug];
+      if (!catId) {
+        throw new Error(`Category "${categorySlug}" not found in seed categoryMap for product "${p.name}"`);
+      }
       const product = await Product.create({
         ...productData,
         categoryId: catId,

@@ -7,8 +7,7 @@ import { Heart, Package, ShoppingCart, ShoppingBag } from "lucide-react";
 
 import { useWishlist } from "@/hooks/useWishlist";
 import { useProductsQuery } from "@/hooks/useProductQueries";
-import { useProductCardActions, getProductStock } from "@/hooks/useProductCardActions";
-import { isProductOnSale, getProductEffectivePrice, getProductDiscountPercentage } from "@/lib/discount";
+import { useProductCardActions, getProductStock, getProductDisplayPricing } from "@/hooks/useProductCardActions";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface RelatedProductsSectionProps {
@@ -52,11 +51,12 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {relatedProducts.map((product) => {
           const wishlisted = isInWishlist(product.id);
-          const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
-          const discountPrice = product.discountPrice ?? product.defaultDiscountPrice ?? null;
-          const hasDiscount = isProductOnSale(price, discountPrice);
-          const discountPercent = getProductDiscountPercentage(price, discountPrice);
-          const effectivePrice = getProductEffectivePrice(price, discountPrice);
+          const {
+            regularPrice,
+            hasDiscount,
+            discountPercent,
+            effectivePrice,
+          } = getProductDisplayPricing(product);
           const hasImage = Boolean(product.images && product.images.length > 0);
           const stock = getProductStock(product);
           const isOutOfStock = stock <= 0;
@@ -137,7 +137,7 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
                     {hasDiscount ? (
                       <div className="flex items-baseline space-x-1.5">
                         <span className="text-[11px] font-mono text-maroon-700/60 line-through">
-                          ৳{price.toFixed(2)}
+                          ৳{regularPrice.toFixed(2)}
                         </span>
                         <span className="text-base font-bold font-mono text-maroon-900">
                           ৳{effectivePrice.toFixed(2)}
@@ -145,7 +145,7 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
                       </div>
                     ) : (
                       <span className="text-base font-bold font-mono text-maroon-900">
-                        ৳{price.toFixed(2)}
+                        ৳{regularPrice.toFixed(2)}
                       </span>
                     )}
                   </div>

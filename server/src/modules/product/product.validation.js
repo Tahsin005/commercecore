@@ -82,7 +82,15 @@ export const createProductSchema = z.object({
     .refine(
       (data) => {
         if (data.discountPrice !== undefined && data.discountPrice !== null && data.discountPrice > 0) {
-          return data.discountPrice < data.price;
+          if (data.discountPrice >= data.price) return false;
+        }
+        if (Array.isArray(data.variants)) {
+          for (const v of data.variants) {
+            if (v && v.discountPrice !== undefined && v.discountPrice !== null && v.discountPrice > 0) {
+              const effectiveRegularPrice = v.price !== undefined && v.price !== null ? v.price : data.price;
+              if (v.discountPrice >= effectiveRegularPrice) return false;
+            }
+          }
         }
         return true;
       },
@@ -120,7 +128,15 @@ export const updateProductSchema = z.object({
           data.discountPrice > 0 &&
           data.price !== undefined
         ) {
-          return data.discountPrice < data.price;
+          if (data.discountPrice >= data.price) return false;
+        }
+        if (data.price !== undefined && Array.isArray(data.variants)) {
+          for (const v of data.variants) {
+            if (v && v.discountPrice !== undefined && v.discountPrice !== null && v.discountPrice > 0) {
+              const effectiveRegularPrice = v.price !== undefined && v.price !== null ? v.price : data.price;
+              if (v.discountPrice >= effectiveRegularPrice) return false;
+            }
+          }
         }
         return true;
       },

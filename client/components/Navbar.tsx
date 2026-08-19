@@ -28,7 +28,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useInfiniteProductsQuery } from "@/hooks/useProductQueries";
-import { isProductOnSale, getProductEffectivePrice } from "@/lib/discount";
+import { getProductDisplayPricing } from "@/hooks/useProductCardActions";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { MarqueeBanner } from "@/components/MarqueeBanner";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -233,10 +233,11 @@ export function Navbar() {
                       >
                         {searchResults.map((product, index) => {
                           const isSelected = activeIndex === index;
-                          const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
-                          const discountPrice = product.discountPrice ?? product.defaultDiscountPrice ?? null;
-                          const hasDiscount = isProductOnSale(price, discountPrice);
-                          const effectivePrice = getProductEffectivePrice(price, discountPrice);
+                          const {
+                            regularPrice,
+                            hasDiscount,
+                            effectivePrice,
+                          } = getProductDisplayPricing(product);
                           const hasImage = Boolean(product.images && product.images.length > 0);
 
                           return (
@@ -279,7 +280,7 @@ export function Navbar() {
                                   <span>৳{effectivePrice.toFixed(2)}</span>
                                   {hasDiscount && (
                                     <span className="text-[10px] text-maroon-700/50 line-through font-normal">
-                                      ৳{price.toFixed(2)}
+                                      ৳{regularPrice.toFixed(2)}
                                     </span>
                                   )}
                                 </div>
@@ -309,16 +310,6 @@ export function Navbar() {
               </div>
             )}
           </div>
-
-          <nav className="hidden lg:flex items-center space-x-5">
-            <Link
-              href="/checkout"
-              className="text-xs font-semibold uppercase tracking-wider text-cream/90 hover:text-white transition-colors flex items-center space-x-1.5 whitespace-nowrap"
-            >
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>{t.navbar.checkout}</span>
-            </Link>
-          </nav>
 
           <div className="hidden lg:flex items-center space-x-3">
             <button
