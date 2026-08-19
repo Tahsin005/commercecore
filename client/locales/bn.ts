@@ -149,7 +149,7 @@ export const bn = {
     outOfStockMsg: "পণ্যটি বর্তমানে স্টকে নেই",
     relatedProducts: "সম্পর্কিত পণ্যসমূহ",
     relatedProductsDesc: "এই ক্যাটাগরির অন্যান্য পণ্য দেখুন",
-    hoverToZoom: "জুম করতে কার্সার আনুন",
+    hoverToZoom: "জুম করতে টাচ বা কার্সার আনুন",
     descriptionTab: "বিবরণ",
     howToBuyTab: "কীভাবে কিনবেন",
     returnPolicyTab: "রিটার্ন পলিসি",

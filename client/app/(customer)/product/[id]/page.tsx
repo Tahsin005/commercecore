@@ -31,6 +31,7 @@ import { ProductReviewsSection } from "@/components/ProductReviewsSection";
 import { ProductSidebarBoxes } from "@/components/ProductSidebarBoxes";
 import { ProductTabsSection } from "@/components/ProductTabsSection";
 import { RelatedProductsSection } from "@/components/RelatedProductsSection";
+import { ProductImageGallery } from "@/components/ProductImageGallery";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface ProductDetailsPageProps {
@@ -47,8 +48,6 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
-  const [isZoomed, setIsZoomed] = useState<boolean>(false);
-  const [zoomPos, setZoomPos] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
 
   const handleCopyCode = async () => {
@@ -63,19 +62,6 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
     } catch {
       // Handled without reporting false success
     }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
-    setZoomPos({ x, y });
-  };
-
-  const handleMouseEnter = () => setIsZoomed(true);
-  const handleMouseLeave = () => {
-    setIsZoomed(false);
-    setZoomPos({ x: 50, y: 50 });
   };
 
   // react Query hook for product details
@@ -217,69 +203,17 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl border border-maroon-100 p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-          <div className="lg:col-span-5 flex flex-col items-center justify-start">
-            <div className="relative w-full">
-              {isOnSale && (
-                <span className="absolute -top-3 -right-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-mono text-xs font-black tracking-wider px-2.5 py-1 rounded-md shadow-md border-2 border-white uppercase z-20 pointer-events-none">
-                  {discountPercent}% {t.common.off || "OFF"}
-                </span>
-              )}
-
-              <div
-                onMouseMove={handleMouseMove}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-                className="relative w-full h-96 sm:h-[460px] rounded-xl overflow-hidden flex items-center justify-center bg-off-white border border-maroon-100/80 shadow-xs cursor-zoom-in group select-none"
-              >
-                {currentImage ? (
-                  <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
-                    <Image
-                      src={currentImage}
-                      alt={product.name}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 40vw"
-                      className={`object-contain transition-transform duration-150 ease-out ${
-                        isZoomed ? "scale-250 cursor-zoom-in" : "scale-100"
-                      }`}
-                      style={{
-                        transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
-                      }}
-                      priority
-                    />
-
-                    <div
-                      className={`absolute bottom-3 right-3 bg-maroon-900/80 text-cream text-[10px] font-semibold px-2.5 py-1 rounded-full shadow-md backdrop-blur-xs flex items-center space-x-1 transition-opacity duration-200 pointer-events-none ${
-                        isZoomed ? "opacity-0" : "opacity-90"
-                      }`}
-                    >
-                      <ZoomIn className="w-3 h-3 text-cream" />
-                      <span>{t.productDetails.hoverToZoom}</span>
-                    </div>
-                  </div>
-                ) : (
-                  <Package className="w-32 h-32 text-maroon-300" />
-                )}
-              </div>
-            </div>
-
-            {images.length > 1 && (
-              <div className="flex items-center justify-center gap-2.5 mt-4 pt-3 border-t border-maroon-100/80 w-full overflow-x-auto overflow-y-hidden py-1 scrollbar-none">
-                {images.map((imgUrl, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setSelectedImageIndex(idx)}
-                    className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
-                      selectedImageIndex === idx
-                        ? "border-maroon-900 ring-2 ring-maroon-700/30 scale-105"
-                        : "border-maroon-200 hover:border-maroon-500 opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <Image src={imgUrl} alt={`${product.name} thumbnail ${idx + 1}`} fill sizes="56px" className="object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="lg:col-span-5">
+            <ProductImageGallery
+              images={images}
+              productName={product.name}
+              isOnSale={isOnSale}
+              discountPercent={discountPercent}
+              offLabel={t.common.off || "OFF"}
+              hoverToZoomLabel={t.productDetails.hoverToZoom}
+              selectedImageIndex={selectedImageIndex}
+              onSelectImageIndex={setSelectedImageIndex}
+            />
           </div>
 
           <div className="lg:col-span-4 flex flex-col justify-between space-y-5">

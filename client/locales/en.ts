@@ -136,7 +136,7 @@ export const en: TranslationType = {
     outOfStockMsg: "Product is out of stock",
     relatedProducts: "Related Products",
     relatedProductsDesc: "Explore other items from this category",
-    hoverToZoom: "Hover to zoom",
+    hoverToZoom: "Touch or hover to zoom",
     descriptionTab: "DESCRIPTION",
     howToBuyTab: "HOW TO BUY",
     returnPolicyTab: "RETURN POLICY",
