@@ -36,27 +36,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    // Fetch live products
-    const productsRes = await fetch(`${apiUrl}/products?limit=1000`, {
-      next: { revalidate: 3600 },
-    }).catch(() => null);
+    // Fetch live products across all paginated pages
+    const limit = 100;
+    let page = 1;
+    let hasNextPage = true;
+    const allProducts: ApiProduct[] = [];
 
-    if (productsRes && productsRes.ok) {
+    while (hasNextPage) {
+      const productsRes = await fetch(
+        `${apiUrl}/products?limit=${limit}&page=${page}`,
+        { next: { revalidate: 3600 } }
+      ).catch(() => null);
+
+      if (!productsRes || !productsRes.ok) break;
+
       const productsData = await productsRes.json().catch(() => null);
       const products: ApiProduct[] =
-        productsData?.data?.products || (Array.isArray(productsData?.data) ? productsData.data : []);
+        productsData?.data?.products ||
+        (Array.isArray(productsData?.data) ? productsData.data : []);
 
-      products.forEach((product) => {
-        if (product && product.id) {
-          routes.push({
-            url: `${baseUrl}/product/${product.id}`,
-            lastModified: product.updatedAt ? new Date(product.updatedAt) : new Date(),
-            changeFrequency: "weekly",
-            priority: 0.8,
-          });
-        }
-      });
+      allProducts.push(...products);
+
+      hasNextPage = productsData?.data?.pagination?.hasNextPage === true;
+      page += 1;
     }
+
+    allProducts.forEach((product) => {
+      if (product && product.id) {
+        routes.push({
+          url: `${baseUrl}/product/${product.id}`,
+          lastModified: product.updatedAt ? new Date(product.updatedAt) : new Date(),
+          changeFrequency: "weekly",
+          priority: 0.8,
+        });
+      }
+    });
 
     // Fetch live categories
     const categoriesRes = await fetch(`${apiUrl}/categories`, {
@@ -67,16 +81,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const categoriesData = await categoriesRes.json().catch(() => null);
       const categories: ApiCategory[] = Array.isArray(categoriesData?.data) ? categoriesData.data : [];
 
-      categories.forEach((cat) => {
-        if (cat && cat.id) {
-          routes.push({
-            url: `${baseUrl}/categories`,
-            lastModified: cat.updatedAt ? new Date(cat.updatedAt) : new Date(),
-            changeFrequency: "weekly",
-            priority: 0.7,
-          });
-        }
-      });
+      // Static /categories route is already present above; no per-category entries added.
     }
   } catch {
     // Fallback gracefully to base static routes
