@@ -40,12 +40,13 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 | Field | Type | Notes |
 |---|---|---|
 | id | PK | |
-| categoryId | FK → Category | |
+| categoryId | FK → Category, required | Mandatory association with category |
 | name | string | |
 | slug | string, unique | |
 | code | string | product code |
 | description | text | |
-| price | decimal | |
+| price | decimal | Base regular price |
+| discountPrice | decimal, nullable | Base manual discounted price (must be < price) |
 | images | string[] | simple array of image URLs |
 | isFeatured | boolean | |
 | isActive | boolean | for hiding without deleting |
@@ -67,7 +68,8 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 | id | PK | |
 | productId | FK → Product | |
 | productVariantId | FK → ProductVariant | |
-| price | decimal, nullable | variant price override |
+| price | decimal, nullable | variant regular price override |
+| discountPrice | decimal, nullable | variant manual discounted price override |
 | quantity | int | variant stock quantity |
 | unique(productId, productVariantId) | | prevents linking the same variant twice to one product |
 
@@ -107,7 +109,7 @@ Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Post
 | deliveryZone | enum: inside_dhaka / outside_dhaka | drives delivery charge |
 | deliveryCharge | decimal | snapshot of admin-configured value at order time |
 | subtotal | decimal | |
-| discountAmount | decimal | snapshot of applied sitewide discount, if any |
+| discountAmount | decimal | discount amount snapshot, if any (discounts are configured per product and variant unit price) |
 | total | decimal | |
 | status | enum (see below) | |
 | createdAt / updatedAt | timestamp | |
@@ -134,7 +136,6 @@ Implemented using a **Hybrid Storage Architecture**:
 #### 1. Global Key-Value Store (`site_settings` collection)
 Stores single-row configuration objects in a polymorphic `{ key, value }` collection:
 - **`delivery_charge`**: `{ insideDhaka: number, outsideDhaka: number }`
-- **`site_discount`**: `{ discountPercentage: number, startDate: timestamp|null, endDate: timestamp|null, isActive: boolean }`
 - **`marquee`**: `{ text: string, isActive: boolean }`
 - **`footer_settings`**: `{ description: string, helpline: string, socialLinks: { platform: string, url: string }[] }`
 

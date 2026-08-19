@@ -7,13 +7,6 @@ export interface DeliveryChargeSetting {
   outsideDhaka: number;
 }
 
-export interface SiteDiscountSetting {
-  discountPercentage: number;
-  startDate: string | null;
-  endDate: string | null;
-  isActive: boolean;
-}
-
 export interface MarqueeSetting {
   text: string;
   isActive: boolean;
@@ -27,7 +20,6 @@ export interface FooterSettings {
 
 export interface SiteSettingsMap {
   delivery_charge: DeliveryChargeSetting;
-  site_discount: SiteDiscountSetting;
   marquee: MarqueeSetting;
   footer_settings: FooterSettings;
   [key: string]: any;

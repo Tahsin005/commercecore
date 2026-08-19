@@ -10,12 +10,15 @@ export interface ProductVariant {
   isActive?: boolean;
   price?: number;
   overridePrice?: number | null;
+  discountPrice?: number | null;
+  overrideDiscountPrice?: number | null;
   quantity?: number;
 }
 
 export interface VariantPayloadItem {
   productVariantId: string;
   price?: number | null;
+  discountPrice?: number | null;
   quantity: number;
 }
 
@@ -28,6 +31,8 @@ export interface Product {
   description: string;
   price: number;
   defaultPrice?: number;
+  discountPrice?: number | null;
+  defaultDiscountPrice?: number | null;
   quantity?: number;
   images?: string[];
   isFeatured?: boolean;
@@ -41,9 +46,10 @@ export interface CreateProductPayload {
   name: string;
   slug?: string;
   code?: string;
-  categoryId?: string | null;
+  categoryId: string;
   description?: string;
   price: number;
+  discountPrice?: number | null;
   isFeatured?: boolean;
   isActive?: boolean;
   images?: string[];
@@ -56,9 +62,10 @@ export interface UpdateProductPayload {
   name?: string;
   slug?: string;
   code?: string;
-  categoryId?: string | null;
+  categoryId?: string;
   description?: string;
   price?: number;
+  discountPrice?: number | null;
   isFeatured?: boolean;
   isActive?: boolean;
   images?: string[];
@@ -70,6 +77,8 @@ export interface CreateVariantPayload {
   label: string;
   order?: number;
   isActive?: boolean;
+  price?: number | null;
+  discountPrice?: number | null;
 }
 
 export interface UpdateVariantPayload {
@@ -77,6 +86,8 @@ export interface UpdateVariantPayload {
   label?: string;
   order?: number;
   isActive?: boolean;
+  price?: number | null;
+  discountPrice?: number | null;
 }
 
 export interface PaginationInfo {

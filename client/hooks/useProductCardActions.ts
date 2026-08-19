@@ -5,8 +5,7 @@ import toast from "react-hot-toast";
 import { Product, ProductVariant } from "@/hooks/useProductQueries";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useCart } from "@/hooks/useCart";
-import { getDiscountedPrice } from "@/lib/discount";
-import { SiteDiscountSetting } from "@/hooks/useSettingsQueries";
+import { isProductOnSale, getProductEffectivePrice, getProductDiscountPercentage } from "@/lib/discount";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function getProductStock(product: Product): number {
@@ -28,10 +27,25 @@ export function getSelectedVariant(product: Product): ProductVariant | null {
   );
 }
 
-export function useProductCardActions(
-  discountSetting?: SiteDiscountSetting | null,
-  hasSitewideDiscount?: boolean
-) {
+export function getProductDisplayPricing(product: Product) {
+  const v = getSelectedVariant(product);
+  const regularPrice = v?.overridePrice ?? v?.price ?? product.price ?? product.defaultPrice ?? 0;
+  const discountPrice = v?.overrideDiscountPrice ?? v?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
+  const hasDiscount = isProductOnSale(regularPrice, discountPrice);
+  const discountPercent = getProductDiscountPercentage(regularPrice, discountPrice);
+  const effectivePrice = getProductEffectivePrice(regularPrice, discountPrice);
+
+  return {
+    selectedVariant: v,
+    regularPrice,
+    discountPrice,
+    hasDiscount,
+    discountPercent,
+    effectivePrice,
+  };
+}
+
+export function useProductCardActions() {
   const { t } = useLanguage();
   const router = useRouter();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
@@ -40,7 +54,9 @@ export function useProductCardActions(
   const handleToggleWishlist = (product: Product) => {
     const wishlisted = isInWishlist(product.id);
     const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
-    const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
+    const regularPrice = defaultVariant?.overridePrice ?? defaultVariant?.price ?? product.price ?? product.defaultPrice ?? 0;
+    const discountPrice = defaultVariant?.overrideDiscountPrice ?? defaultVariant?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
+    const effectivePrice = getProductEffectivePrice(regularPrice, discountPrice);
 
     if (wishlisted) {
       removeFromWishlist(product.id);
@@ -52,7 +68,7 @@ export function useProductCardActions(
         name: product.name,
         slug: product.slug,
         size: defaultVariant?.label || defaultVariant?.size || t.common.standard,
-        price,
+        price: effectivePrice,
         imageUrl: product.images?.[0],
       });
       toast.success(`"${product.name}" ${t.home.addToWishlist}`);
@@ -70,10 +86,9 @@ export function useProductCardActions(
     }
 
     const v = getSelectedVariant(product);
-    const basePrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
-    const effectivePrice = hasSitewideDiscount
-      ? getDiscountedPrice(basePrice, discountSetting)
-      : (v?.overridePrice ?? v?.price ?? basePrice);
+    const regularPrice = v?.overridePrice ?? v?.price ?? product.price ?? product.defaultPrice ?? 0;
+    const discountPrice = v?.overrideDiscountPrice ?? v?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
+    const effectivePrice = getProductEffectivePrice(regularPrice, discountPrice);
 
     try {
       await addToCart(

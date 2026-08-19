@@ -4,26 +4,16 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
-import { Truck, Percent, Megaphone, Globe, Save } from "lucide-react";
+import { Truck, Megaphone, Globe, Save } from "lucide-react";
 import { useSiteSettingsQuery, useUpdateSettingMutation } from "@/hooks/useSettingsQueries";
 import {
   deliveryChargeSchema,
-  siteDiscountSchema,
   marqueeSchema,
   footerSettingsSchema,
   DeliveryChargeInput,
-  SiteDiscountInput,
   MarqueeInput,
   FooterSettingsInput,
 } from "@/lib/validations/settings";
-
-const formatLocalDateForInput = (dateStr?: string | null) => {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return "";
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-};
 
 export function SiteSettingsTab() {
   const { data: settings, isLoading } = useSiteSettingsQuery();
@@ -40,18 +30,7 @@ export function SiteSettingsTab() {
     defaultValues: { insideDhaka: 60, outsideDhaka: 120 },
   });
 
-  //  discount form 
-  const {
-    register: regDiscount,
-    handleSubmit: handleDiscountSubmit,
-    reset: resetDiscount,
-    formState: { errors: discountErrors },
-  } = useForm<SiteDiscountInput>({
-    resolver: zodResolver(siteDiscountSchema),
-    defaultValues: { discountPercentage: 0, isActive: false },
-  });
-
-  //  marquee form 
+  // marquee form 
   const {
     register: regMarquee,
     handleSubmit: handleMarqueeSubmit,
@@ -81,14 +60,6 @@ export function SiteSettingsTab() {
           outsideDhaka: settings.delivery_charge.outsideDhaka ?? 120,
         });
       }
-      if (settings.site_discount) {
-        resetDiscount({
-          discountPercentage: settings.site_discount.discountPercentage ?? 0,
-          startDate: formatLocalDateForInput(settings.site_discount.startDate),
-          endDate: formatLocalDateForInput(settings.site_discount.endDate),
-          isActive: settings.site_discount.isActive ?? false,
-        });
-      }
       if (settings.marquee) {
         resetMarquee({
           text: settings.marquee.text ?? "",
@@ -102,25 +73,12 @@ export function SiteSettingsTab() {
         });
       }
     }
-  }, [settings, resetDelivery, resetDiscount, resetMarquee, resetFooter]);
+  }, [settings, resetDelivery, resetMarquee, resetFooter]);
 
   const onSaveDeliveryCharge = (data: DeliveryChargeInput) => {
     updateSettingMutation.mutate(
       { key: "delivery_charge", value: data },
       { onSuccess: () => toast.success("Delivery charges updated successfully!") }
-    );
-  };
-
-  const onSaveDiscount = (data: SiteDiscountInput) => {
-    const payload = {
-      discountPercentage: data.discountPercentage,
-      startDate: data.startDate ? new Date(data.startDate).toISOString() : null,
-      endDate: data.endDate ? new Date(data.endDate).toISOString() : null,
-      isActive: data.isActive,
-    };
-    updateSettingMutation.mutate(
-      { key: "site_discount", value: payload },
-      { onSuccess: () => toast.success("Sitewide discount updated successfully!") }
     );
   };
 
@@ -142,23 +100,16 @@ export function SiteSettingsTab() {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
-        {[1, 2, 3, 4].map((i) => (
+        {[1, 2, 3].map((i) => (
           <div key={i} className="bg-white rounded-2xl p-6 border border-maroon-100 shadow-sm space-y-4">
             <div className="flex items-center space-x-2 border-b border-maroon-100 pb-3">
               <div className="w-5 h-5 bg-maroon-200/70 rounded-full" />
               <div className="h-5 w-40 bg-maroon-200/70 rounded-md" />
             </div>
             <div className="space-y-3">
-              <div>
-                <div className="h-3 w-24 bg-maroon-100 rounded mb-1.5" />
-                <div className="h-9 w-full bg-maroon-100/60 rounded-lg" />
-              </div>
-              <div>
-                <div className="h-3 w-28 bg-maroon-100 rounded mb-1.5" />
-                <div className="h-9 w-full bg-maroon-100/60 rounded-lg" />
-              </div>
+              <div className="h-9 bg-maroon-100/50 rounded-lg" />
+              <div className="h-9 bg-maroon-100/50 rounded-lg" />
             </div>
-            <div className="h-10 w-full bg-maroon-200/60 rounded-xl" />
           </div>
         ))}
       </div>
@@ -170,14 +121,15 @@ export function SiteSettingsTab() {
       <form onSubmit={handleDeliverySubmit(onSaveDeliveryCharge)} className="bg-white rounded-2xl p-6 border border-maroon-100 shadow-sm space-y-4">
         <div className="flex items-center space-x-2 border-b border-maroon-100 pb-3">
           <Truck className="w-5 h-5 text-maroon-800" />
-          <h3 className="font-serif font-bold text-lg text-maroon-900">Delivery Charges (BDT)</h3>
+          <h3 className="font-serif font-bold text-lg text-maroon-900">Delivery Charges</h3>
         </div>
 
         <div className="space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-maroon-900 mb-1">Inside Dhaka (৳)</label>
+            <label className="block text-xs font-semibold text-maroon-900 mb-1">Inside Dhaka Rate (৳)</label>
             <input
               type="number"
+              min={0}
               {...regDelivery("insideDhaka", { valueAsNumber: true })}
               className="w-full px-3 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-lg text-xs font-mono focus:bg-white focus:ring-2 focus:ring-maroon-700"
             />
@@ -185,9 +137,10 @@ export function SiteSettingsTab() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-maroon-900 mb-1">Outside Dhaka (৳)</label>
+            <label className="block text-xs font-semibold text-maroon-900 mb-1">Outside Dhaka Rate (৳)</label>
             <input
               type="number"
+              min={0}
               {...regDelivery("outsideDhaka", { valueAsNumber: true })}
               className="w-full px-3 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-lg text-xs font-mono focus:bg-white focus:ring-2 focus:ring-maroon-700"
             />
@@ -202,70 +155,6 @@ export function SiteSettingsTab() {
         >
           <Save className="w-3.5 h-3.5 text-cream" />
           <span>Save Delivery Charges</span>
-        </button>
-      </form>
-
-      <form onSubmit={handleDiscountSubmit(onSaveDiscount)} className="bg-white rounded-2xl p-6 border border-maroon-100 shadow-sm space-y-4">
-        <div className="flex items-center space-x-2 border-b border-maroon-100 pb-3">
-          <Percent className="w-5 h-5 text-maroon-800" />
-          <h3 className="font-serif font-bold text-lg text-maroon-900">Sitewide Discount</h3>
-        </div>
-
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-semibold text-maroon-900 mb-1">Discount Percentage (%)</label>
-            <input
-              type="number"
-              min={0}
-              max={100}
-              {...regDiscount("discountPercentage", { valueAsNumber: true })}
-              className="w-full px-3 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-lg text-xs font-mono focus:bg-white focus:ring-2 focus:ring-maroon-700"
-            />
-            {discountErrors.discountPercentage && <p className="text-red-500 text-[11px] mt-1">{discountErrors.discountPercentage.message}</p>}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-maroon-900 mb-1">Start Date &amp; Time (Optional)</label>
-              <input
-                type="datetime-local"
-                {...regDiscount("startDate")}
-                className="w-full px-3 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-lg text-xs font-mono focus:bg-white focus:ring-2 focus:ring-maroon-700"
-              />
-              {discountErrors.startDate && <p className="text-red-500 text-[11px] mt-1">{discountErrors.startDate.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-maroon-900 mb-1">End Date &amp; Time (Optional)</label>
-              <input
-                type="datetime-local"
-                {...regDiscount("endDate")}
-                className="w-full px-3 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-lg text-xs font-mono focus:bg-white focus:ring-2 focus:ring-maroon-700"
-              />
-              {discountErrors.endDate && <p className="text-red-500 text-[11px] mt-1">{discountErrors.endDate.message}</p>}
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2 pt-2">
-            <input
-              type="checkbox"
-              id="discountActive"
-              {...regDiscount("isActive")}
-              className="w-4 h-4 text-maroon-800 rounded border-maroon-300 focus:ring-maroon-700 cursor-pointer"
-            />
-            <label htmlFor="discountActive" className="text-xs font-semibold text-maroon-900 cursor-pointer">
-              Activate Sitewide Discount Banner &amp; Rates
-            </label>
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={updateSettingMutation.isPending}
-          className="w-full py-2.5 bg-maroon-900 hover:bg-maroon-800 text-white font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-60"
-        >
-          <Save className="w-3.5 h-3.5 text-cream" />
-          <span>Save Discount Settings</span>
         </button>
       </form>
 
@@ -310,7 +199,7 @@ export function SiteSettingsTab() {
         </button>
       </form>
 
-      <form onSubmit={handleFooterSubmit(onSaveFooter)} className="bg-white rounded-2xl p-6 border border-maroon-100 shadow-sm space-y-4">
+      <form onSubmit={handleFooterSubmit(onSaveFooter)} className="bg-white rounded-2xl p-6 border border-maroon-100 shadow-sm space-y-4 md:col-span-2">
         <div className="flex items-center space-x-2 border-b border-maroon-100 pb-3">
           <Globe className="w-5 h-5 text-maroon-800" />
           <h3 className="font-serif font-bold text-lg text-maroon-900">Footer &amp; Support Info</h3>

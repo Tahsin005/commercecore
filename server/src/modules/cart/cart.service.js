@@ -16,7 +16,7 @@ const getOrCreateCart = async (userId) => {
 export const getUserCartService = async (userId) => {
   const cart = await getOrCreateCart(userId);
   const items = await CartItem.find({ cartId: cart.id })
-    .populate('productId', 'name slug code price quantity isFeatured isActive images')
+    .populate('productId', 'name slug code price discountPrice quantity isFeatured isActive images')
     .populate('productVariantId', 'label order isActive');
 
   const variantLinkQueries = items
@@ -46,14 +46,18 @@ export const getUserCartService = async (userId) => {
     const prodIdStr = prodObj ? (prodObj.id || prodObj._id || '').toString() : (itemObj.productId ? itemObj.productId.toString() : '');
     const varIdStr = varObj ? (varObj.id || varObj._id || '').toString() : null;
 
-    let unitPrice = prodObj ? prodObj.price : 0;
+    let regularPrice = prodObj ? prodObj.price : 0;
+    let discountPrice = prodObj ? (prodObj.discountPrice ?? null) : null;
     let variantStock = prodObj ? prodObj.quantity : 0;
 
     if (prodIdStr && varIdStr) {
       const link = linkMap.get(`${prodIdStr}_${varIdStr}`);
       if (link) {
         if (link.price !== undefined && link.price !== null) {
-          unitPrice = link.price;
+          regularPrice = link.price;
+        }
+        if (link.discountPrice !== undefined && link.discountPrice !== null) {
+          discountPrice = link.discountPrice;
         }
         if (link.quantity !== undefined && link.quantity !== null) {
           variantStock = link.quantity;
@@ -61,8 +65,13 @@ export const getUserCartService = async (userId) => {
       }
     }
 
+    const isOnSale = discountPrice !== null && discountPrice > 0 && discountPrice < regularPrice;
+    const unitPrice = isOnSale ? discountPrice : regularPrice;
+
     if (prodObj) {
       prodObj.defaultPrice = prodObj.price;
+      prodObj.regularPrice = regularPrice;
+      prodObj.discountPrice = discountPrice;
       prodObj.price = unitPrice;
     }
 
@@ -71,10 +80,14 @@ export const getUserCartService = async (userId) => {
       productId: prodObj,
       price: unitPrice,
       unitPrice,
+      regularPrice,
+      discountPrice,
       productVariantId: {
         id: varIdStr || prodIdStr,
         size: varObj ? (varObj.label || varObj.size) : 'Standard',
         price: unitPrice,
+        regularPrice,
+        discountPrice,
         quantity: variantStock,
         productId: prodObj,
       },

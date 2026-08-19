@@ -25,8 +25,7 @@ import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useProductDetailsQuery, ProductVariant } from "@/hooks/useProductQueries";
 import { usePublicContactChannelsQuery } from "@/hooks/useCmsQueries";
-import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
-import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
+import { isProductOnSale, getProductEffectivePrice, getProductDiscountPercentage } from "@/lib/discount";
 import { ProductDetailsSkeleton } from "@/components/skeletons";
 import { ProductReviewsSection } from "@/components/ProductReviewsSection";
 import { ProductSidebarBoxes } from "@/components/ProductSidebarBoxes";
@@ -42,11 +41,8 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   const { id } = use(params);
   const router = useRouter();
   const { t } = useLanguage();
-  const { data: siteSettings } = useSiteSettingsQuery();
   const { data: contactChannels = [] } = usePublicContactChannelsQuery();
   const whatsappChannel = contactChannels.find((c) => c.isActive && c.type === "whatsapp");
-  const discountSetting = siteSettings?.site_discount;
-  const hasSitewideDiscount = useActiveDiscount(discountSetting);
 
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
@@ -121,13 +117,19 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
     );
   }
 
-  const getVariantEffectivePrice = (variant?: ProductVariant | null, fallbackPrice: number = 0): number => {
-    if (!variant) return fallbackPrice;
-    return variant.overridePrice ?? variant.price ?? fallbackPrice;
-  };
+  const baseRegularPrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
+  const baseDiscountPrice = product.discountPrice ?? product.defaultDiscountPrice ?? null;
 
-  const basePrice = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
-  const currentPrice = getVariantEffectivePrice(selectedVariant, basePrice);
+  const currentRegularPrice = selectedVariant
+    ? (selectedVariant.overridePrice ?? selectedVariant.price ?? baseRegularPrice)
+    : baseRegularPrice;
+  const currentDiscountPrice = selectedVariant
+    ? (selectedVariant.overrideDiscountPrice ?? selectedVariant.discountPrice ?? baseDiscountPrice)
+    : baseDiscountPrice;
+
+  const isOnSale = isProductOnSale(currentRegularPrice, currentDiscountPrice);
+  const currentEffectivePrice = getProductEffectivePrice(currentRegularPrice, currentDiscountPrice);
+  const discountPercent = getProductDiscountPercentage(currentRegularPrice, currentDiscountPrice);
 
   const stockQuantity = selectedVariant ? (selectedVariant.quantity ?? 0) : (product.quantity ?? 0);
   const isOutOfStock = stockQuantity <= 0;
@@ -151,7 +153,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         name: product.name,
         slug: product.slug,
         size: selectedLabel,
-        price: currentPrice,
+        price: currentEffectivePrice,
         imageUrl: currentImage || undefined,
       },
       quantity
@@ -171,7 +173,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         name: product.name,
         slug: product.slug,
         size: selectedLabel,
-        price: currentPrice,
+        price: currentEffectivePrice,
         imageUrl: product.images?.[0],
       });
       toast.success(`"${product.name}" ${t.home.addToWishlist}`);
@@ -193,7 +195,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         name: product.name,
         slug: product.slug,
         size: selectedLabel,
-        price: currentPrice,
+        price: currentEffectivePrice,
         imageUrl: currentImage || undefined,
       },
       quantity
@@ -217,9 +219,9 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         <div className="bg-white rounded-2xl shadow-xl border border-maroon-100 p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           <div className="lg:col-span-5 flex flex-col items-center justify-start">
             <div className="relative w-full">
-              {hasSitewideDiscount && (
+              {isOnSale && (
                 <span className="absolute -top-3 -right-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-mono text-xs font-black tracking-wider px-2.5 py-1 rounded-md shadow-md border-2 border-white uppercase z-20 pointer-events-none">
-                  {discountSetting?.discountPercentage}% OFF
+                  {discountPercent}% {t.common.off || "OFF"}
                 </span>
               )}
 
@@ -321,18 +323,18 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   <span className="text-xs font-semibold uppercase tracking-wider text-maroon-500 block mb-0.5">
                     {t.common.price}
                   </span>
-                  {hasSitewideDiscount ? (
+                  {isOnSale ? (
                     <div className="flex items-baseline space-x-2">
                       <span className="text-2xl font-bold font-mono text-maroon-900">
-                        ৳{getDiscountedPrice(currentPrice, discountSetting).toFixed(2)}
+                        ৳{currentEffectivePrice.toFixed(2)}
                       </span>
                       <span className="text-sm font-mono text-maroon-700/60 line-through">
-                        ৳{currentPrice.toFixed(2)}
+                        ৳{currentRegularPrice.toFixed(2)}
                       </span>
                     </div>
                   ) : (
                     <span className="text-2xl font-bold font-mono text-maroon-900">
-                      ৳{currentPrice.toFixed(2)}
+                      ৳{currentRegularPrice.toFixed(2)}
                     </span>
                   )}
                 </div>
@@ -361,7 +363,9 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                     {product.variants.map((variant) => {
                       const isSelected = selectedVariant?.id === variant.id;
                       const label = variant.label || variant.size || t.common.standard;
-                      const vPrice = getVariantEffectivePrice(variant, basePrice);
+                      const vRegular = variant.overridePrice ?? variant.price ?? baseRegularPrice;
+                      const vDiscount = variant.overrideDiscountPrice ?? variant.discountPrice ?? baseDiscountPrice;
+                      const vEffective = getProductEffectivePrice(vRegular, vDiscount);
                       const isVOutOfStock = (variant.quantity ?? 0) <= 0;
 
                       return (
@@ -381,9 +385,9 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                           }`}
                         >
                           <span>{label}</span>
-                          {vPrice !== product.price && (
+                          {vEffective !== currentEffectivePrice && (
                             <span className={`text-[10px] ${isSelected ? "text-cream/80" : "text-maroon-600"}`}>
-                              (৳{vPrice})
+                              (৳{vEffective})
                             </span>
                           )}
                           {isVOutOfStock && (

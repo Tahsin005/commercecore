@@ -2,18 +2,16 @@ import { z } from 'zod';
 import { getSiteSettingsService, updateSiteSettingService } from './setting.service.js';
 import {
   deliveryChargeSchema,
-  siteDiscountSchema,
   marqueeSchema,
   footerSettingsSchema,
 } from './setting.validation.js';
 import ApiResponse from '../../utils/ApiResponse.js';
 import ApiError from '../../utils/ApiError.js';
 
-const PUBLIC_SETTING_KEYS = ['delivery_charge', 'site_discount', 'marquee', 'footer_settings'];
+const PUBLIC_SETTING_KEYS = ['delivery_charge', 'marquee', 'footer_settings'];
 
 const settingSchemaMap = {
   delivery_charge: deliveryChargeSchema,
-  site_discount: siteDiscountSchema,
   marquee: marqueeSchema,
   footer_settings: footerSettingsSchema,
 };

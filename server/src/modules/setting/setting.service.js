@@ -9,12 +9,6 @@ export const DEFAULT_SETTINGS = {
     insideDhaka: 60,
     outsideDhaka: 120,
   },
-  site_discount: {
-    discountPercentage: 0,
-    startDate: null,
-    endDate: null,
-    isActive: false,
-  },
   marquee: {
     text: "Welcome to Rupzon Collection! Fast Cash-on-Delivery nationwide.",
     isActive: true,

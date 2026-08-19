@@ -23,10 +23,9 @@ import {
 
 import { useWishlist } from "@/hooks/useWishlist";
 import { useProductsQuery, Product } from "@/hooks/useProductQueries";
-import { useProductCardActions, getProductStock } from "@/hooks/useProductCardActions";
+import { useProductCardActions, getProductStock, getProductDisplayPricing } from "@/hooks/useProductCardActions";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
-import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
-import { getDiscountedPrice, useActiveDiscount } from "@/lib/discount";
+import { isProductOnSale, getProductEffectivePrice, getProductDiscountPercentage } from "@/lib/discount";
 import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
@@ -40,9 +39,7 @@ export default function CategoriesPage() {
   const limit = 12;
 
   const { t } = useLanguage();
-  const { data: siteSettings } = useSiteSettingsQuery();
-  const discountSetting = siteSettings?.site_discount;
-  const hasSitewideDiscount = useActiveDiscount(discountSetting);
+  const { handleAddToCart, handleBuyNow, handleToggleWishlist } = useProductCardActions();
 
   // React Query Hooks
   const { data: categoriesResponse, isLoading: isCategoriesLoading } = useCategoriesQuery();
@@ -56,8 +53,6 @@ export default function CategoriesPage() {
       return 0;
     });
   }, [categories]);
-
-  const discountPercentage = hasSitewideDiscount && discountSetting?.discountPercentage ? discountSetting.discountPercentage : 0;
 
   const { data: response, isLoading, error } = useProductsQuery({
     categoryId: selectedCategory === "all" ? undefined : selectedCategory,
@@ -76,10 +71,6 @@ export default function CategoriesPage() {
   const currentPage = pagination?.currentPage ?? page;
 
   const { isInWishlist } = useWishlist();
-  const { handleAddToCart, handleBuyNow, handleToggleWishlist } = useProductCardActions(
-    discountSetting,
-    hasSitewideDiscount
-  );
   const router = useRouter();
 
   const handleCategorySelect = (catId: string) => {
@@ -349,7 +340,12 @@ export default function CategoriesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product) => {
                 const wishlisted = isInWishlist(product.id);
-                const price = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
+                const {
+                  regularPrice,
+                  hasDiscount,
+                  discountPercent,
+                  effectivePrice,
+                } = getProductDisplayPricing(product);
                 const hasImage = Boolean(product.images && product.images.length > 0);
 
                 const stock = getProductStock(product);
@@ -361,9 +357,9 @@ export default function CategoriesPage() {
                     onClick={() => router.push(`/product/${product.id}`)}
                     className="bg-white rounded-xl shadow-md border border-maroon-100 hover:shadow-xl transition-all flex flex-col justify-between group relative cursor-pointer"
                   >
-                    {hasSitewideDiscount && (
+                    {hasDiscount && (
                       <span className="absolute -top-2.5 -right-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-mono text-[10px] font-black tracking-wider px-2 py-0.5 rounded-md shadow-md border-2 border-white uppercase z-20 pointer-events-none">
-                        {discountSetting?.discountPercentage}% {t.common.off || "OFF"}
+                        {discountPercent}% {t.common.off || "OFF"}
                       </span>
                     )}
 
@@ -396,7 +392,7 @@ export default function CategoriesPage() {
                         <Heart className={`w-4 h-4 ${wishlisted ? "fill-cream" : ""}`} />
                       </button>
 
-                      {product.isFeatured && !hasSitewideDiscount && (
+                      {product.isFeatured && !hasDiscount && (
                         <span className="absolute top-3 right-3 bg-maroon-900 text-cream text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow z-10">
                           {t.common.featured}
                         </span>
@@ -428,18 +424,18 @@ export default function CategoriesPage() {
                           <span className="text-[10px] font-semibold text-maroon-500 uppercase tracking-wider">
                             {t.common.price}
                           </span>
-                          {hasSitewideDiscount ? (
+                          {hasDiscount ? (
                             <div className="flex items-baseline space-x-1.5">
                               <span className="text-[11px] font-mono text-maroon-700/60 line-through">
-                                ৳{price.toFixed(2)}
+                                ৳{regularPrice.toFixed(2)}
                               </span>
                               <span className="text-base font-bold font-mono text-maroon-900">
-                                ৳{getDiscountedPrice(price, discountSetting).toFixed(2)}
+                                ৳{effectivePrice.toFixed(2)}
                               </span>
                             </div>
                           ) : (
                             <span className="text-base font-bold font-mono text-maroon-900">
-                              ৳{price.toFixed(2)}
+                              ৳{regularPrice.toFixed(2)}
                             </span>
                           )}
                         </div>
