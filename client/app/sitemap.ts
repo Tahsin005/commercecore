@@ -61,8 +61,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       page += 1;
     }
 
-    allProducts.forEach((product) => {
-      if (product && product.id) {
+    allProducts.forEach((product: any) => {
+      if (product && product.id && product.isActive !== false && product.seo?.noIndex !== true) {
         routes.push({
           url: `${baseUrl}/product/${product.id}`,
           lastModified: product.updatedAt ? new Date(product.updatedAt) : new Date(),

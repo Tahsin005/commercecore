@@ -11,6 +11,7 @@ import {
   ListOrdered,
   Cloud,
   ChevronDown,
+  Search,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -20,9 +21,11 @@ import { ContactChannelsTab } from "./components/ContactChannelsTab";
 import { ContentBlocksTab } from "./components/ContentBlocksTab";
 import { ProductBulletsTab } from "./components/ProductBulletsTab";
 import { MediaUploadsTab } from "./components/MediaUploadsTab";
+import { SeoSettingsTab } from "./components/SeoSettingsTab";
 
 type ActiveTab =
   | "site_settings"
+  | "seo"
   | "banners"
   | "contact_channels"
   | "content_blocks"
@@ -37,10 +40,12 @@ export default function AdminSettingsPage() {
     queryClient.invalidateQueries({ queryKey: ["settings"] });
     queryClient.invalidateQueries({ queryKey: ["cms"] });
     queryClient.invalidateQueries({ queryKey: ["uploadConfigs"] });
+    queryClient.invalidateQueries({ queryKey: ["seo_all"] });
   };
 
   const tabs: { id: ActiveTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: "site_settings", label: "Site Settings & Rates", icon: Truck },
+    { id: "seo", label: "SEO & Search Meta", icon: Search },
     { id: "banners", label: "Homepage Banners", icon: Megaphone },
     { id: "contact_channels", label: "Contact Channels", icon: PhoneCall },
     { id: "content_blocks", label: "Content Pages", icon: FileText },
@@ -127,6 +132,7 @@ export default function AdminSettingsPage() {
       </div>
 
       {activeTab === "site_settings" && <SiteSettingsTab />}
+      {activeTab === "seo" && <SeoSettingsTab />}
       {activeTab === "banners" && <BannersTab />}
       {activeTab === "contact_channels" && <ContactChannelsTab />}
       {activeTab === "content_blocks" && <ContentBlocksTab />}
