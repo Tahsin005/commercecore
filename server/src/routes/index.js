@@ -11,6 +11,7 @@ import settingRoutes from '../modules/setting/setting.routes.js';
 import cmsRoutes from '../modules/cms/cms.routes.js';
 import reviewRoutes from '../modules/review/review.routes.js';
 import addressRoutes from '../modules/address/address.routes.js';
+import seoRoutes from '../modules/seo/seo.routes.js';
 
 const router = express.Router();
 
@@ -26,5 +27,6 @@ router.use('/settings', settingRoutes);
 router.use('/cms', cmsRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/addresses', addressRoutes);
+router.use('/seo', seoRoutes);
 
 export default router;

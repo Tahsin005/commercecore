@@ -55,6 +55,13 @@ const productSchema = new mongoose.Schema(
         trim: true,
       },
     ],
+    seo: {
+      title: { type: String, trim: true, default: '' },
+      description: { type: String, trim: true, default: '' },
+      keywords: [{ type: String, trim: true }],
+      ogImage: { type: String, trim: true, default: '' },
+      noIndex: { type: Boolean, default: false },
+    },
   },
   {
     timestamps: true,

@@ -63,6 +63,18 @@ const variantInputSchema = z
     }
   );
 
+export const productSeoSchema = z.object({
+  title: z.string().trim().optional().default(''),
+  description: z.string().trim().optional().default(''),
+  keywords: z.union([z.array(z.string().trim()), z.string().trim()]).optional().transform((val) => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val.map((k) => k.trim()).filter(Boolean);
+    return val.split(',').map((k) => k.trim()).filter(Boolean);
+  }),
+  ogImage: z.string().trim().optional().default(''),
+  noIndex: z.boolean().optional().default(false),
+});
+
 export const createProductSchema = z.object({
   body: z
     .object({
@@ -78,6 +90,7 @@ export const createProductSchema = z.object({
       images: z.array(cloudinaryImageUrl).optional(),
       variantIds: z.array(objectIdString).optional(),
       variants: z.array(variantInputSchema).optional(),
+      seo: productSeoSchema.optional(),
     })
     .refine(
       (data) => {
@@ -119,6 +132,7 @@ export const updateProductSchema = z.object({
       images: z.array(cloudinaryImageUrl).optional(),
       variantIds: z.array(objectIdString).optional(),
       variants: z.array(variantInputSchema).optional(),
+      seo: productSeoSchema.optional(),
     })
     .refine(
       (data) => {

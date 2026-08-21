@@ -288,6 +288,7 @@ export const createProductService = async ({
   images = [],
   variantIds = [],
   variants = [],
+  seo = undefined,
 }) => {
   const finalSlug = generateSlug(slug || name);
   if (!finalSlug) {
@@ -344,6 +345,7 @@ export const createProductService = async ({
           isFeatured: Boolean(isFeatured),
           isActive: Boolean(isActive),
           images: Array.isArray(images) ? images : [],
+          seo: seo || undefined,
         },
       ],
       opts
@@ -392,6 +394,7 @@ export const updateProductService = async (
     images,
     variantIds,
     variants,
+    seo,
   }
 ) => {
   let session = null;
@@ -415,6 +418,7 @@ export const updateProductService = async (
     if (name !== undefined) product.name = name;
     if (code !== undefined) product.code = code;
     if (description !== undefined) product.description = description;
+    if (seo !== undefined) product.seo = seo;
     if (price !== undefined) product.price = Number(price);
     if (discountPrice !== undefined) {
       const cleanDiscountPrice =
