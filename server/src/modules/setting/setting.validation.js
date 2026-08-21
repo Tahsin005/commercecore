@@ -10,17 +10,17 @@ export const marqueeSchema = z.object({
   isActive: z.boolean(),
 });
 
+export const socialLinkSchema = z.object({
+  icon: z.string().trim().min(1, 'Icon name is required'),
+  url: z.string().trim().min(1, 'URL is required'),
+  label: z.string().trim().optional(),
+  platform: z.string().trim().optional(),
+});
+
 export const footerSettingsSchema = z.object({
   description: z.string().trim().optional(),
   helpline: z.string().trim().optional(),
-  socialLinks: z
-    .array(
-      z.object({
-        platform: z.string().trim().min(1, 'Platform name is required'),
-        url: z.string().trim().url('Must be a valid URL'),
-      })
-    )
-    .optional(),
+  socialLinks: z.array(socialLinkSchema).optional().default([]),
 });
 
 export const updateSettingSchema = z.object({

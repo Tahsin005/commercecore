@@ -297,9 +297,6 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                     {product.variants.map((variant) => {
                       const isSelected = selectedVariant?.id === variant.id;
                       const label = variant.label || variant.size || t.common.standard;
-                      const vRegular = variant.overridePrice ?? variant.price ?? baseRegularPrice;
-                      const vDiscount = variant.overrideDiscountPrice ?? variant.discountPrice ?? baseDiscountPrice;
-                      const vEffective = getProductEffectivePrice(vRegular, vDiscount);
                       const isVOutOfStock = (variant.quantity ?? 0) <= 0;
 
                       return (
@@ -319,11 +316,6 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                           }`}
                         >
                           <span>{label}</span>
-                          {vEffective !== currentEffectivePrice && (
-                            <span className={`text-[10px] ${isSelected ? "text-cream/80" : "text-maroon-600"}`}>
-                              (৳{vEffective})
-                            </span>
-                          )}
                           {isVOutOfStock && (
                             <span className="text-[9px] uppercase tracking-tight font-mono text-red-500 font-normal">
                               ({t.common.outOfStock})

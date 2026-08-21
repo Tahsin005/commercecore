@@ -13,6 +13,7 @@ import {
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
 import { usePublicContentBlockQuery } from "@/hooks/useCmsQueries";
+import { SocialIcon } from "@/components/common/SocialIcon";
 
 export function Footer() {
   const { t } = useLanguage();
@@ -23,6 +24,7 @@ export function Footer() {
   const footerSettings = settings?.footer_settings;
   const helplineNumber = settings?.helpline_number || footerSettings?.helpline || "01700000000";
   const brandDescription = aboutUs?.body || footerSettings?.description || t.footer.brandDesc;
+  const socialLinks = footerSettings?.socialLinks || [];
 
   return (
     <footer className="bg-maroon-900 text-white border-t border-maroon-800 font-sans mt-auto">
@@ -80,6 +82,24 @@ export function Footer() {
           <p className="text-xs text-maroon-200 leading-relaxed max-w-sm font-sans line-clamp-4">
             {brandDescription}
           </p>
+
+          {socialLinks.length > 0 && (
+            <div className="pt-1 flex flex-wrap items-center gap-2">
+              {socialLinks.map((link, idx) => (
+                <a
+                  key={`${link.icon}-${idx}`}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={link.label || link.icon}
+                  title={link.label || link.icon}
+                  className="w-8 h-8 rounded-lg bg-maroon-800/90 hover:bg-cream text-cream hover:text-maroon-900 border border-maroon-700/80 flex items-center justify-center transition-all duration-200 shadow-xs hover:scale-110 active:scale-95 cursor-pointer"
+                >
+                  <SocialIcon iconId={link.icon} className="w-3.5 h-3.5" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="md:col-span-3 space-y-3">

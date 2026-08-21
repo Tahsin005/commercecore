@@ -10,9 +10,16 @@ export const marqueeSchema = z.object({
   isActive: z.boolean(),
 });
 
+export const socialLinkSchema = z.object({
+  icon: z.string().trim().min(1, "Icon is required"),
+  url: z.string().trim().min(1, "URL is required"),
+  label: z.string().trim().optional(),
+});
+
 export const footerSettingsSchema = z.object({
   description: z.string().trim().optional(),
   helpline: z.string().trim().optional(),
+  socialLinks: z.array(socialLinkSchema).optional(),
 });
 
 export const bannerFormSchema = z.object({
@@ -45,6 +52,7 @@ export const productBulletFormSchema = z.object({
 
 export type DeliveryChargeInput = z.infer<typeof deliveryChargeSchema>;
 export type MarqueeInput = z.infer<typeof marqueeSchema>;
+export type SocialLinkInput = z.infer<typeof socialLinkSchema>;
 export type FooterSettingsInput = z.infer<typeof footerSettingsSchema>;
 export type BannerFormInput = z.infer<typeof bannerFormSchema>;
 export type ContactChannelFormInput = z.infer<typeof contactChannelFormSchema>;
