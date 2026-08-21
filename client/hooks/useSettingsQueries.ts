@@ -12,10 +12,17 @@ export interface MarqueeSetting {
   isActive: boolean;
 }
 
+export interface SocialLinkItem {
+  icon: string;
+  url: string;
+  label?: string;
+  platform?: string;
+}
+
 export interface FooterSettings {
   description: string;
   helpline: string;
-  socialLinks: { platform: string; url: string }[];
+  socialLinks: SocialLinkItem[];
 }
 
 export interface SiteSettingsMap {
