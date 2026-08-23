@@ -35,6 +35,7 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { WishlistDrawer } from "@/components/WishlistDrawer";
 import { LogoutWarningModal } from "@/components/modals/LogoutWarningModal";
 import { ClaimAccountModal } from "@/components/modals/ClaimAccountModal";
+import { trackSearch } from "@/lib/meta-pixel";
 
 export function Navbar() {
   const router = useRouter();
@@ -58,8 +59,12 @@ export function Navbar() {
   // Debounce search query input (300ms)
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedQuery(searchQuery.trim());
+      const trimmed = searchQuery.trim();
+      setDebouncedQuery(trimmed);
       setActiveIndex(-1);
+      if (trimmed.length >= 2) {
+        trackSearch(trimmed);
+      }
     }, 300);
     return () => clearTimeout(handler);
   }, [searchQuery]);

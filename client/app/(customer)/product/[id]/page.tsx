@@ -33,6 +33,12 @@ import { ProductTabsSection } from "@/components/ProductTabsSection";
 import { RelatedProductsSection } from "@/components/RelatedProductsSection";
 import { ProductImageGallery } from "@/components/ProductImageGallery";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import {
+  trackViewContent,
+  trackAddToCart,
+  trackAddToWishlist,
+  trackContact,
+} from "@/lib/meta-pixel";
 
 interface ProductDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -72,6 +78,26 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   useEffect(() => {
     if (product && product.variants && product.variants.length > 0) {
       setSelectedVariant(product.variants[0]);
+    }
+  }, [product]);
+
+  // Track ViewContent event on product load
+  useEffect(() => {
+    if (product) {
+      const categoryName =
+        product.categoryId && typeof product.categoryId === "object"
+          ? (product.categoryId as { name?: string }).name
+          : undefined;
+      const baseRegular = product.price !== undefined && product.price !== null ? product.price : (product.defaultPrice || 0);
+      const baseDiscount = product.discountPrice ?? product.defaultDiscountPrice ?? null;
+      const effective = getProductEffectivePrice(baseRegular, baseDiscount);
+
+      trackViewContent({
+        id: product.id,
+        name: product.name,
+        price: effective,
+        category: categoryName,
+      });
     }
   }, [product]);
 
@@ -144,6 +170,12 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
       },
       quantity
     );
+    trackAddToCart({
+      productId: product.id,
+      name: product.name,
+      price: currentEffectivePrice,
+      quantity,
+    });
     toast.success(`${quantity} x "${product.name}" (${selectedLabel}) ${t.productDetails.addedToCart}`);
   };
 
@@ -161,6 +193,11 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         size: selectedLabel,
         price: currentEffectivePrice,
         imageUrl: product.images?.[0],
+      });
+      trackAddToWishlist({
+        productId: product.id,
+        name: product.name,
+        price: currentEffectivePrice,
       });
       toast.success(`"${product.name}" ${t.home.addToWishlist}`);
     }
@@ -186,6 +223,12 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
       },
       quantity
     );
+    trackAddToCart({
+      productId: product.id,
+      name: product.name,
+      price: currentEffectivePrice,
+      quantity,
+    });
     router.push("/checkout");
   };
 
@@ -242,6 +285,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                         href={waUrl}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => trackContact("whatsapp")}
                         className="inline-flex items-center space-x-1 text-emerald-700 hover:text-emerald-900 font-semibold underline cursor-pointer"
                       >
                         <MessageCircle className="w-3.5 h-3.5" />

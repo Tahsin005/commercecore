@@ -3,6 +3,7 @@ import { apiClient, ApiError } from "@/lib/api-client";
 import { ApiResponse } from "@/types/api";
 import { useAuthStore, User } from "@/store/useAuthStore";
 import { LoginInput, SignupInput } from "@/lib/validations/auth";
+import { trackCompleteRegistration } from "@/lib/meta-pixel";
 
 interface AuthResponseData {
   user: User;
@@ -47,6 +48,7 @@ export function useSignupMutation() {
     onSuccess: (response) => {
       if (response.data?.user && response.data?.token) {
         setAuth(response.data.user, response.data.token);
+        trackCompleteRegistration("signup");
       }
     },
   });
@@ -64,6 +66,7 @@ export function useClaimAccountMutation() {
     onSuccess: (response) => {
       if (response.data?.user && response.data?.token) {
         setAuth(response.data.user, response.data.token);
+        trackCompleteRegistration("claim_account");
       }
     },
   });
