@@ -8,6 +8,7 @@ import { trackCompleteRegistration } from "@/lib/meta-pixel";
 interface AuthResponseData {
   user: User;
   token: string;
+  eventId?: string;
 }
 
 export interface ClaimAccountInput {
@@ -48,7 +49,10 @@ export function useSignupMutation() {
     onSuccess: (response) => {
       if (response.data?.user && response.data?.token) {
         setAuth(response.data.user, response.data.token);
-        trackCompleteRegistration("signup");
+        const eventId =
+          response.data.eventId ||
+          (response.data.user.id ? `reg_${response.data.user.id}` : undefined);
+        trackCompleteRegistration("signup", eventId);
       }
     },
   });
@@ -66,7 +70,10 @@ export function useClaimAccountMutation() {
     onSuccess: (response) => {
       if (response.data?.user && response.data?.token) {
         setAuth(response.data.user, response.data.token);
-        trackCompleteRegistration("claim_account");
+        const eventId =
+          response.data.eventId ||
+          (response.data.user.id ? `claim_${response.data.user.id}` : undefined);
+        trackCompleteRegistration("claim_account", eventId);
       }
     },
   });

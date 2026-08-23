@@ -126,9 +126,16 @@ export const trackContact = (channel: string = "whatsapp") => {
 };
 
 // Track when a user completes account registration or claims account
-export const trackCompleteRegistration = (method: string = "email_or_phone") => {
-  trackEvent("CompleteRegistration", {
-    content_name: method,
-    status: true,
-  });
+export const trackCompleteRegistration = (
+  method: string = "email_or_phone",
+  eventId?: string
+) => {
+  trackEvent(
+    "CompleteRegistration",
+    {
+      content_name: method,
+      status: true,
+    },
+    eventId ? { eventID: eventId } : undefined
+  );
 };

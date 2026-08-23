@@ -11,7 +11,7 @@ import { orderStatusEnum } from './order.validation.js';
 import ApiError from '../../utils/ApiError.js';
 import { sendMetaConversionEvent } from '../../utils/metaCapi.js';
 
-export const createOrderService = async (orderPayload, reqUser = null) => {
+export const createOrderService = async (orderPayload, reqUser = null, reqMeta = {}) => {
   const {
     customerName,
     phone,
@@ -260,7 +260,9 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
         content_type: 'product',
         num_items: processedItems.length,
       },
-      eventSourceUrl: `/order-success/${order.orderNumber}`,
+      eventSourceUrl: '/checkout',
+      clientUserAgent: reqMeta.clientUserAgent,
+      clientIpAddress: reqMeta.clientIpAddress,
     }).catch(() => {});
 
     return {

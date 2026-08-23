@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import Script from "next/script";
 import { Playfair_Display, Poppins } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { siteConfig } from "@/lib/seo/site-config";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { FacebookPixelEvents } from "@/components/seo/FacebookPixelEvents";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -113,6 +115,9 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col font-sans">
         <Providers>{children}</Providers>
+        <Suspense fallback={null}>
+          <FacebookPixelEvents />
+        </Suspense>
         <Script id="fb-pixel" strategy="afterInteractive">
           {`
             !function(f,b,e,v,n,t,s)

@@ -32,10 +32,13 @@ export async function sendMetaConversionEvent({
   userData = {},
   customData = {},
   eventSourceUrl,
+  clientUserAgent,
+  clientIpAddress,
   actionSource = 'website',
 }) {
   const pixelId = env.fbPixelId;
   const accessToken = env.fbCapiAccessToken;
+  const apiVersion = env.fbApiVersion || 'v20.0';
 
   if (!pixelId || !accessToken) {
     // CAPI is not configured yet, skip silently
@@ -58,12 +61,29 @@ export async function sendMetaConversionEvent({
     userPayload.external_id = hashForMeta(userData.userId);
   }
 
+  // Forward unmodified client_user_agent and client_ip_address if provided (required/recommended for website events)
+  const rawUserAgent = clientUserAgent || userData.clientUserAgent;
+  if (rawUserAgent) {
+    userPayload.client_user_agent = rawUserAgent;
+  }
+  const rawIp = clientIpAddress || userData.clientIpAddress;
+  if (rawIp) {
+    userPayload.client_ip_address = rawIp;
+  }
+
+  // Ensure eventSourceUrl is an absolute URL on a verified domain
+  let absoluteSourceUrl = eventSourceUrl;
+  if (absoluteSourceUrl && !absoluteSourceUrl.startsWith('http://') && !absoluteSourceUrl.startsWith('https://')) {
+    const baseUrl = env.clientUrl.replace(/\/$/, '');
+    absoluteSourceUrl = `${baseUrl}${absoluteSourceUrl.startsWith('/') ? '' : '/'}${absoluteSourceUrl}`;
+  }
+
   const eventObject = {
     event_name: eventName,
     event_time: Math.floor(Date.now() / 1000),
     event_id: eventId,
     action_source: actionSource,
-    event_source_url: eventSourceUrl,
+    event_source_url: absoluteSourceUrl,
     user_data: userPayload,
     custom_data: customData,
   };
@@ -77,7 +97,7 @@ export async function sendMetaConversionEvent({
   }
 
   try {
-    const url = `https://graph.facebook.com/v20.0/${pixelId}/events?access_token=${accessToken}`;
+    const url = `https://graph.facebook.com/${apiVersion}/${pixelId}/events?access_token=${accessToken}`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
