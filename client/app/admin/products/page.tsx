@@ -39,6 +39,7 @@ import {
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { useUploadImageMutation } from "@/hooks/useUploadMutation";
 import { productSchema, variantSchema, ProductInput, VariantInput } from "@/lib/validations/product";
+import { ProductImageReorderGrid } from "@/components/admin/ProductImageReorderGrid";
 
 const slugify = (text: string) => {
   return text
@@ -879,31 +880,11 @@ export default function AdminProductsPage() {
                     )}
                   </button>
 
-                  {createImages.length > 0 && (
-                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                      {createImages.map((imgUrl, idx) => (
-                        <div
-                          key={idx}
-                          className="relative w-full h-16 rounded-lg overflow-hidden border border-maroon-200 bg-off-white group"
-                        >
-                          <Image src={imgUrl} alt={`Product ${idx + 1}`} fill sizes="64px" className="object-cover" />
-                          {idx === 0 && (
-                            <span className="absolute bottom-0 inset-x-0 bg-emerald-600/90 text-white text-[9px] font-bold text-center py-0.5 uppercase tracking-wider">
-                              Cover
-                            </span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveImage(idx, "create")}
-                            className="absolute top-1 right-1 p-1 bg-red-600/90 hover:bg-red-700 text-white rounded-full transition-all cursor-pointer opacity-0 group-hover:opacity-100 shadow-xs"
-                            title="Remove Image"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <ProductImageReorderGrid
+                    images={createImages}
+                    onReorder={setCreateImages}
+                    onRemove={(idx) => handleRemoveImage(idx, "create")}
+                  />
                 </div>
               </div>
 
@@ -1232,31 +1213,11 @@ export default function AdminProductsPage() {
                     )}
                   </button>
 
-                  {editImages.length > 0 && (
-                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                      {editImages.map((imgUrl, idx) => (
-                        <div
-                          key={idx}
-                          className="relative w-full h-16 rounded-lg overflow-hidden border border-maroon-200 bg-off-white group"
-                        >
-                          <Image src={imgUrl} alt={`Product ${idx + 1}`} fill sizes="64px" className="object-cover" />
-                          {idx === 0 && (
-                            <span className="absolute bottom-0 inset-x-0 bg-emerald-600/90 text-white text-[9px] font-bold text-center py-0.5 uppercase tracking-wider">
-                              Cover
-                            </span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveImage(idx, "edit")}
-                            className="absolute top-1 right-1 p-1 bg-red-600/90 hover:bg-red-700 text-white rounded-full transition-all cursor-pointer opacity-0 group-hover:opacity-100 shadow-xs"
-                            title="Remove Image"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <ProductImageReorderGrid
+                    images={editImages}
+                    onReorder={setEditImages}
+                    onRemove={(idx) => handleRemoveImage(idx, "edit")}
+                  />
                 </div>
               </div>
 

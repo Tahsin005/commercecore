@@ -27,6 +27,7 @@ import { useProductCardActions, getProductStock, getProductDisplayPricing } from
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { isProductOnSale, getProductEffectivePrice, getProductDiscountPercentage } from "@/lib/discount";
 import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
+import { ProductCardImageSlider } from "@/components/ProductCardImageSlider";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function CategoriesPage() {
@@ -364,24 +365,12 @@ export default function CategoriesPage() {
                       </span>
                     )}
 
-                    <div className="bg-off-white p-6 relative flex items-center justify-center border-b border-maroon-100/60 h-48 overflow-hidden rounded-t-xl">
-                      <Link
-                        href={productHref}
-                        className="absolute inset-0 flex items-center justify-center"
-                        aria-label={product.name}
-                      >
-                        {hasImage ? (
-                          <Image
-                            src={product.images![0]}
-                            alt={product.name}
-                            fill
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <Package className="w-16 h-16 text-maroon-300 group-hover:scale-110 transition-transform duration-300" />
-                        )}
-                      </Link>
+                    <div className="relative">
+                      <ProductCardImageSlider
+                        images={product.images}
+                        productName={product.name}
+                        productHref={productHref}
+                      />
 
                       <button
                         type="button"
@@ -390,7 +379,7 @@ export default function CategoriesPage() {
                           e.preventDefault();
                           handleToggleWishlist(product);
                         }}
-                        className={`absolute top-3 left-3 p-2 rounded-full border transition-all cursor-pointer shadow-sm z-10 ${
+                        className={`absolute top-3 left-3 p-2 rounded-full border transition-all cursor-pointer shadow-sm z-30 ${
                           wishlisted
                             ? "bg-maroon-900 text-cream border-maroon-800"
                             : "bg-white text-maroon-600 border-maroon-200 hover:bg-maroon-50"
@@ -401,7 +390,7 @@ export default function CategoriesPage() {
                       </button>
 
                       {product.isFeatured && !hasDiscount && (
-                        <span className="absolute top-3 right-3 bg-maroon-900 text-cream text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow z-10 pointer-events-none">
+                        <span className="absolute top-3 right-3 bg-maroon-900 text-cream text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow z-30 pointer-events-none">
                           {t.common.featured}
                         </span>
                       )}
@@ -447,28 +436,29 @@ export default function CategoriesPage() {
                           )}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="flex items-center gap-2">
                           <button
                             type="button"
                             disabled={isOutOfStock}
                             onClick={(e) => handleAddToCart(e, product)}
-                            className="py-2 px-2 bg-maroon-800 hover:bg-maroon-700 active:scale-95 text-white font-semibold text-[11px] rounded-md transition-all flex items-center justify-center space-x-1 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <ShoppingCart className="w-3.5 h-3.5 text-cream shrink-0" />
-                            <span className="truncate">
-                              {isOutOfStock
+                            className="w-10 h-10 bg-off-white hover:bg-maroon-900 text-maroon-900 hover:text-cream border border-maroon-200 hover:border-maroon-900 active:scale-95 rounded-lg transition-all flex items-center justify-center shrink-0 shadow-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed group/cart"
+                            title={
+                              isOutOfStock
                                 ? t.productDetails?.outOfStockMsg || t.common?.outOfStock || "Out of Stock"
-                                : t.productDetails?.addToCart || "Add to Cart"}
-                            </span>
+                                : t.productDetails?.addToCart || "Add to Cart"
+                            }
+                            aria-label={t.productDetails?.addToCart || "Add to Cart"}
+                          >
+                            <ShoppingCart className="w-4 h-4 transition-transform group-hover/cart:scale-110 text-maroon-800 group-hover/cart:text-cream" />
                           </button>
 
                           <button
                             type="button"
                             disabled={isOutOfStock}
                             onClick={(e) => handleBuyNow(e, product)}
-                            className="py-2 px-2 bg-maroon-900 hover:bg-maroon-800 active:scale-95 text-white font-semibold text-[11px] rounded-md transition-all flex items-center justify-center space-x-1 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 h-10 py-2 px-3 bg-maroon-900 hover:bg-maroon-800 active:scale-[0.98] text-white font-semibold text-xs rounded-lg transition-all flex items-center justify-center space-x-1.5 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                           >
-                            <ShoppingBag className="w-3.5 h-3.5 text-cream shrink-0" />
+                            <ShoppingBag className="w-4 h-4 text-cream shrink-0" />
                             <span className="truncate">
                               {isOutOfStock
                                 ? t.productDetails?.outOfStockMsg || t.common?.outOfStock || "Out of Stock"
