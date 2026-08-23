@@ -315,13 +315,33 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   {product.name}
                 </h1>
 
-                {whatsappChannel && (() => {
-                  const rawNum = whatsappChannel.phoneNumber.replace(/\D/g, "");
-                  const formattedNum = rawNum.startsWith("88") ? rawNum : `88${rawNum}`;
-                  const waUrl = `https://wa.me/${formattedNum}?text=${encodeURIComponent(`Hi, I would like to ask details about ${product.name}`)}`;
+                <div className="mt-2 flex flex-wrap items-center gap-3">
+                  {product.code && (
+                    <div className="inline-flex items-center space-x-1 px-2 py-0.5 bg-off-white border border-maroon-200/80 rounded font-mono text-[10px] font-bold text-maroon-700">
+                      <span className="text-[9px] text-maroon-500 font-sans uppercase tracking-wider font-semibold">{t.common.code}:</span>
+                      <span>{product.code}</span>
+                      <button
+                        type="button"
+                        onClick={handleCopyCode}
+                        className="p-0.5 hover:bg-maroon-100 text-maroon-600 hover:text-maroon-900 rounded transition-colors cursor-pointer ml-1"
+                        title={t.productDetails?.copyProductCode || "Copy product code"}
+                        aria-label={t.productDetails?.copyProductCode || "Copy product code"}
+                      >
+                        {copiedCode ? (
+                          <Check className="w-3 h-3 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                      </button>
+                    </div>
+                  )}
 
-                  return (
-                    <div className="mt-2 flex items-center space-x-2 text-xs">
+                  {whatsappChannel && (() => {
+                    const rawNum = whatsappChannel.phoneNumber.replace(/\D/g, "");
+                    const formattedNum = rawNum.startsWith("88") ? rawNum : `88${rawNum}`;
+                    const waUrl = `https://wa.me/${formattedNum}?text=${encodeURIComponent(`Hi, I would like to ask details about ${product.name}`)}`;
+
+                    return (
                       <a
                         href={waUrl}
                         target="_blank"
@@ -330,14 +350,14 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                           trackContact("whatsapp");
                           trackGaGenerateLead("whatsapp_inquiry");
                         }}
-                        className="inline-flex items-center space-x-1 text-emerald-700 hover:text-emerald-900 font-semibold underline cursor-pointer"
+                        className="inline-flex items-center space-x-1 text-emerald-700 hover:text-emerald-900 font-semibold underline cursor-pointer text-xs"
                       >
                         <MessageCircle className="w-3.5 h-3.5" />
                         <span>{t.productDetails.askForDetails}</span>
                       </a>
-                    </div>
-                  );
-                })()}
+                    );
+                  })()}
+                </div>
               </div>
 
               <div className="pt-3 border-t border-maroon-100 flex items-center justify-between">
@@ -478,25 +498,6 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
           </div>
 
           <div className="lg:col-span-3 space-y-2.5">
-            {product.code && (
-              <div className="inline-flex items-center space-x-1 px-2 py-0.5 bg-off-white border border-maroon-200/80 rounded font-mono text-[10px] font-bold text-maroon-700">
-                <span className="text-[9px] text-maroon-500 font-sans uppercase tracking-wider font-semibold">{t.common.code}:</span>
-                <span>{product.code}</span>
-                <button
-                  type="button"
-                  onClick={handleCopyCode}
-                  className="p-0.5 hover:bg-maroon-100 text-maroon-600 hover:text-maroon-900 rounded transition-colors cursor-pointer ml-1"
-                  title={t.productDetails?.copyProductCode || "Copy product code"}
-                  aria-label={t.productDetails?.copyProductCode || "Copy product code"}
-                >
-                  {copiedCode ? (
-                    <Check className="w-3 h-3 text-emerald-600" />
-                  ) : (
-                    <Copy className="w-3 h-3" />
-                  )}
-                </button>
-              </div>
-            )}
             <ProductSidebarBoxes productId={product.id} />
           </div>
         </div>

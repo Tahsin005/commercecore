@@ -12,7 +12,7 @@ export function ProductGridSkeleton({ count = 8 }: ProductGridSkeletonProps) {
           key={idx}
           className="bg-white rounded-xl shadow-md border border-maroon-100 overflow-hidden flex flex-col justify-between animate-pulse"
         >
-          <div className="bg-maroon-100/50 p-6 relative flex items-center justify-center border-b border-maroon-100/60 h-48">
+          <div className="bg-maroon-100/50 p-6 relative flex items-center justify-center border-b border-maroon-100/60 aspect-square sm:h-72">
             <Package className="w-16 h-16 text-maroon-200/80" />
             <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 border border-maroon-200/60" />
           </div>
