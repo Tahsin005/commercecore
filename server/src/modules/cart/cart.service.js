@@ -121,7 +121,7 @@ export const addToCartService = async (userId, productId, productVariantId = nul
     // If no variant was explicitly selected (e.g. moving from wishlist), fallback to the first active variant
     const links = await ProductVariantLink.find({ productId: pId }).populate('productVariantId');
     const activeLinks = links.filter((l) => l.productVariantId && l.productVariantId.isActive === true);
-    link = activeLinks.find((l) => (l.quantity || 0) > 0) || activeLinks[0] || links[0] || null;
+    link = activeLinks.find((l) => (l.quantity || 0) > 0) || activeLinks[0] || null;
     if (link) {
       finalVariantId = link.productVariantId?._id || link.productVariantId?.id || link.productVariantId;
     }
@@ -279,11 +279,13 @@ export const syncGuestCartService = async (userId, guestItems = []) => {
     if (!pvId) {
       const links = await ProductVariantLink.find({ productId: pId }).populate('productVariantId');
       const activeLinks = links.filter((l) => l.productVariantId && l.productVariantId.isActive === true);
-      const link = activeLinks.find((l) => (l.quantity || 0) > 0) || activeLinks[0] || links[0] || null;
+      const link = activeLinks.find((l) => (l.quantity || 0) > 0) || activeLinks[0] || null;
       if (link) {
         pvId = link.productVariantId?._id || link.productVariantId?.id || link.productVariantId;
       }
     }
+
+    if (!pvId) continue;
 
     const qty = guestItem.quantity && guestItem.quantity > 0 ? guestItem.quantity : 1;
 

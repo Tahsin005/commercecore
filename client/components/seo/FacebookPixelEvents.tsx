@@ -10,10 +10,7 @@ export function FacebookPixelEvents() {
   const isFirstRender = useRef(true);
 
   useEffect(() => {
-    const query = searchParams.toString();
-    const url = query ? `${pathname}?${query}` : pathname;
-
-    trackGaPageView(url);
+    trackGaPageView(pathname);
 
     if (isFirstRender.current) {
       isFirstRender.current = false;

@@ -162,7 +162,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   const images = product.images || [];
   const currentImage = images.length > 0 ? images[selectedImageIndex] || images[0] : null;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (isOutOfStock) {
       toast.error(t.productDetails.outOfStockMsg);
       return;
@@ -170,31 +170,37 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
 
     const selectedLabel = selectedVariant?.label || selectedVariant?.size || t.common.standard;
 
-    addToCart(
-      {
-        productVariantId: selectedVariant?.id,
+    try {
+      await addToCart(
+        {
+          productVariantId: selectedVariant?.id,
+          productId: product.id,
+          name: product.name,
+          slug: product.slug,
+          size: selectedLabel,
+          price: currentEffectivePrice,
+          imageUrl: currentImage || undefined,
+        },
+        quantity
+      );
+      trackAddToCart({
         productId: product.id,
         name: product.name,
-        slug: product.slug,
-        size: selectedLabel,
         price: currentEffectivePrice,
-        imageUrl: currentImage || undefined,
-      },
-      quantity
-    );
-    trackAddToCart({
-      productId: product.id,
-      name: product.name,
-      price: currentEffectivePrice,
-      quantity,
-    });
-    trackGaAddToCart({
-      productId: product.id,
-      name: product.name,
-      price: currentEffectivePrice,
-      quantity,
-    });
-    toast.success(`${quantity} x "${product.name}" (${selectedLabel}) ${t.productDetails.addedToCart}`);
+        quantity,
+      });
+      trackGaAddToCart({
+        productId: product.id,
+        name: product.name,
+        price: currentEffectivePrice,
+        quantity,
+        variant: selectedLabel,
+      });
+      toast.success(`${quantity} x "${product.name}" (${selectedLabel}) ${t.productDetails.addedToCart}`);
+    } catch (err: unknown) {
+      const errorMsg = (err as Error)?.message || t.common?.error || "Failed to add item to cart";
+      toast.error(errorMsg);
+    }
   };
 
   const handleToggleWishlist = () => {
@@ -226,7 +232,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
     }
   };
 
-  const handleOrderNow = () => {
+  const handleOrderNow = async () => {
     if (isOutOfStock) {
       toast.error(t.productDetails.outOfStockMsg);
       return;
@@ -234,31 +240,37 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
 
     const selectedLabel = selectedVariant?.label || selectedVariant?.size || t.common.standard;
 
-    addToCart(
-      {
-        productVariantId: selectedVariant?.id,
+    try {
+      await addToCart(
+        {
+          productVariantId: selectedVariant?.id,
+          productId: product.id,
+          name: product.name,
+          slug: product.slug,
+          size: selectedLabel,
+          price: currentEffectivePrice,
+          imageUrl: currentImage || undefined,
+        },
+        quantity
+      );
+      trackAddToCart({
         productId: product.id,
         name: product.name,
-        slug: product.slug,
-        size: selectedLabel,
         price: currentEffectivePrice,
-        imageUrl: currentImage || undefined,
-      },
-      quantity
-    );
-    trackAddToCart({
-      productId: product.id,
-      name: product.name,
-      price: currentEffectivePrice,
-      quantity,
-    });
-    trackGaAddToCart({
-      productId: product.id,
-      name: product.name,
-      price: currentEffectivePrice,
-      quantity,
-    });
-    router.push("/checkout");
+        quantity,
+      });
+      trackGaAddToCart({
+        productId: product.id,
+        name: product.name,
+        price: currentEffectivePrice,
+        quantity,
+        variant: selectedLabel,
+      });
+      router.push("/checkout");
+    } catch (err: unknown) {
+      const errorMsg = (err as Error)?.message || t.common?.error || "Failed to add item to cart";
+      toast.error(errorMsg);
+    }
   };
 
   return (

@@ -18,12 +18,11 @@ import {
 
 import { useCart } from "@/hooks/useCart";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-import { trackAddToCart, trackInitiateCheckout } from "@/lib/meta-pixel";
+import { trackAddToCart } from "@/lib/meta-pixel";
 import {
   trackGaViewCart,
   trackGaAddToCart,
   trackGaRemoveFromCart,
-  trackGaBeginCheckout,
 } from "@/lib/gtag";
 
 interface CartDrawerProps {
@@ -105,10 +104,6 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   if (!isOpen) return null;
 
   const handleCheckout = () => {
-    if (items.length > 0) {
-      trackInitiateCheckout(items, subtotal);
-      trackGaBeginCheckout(items, subtotal);
-    }
     onClose();
     router.push("/checkout");
   };

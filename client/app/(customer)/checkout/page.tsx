@@ -157,6 +157,11 @@ export default function CheckoutPage() {
         const { order, user: orderUser, token } = response.data;
         const orderedItems = response.data.items && response.data.items.length > 0 ? response.data.items : cartItems;
 
+        const storageKey = `cc_tracked_order_${order.orderNumber}`;
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(storageKey, "true");
+        }
+
         // Track Purchase event with eventID for CAPI deduplication
         trackPurchase({
           orderNumber: order.orderNumber,

@@ -158,11 +158,13 @@ export const createOrderService = async (orderPayload, reqUser = null, reqMeta =
       // Fallback to active variant for product (preferring in-stock)
       const links = await ProductVariantLink.find({ productId: pId }).populate('productVariantId');
       const activeLinks = links.filter((l) => l.productVariantId && l.productVariantId.isActive === true);
-      link = activeLinks.find((l) => (l.quantity || 0) >= (item.quantity || 1)) || activeLinks.find((l) => (l.quantity || 0) > 0) || activeLinks[0] || links[0] || null;
+      link = activeLinks.find((l) => (l.quantity || 0) >= (item.quantity || 1)) || activeLinks.find((l) => (l.quantity || 0) > 0) || activeLinks[0] || null;
       if (link && link.productVariantId) {
         variant = link.productVariantId;
         pvId = variant._id || variant.id;
         selectedVariantLabel = variant.label || variant.size || 'Standard';
+      } else {
+        throw new ApiError(400, `No active product variant available for product "${product.name}"`);
       }
     }
 

@@ -49,10 +49,16 @@ export const trackGaEvent = (
 };
 
 // Page View (for SPA route transitions)
-export const trackGaPageView = (url: string, title?: string) => {
+export const trackGaPageView = (path: string, title?: string) => {
+  const cleanPath = path.split("?")[0] || path;
+  const pageLocation =
+    typeof window !== "undefined"
+      ? `${window.location.origin}${cleanPath}`
+      : cleanPath;
+
   trackGaEvent("page_view", {
-    page_path: url,
-    page_location: typeof window !== "undefined" ? window.location.href : url,
+    page_path: cleanPath,
+    page_location: pageLocation,
     page_title: title || (typeof document !== "undefined" ? document.title : ""),
   });
 };
