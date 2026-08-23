@@ -18,6 +18,13 @@ import {
 
 import { useCart } from "@/hooks/useCart";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { trackAddToCart, trackInitiateCheckout } from "@/lib/meta-pixel";
+import {
+  trackGaViewCart,
+  trackGaAddToCart,
+  trackGaRemoveFromCart,
+  trackGaBeginCheckout,
+} from "@/lib/gtag";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -85,9 +92,23 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     };
   }, [isOpen, onClose]);
 
+  // Track view_cart event when drawer opens with items
+  useEffect(() => {
+    if (isOpen && items.length > 0) {
+      trackGaViewCart({
+        items,
+        totalValue: subtotal,
+      });
+    }
+  }, [isOpen, items, subtotal]);
+
   if (!isOpen) return null;
 
   const handleCheckout = () => {
+    if (items.length > 0) {
+      trackInitiateCheckout(items, subtotal);
+      trackGaBeginCheckout(items, subtotal);
+    }
     onClose();
     router.push("/checkout");
   };
@@ -100,9 +121,37 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const handleUpdateQuantity = async (productVariantId: string, newQuantity: number) => {
     if (pendingVariantIds.has(productVariantId)) return;
 
+    const currentItem = items.find((i) => (i.productVariantId || i.productId) === productVariantId);
+
     setPendingVariantIds((prev) => new Set(prev).add(productVariantId));
     try {
       await updateQuantity(productVariantId, newQuantity);
+
+      if (currentItem) {
+        if (newQuantity > currentItem.quantity) {
+          trackAddToCart({
+            productId: currentItem.productId,
+            name: currentItem.name,
+            price: currentItem.price,
+            quantity: 1,
+          });
+          trackGaAddToCart({
+            productId: currentItem.productId,
+            name: currentItem.name,
+            price: currentItem.price,
+            quantity: 1,
+            variant: currentItem.size,
+          });
+        } else if (newQuantity < currentItem.quantity) {
+          trackGaRemoveFromCart({
+            productId: currentItem.productId,
+            name: currentItem.name,
+            price: currentItem.price,
+            quantity: 1,
+            variant: currentItem.size,
+          });
+        }
+      }
     } finally {
       setPendingVariantIds((prev) => {
         const next = new Set(prev);
@@ -115,9 +164,21 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const handleRemoveItem = async (productVariantId: string) => {
     if (pendingVariantIds.has(productVariantId)) return;
 
+    const currentItem = items.find((i) => (i.productVariantId || i.productId) === productVariantId);
+
     setPendingVariantIds((prev) => new Set(prev).add(productVariantId));
     try {
       await removeItem(productVariantId);
+
+      if (currentItem) {
+        trackGaRemoveFromCart({
+          productId: currentItem.productId,
+          name: currentItem.name,
+          price: currentItem.price,
+          quantity: currentItem.quantity,
+          variant: currentItem.size,
+        });
+      }
     } finally {
       setPendingVariantIds((prev) => {
         const next = new Set(prev);
@@ -208,13 +269,14 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </div>
           ) : (
             <div className="space-y-3">
-              {items.map((item) => {
+              {items.map((item, idx) => {
                 const itemKey = item.productVariantId || item.productId;
+                const rowKey = `${itemKey}_${item.size || "std"}_${idx}`;
                 const isPending = pendingVariantIds.has(itemKey);
 
                 return (
                   <div
-                    key={itemKey}
+                    key={rowKey}
                     className={`flex items-center justify-between p-3.5 bg-off-white rounded-xl border border-maroon-100 shadow-xs space-x-3 transition-opacity ${
                       isPending ? "opacity-60" : "opacity-100"
                     }`}

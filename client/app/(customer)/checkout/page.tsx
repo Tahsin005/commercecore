@@ -155,19 +155,21 @@ export default function CheckoutPage() {
     createOrderMutation.mutate(orderPayload, {
       onSuccess: (response) => {
         const { order, user: orderUser, token } = response.data;
+        const orderedItems = response.data.items && response.data.items.length > 0 ? response.data.items : cartItems;
 
         // Track Purchase event with eventID for CAPI deduplication
         trackPurchase({
           orderNumber: order.orderNumber,
           total: order.total,
-          items: cartItems,
+          items: orderedItems,
         });
 
         // Track GA4 purchase event
         trackGaPurchase({
           orderNumber: order.orderNumber,
           total: order.total,
-          items: cartItems,
+          shipping: deliveryCharge,
+          items: orderedItems,
         });
 
         if (token && orderUser) {
@@ -486,11 +488,12 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
-                  {cartItems.map((item) => {
+                  {cartItems.map((item, idx) => {
                     const itemKey = item.productVariantId || item.productId;
+                    const rowKey = `${itemKey}_${item.size || "std"}_${idx}`;
                     return (
                       <div
-                        key={itemKey}
+                        key={rowKey}
                         className="flex items-center justify-between p-3.5 bg-off-white rounded-xl border border-maroon-100"
                       >
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-white border border-maroon-200 flex items-center justify-center shrink-0 relative mr-3">

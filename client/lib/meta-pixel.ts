@@ -92,17 +92,35 @@ export const trackInitiateCheckout = (
 export const trackPurchase = (order: {
   orderNumber: string;
   total: number;
-  items?: Array<{ productId?: string; id?: string }>;
+  items?: Array<{ productId?: string; id?: string; price?: number; unitPrice?: number; quantity?: number }>;
 }) => {
+  if (!order || !order.orderNumber) return;
+
   const contentIds =
     order.items?.map((item) => item.productId || item.id || "").filter(Boolean) || [];
+
+  let rawVal = typeof order.total === "number" ? order.total : parseFloat(String(order.total || 0));
+  if (isNaN(rawVal) || rawVal <= 0) {
+    const itemsTotal = (order.items || []).reduce((sum, i) => {
+      const p = typeof i.price === "number" ? i.price : parseFloat(String(i.unitPrice || i.price || 0));
+      const q = i.quantity || 1;
+      return sum + (!isNaN(p) ? p * q : 0);
+    }, 0);
+    rawVal = itemsTotal > 0 ? itemsTotal : 0;
+  }
+
+  const numericValue = !isNaN(rawVal) && rawVal > 0 ? Number(rawVal.toFixed(2)) : 0;
+
+  if (numericValue <= 0) {
+    return;
+  }
 
   trackEvent(
     "Purchase",
     {
-      content_ids: contentIds,
+      content_ids: contentIds.length > 0 ? contentIds : ["order_" + order.orderNumber],
       content_type: "product",
-      value: Number(order.total.toFixed(2)),
+      value: numericValue,
       currency: "BDT",
       num_items: contentIds.length || 1,
     },

@@ -7,40 +7,49 @@ export const CART_QUERY_KEY = ["cart"];
 
 export const mapApiCartItems = (apiItems: any[]): CartItem[] => {
   if (!apiItems || !Array.isArray(apiItems)) return [];
-  return apiItems
-    .filter((item) => item && (item.productId || item.productVariantId))
-    .map((item) => {
-      const product = item.productId;
-      const variant = item.productVariantId;
-      
-      const pObj = typeof product === "object" && product ? product : null;
-      const vObj = typeof variant === "object" && variant ? variant : null;
+  const mappedList: CartItem[] = [];
 
-      const productId = pObj ? (pObj.id || pObj._id || "").toString() : (typeof product === "string" ? product : "");
-      
-      let rawVariantId: string | undefined = undefined;
-      if (vObj) {
-        if (typeof vObj.id === "string") {
-          rawVariantId = vObj.id;
-        } else if (typeof vObj._id === "string") {
-          rawVariantId = vObj._id;
-        }
-      } else if (typeof variant === "string") {
-        rawVariantId = variant;
+  for (const item of apiItems) {
+    if (!item || (!item.productId && !item.productVariantId)) continue;
+    const product = item.productId;
+    const variant = item.productVariantId;
+    
+    const pObj = typeof product === "object" && product ? product : null;
+    const vObj = typeof variant === "object" && variant ? variant : null;
+
+    const productId = pObj ? (pObj.id || pObj._id || "").toString() : (typeof product === "string" ? product : "");
+    
+    let rawVariantId: string | undefined = undefined;
+    if (vObj) {
+      if (typeof vObj.id === "string") {
+        rawVariantId = vObj.id;
+      } else if (typeof vObj._id === "string") {
+        rawVariantId = vObj._id;
       }
+    } else if (typeof variant === "string") {
+      rawVariantId = variant;
+    }
 
-      const realVariantId = (rawVariantId && rawVariantId !== productId) ? rawVariantId : undefined;
-      const name = pObj ? pObj.name : "Product";
-      const slug = pObj ? pObj.slug : "product";
-      const size = vObj ? (vObj.label || vObj.size || "Standard") : "Standard";
-      const price = pObj && pObj.price !== undefined ? pObj.price : (pObj?.defaultPrice || 0);
-      const rawImages = pObj?.images || vObj?.productId?.images;
-      const imageUrl = (rawImages && Array.isArray(rawImages) && rawImages.length > 0)
-        ? rawImages[0]
-        : (pObj?.imageUrl || vObj?.productId?.imageUrl || item.imageUrl || undefined);
+    const realVariantId = (rawVariantId && rawVariantId !== productId) ? rawVariantId : undefined;
+    const name = pObj ? pObj.name : "Product";
+    const slug = pObj ? pObj.slug : "product";
+    const size = vObj ? (vObj.label || vObj.size || "Standard") : "Standard";
+    const price = pObj && pObj.price !== undefined ? pObj.price : (pObj?.defaultPrice || 0);
+    const rawImages = pObj?.images || vObj?.productId?.images;
+    const imageUrl = (rawImages && Array.isArray(rawImages) && rawImages.length > 0)
+      ? rawImages[0]
+      : (pObj?.imageUrl || vObj?.productId?.imageUrl || item.imageUrl || undefined);
 
-      return {
-        productVariantId: realVariantId || productId,
+    const variantKey = realVariantId || productId;
+    const existingIndex = mappedList.findIndex(
+      (m) => m.productId === productId && (m.productVariantId || m.productId) === variantKey
+    );
+
+    if (existingIndex > -1) {
+      mappedList[existingIndex].quantity += (item.quantity || 1);
+    } else {
+      mappedList.push({
+        productVariantId: variantKey,
         productId,
         name,
         slug,
@@ -48,8 +57,11 @@ export const mapApiCartItems = (apiItems: any[]): CartItem[] => {
         price,
         quantity: item.quantity || 1,
         imageUrl,
-      };
-    });
+      });
+    }
+  }
+
+  return mappedList;
 };
 
 export function useCartQuery(enabled: boolean = true) {

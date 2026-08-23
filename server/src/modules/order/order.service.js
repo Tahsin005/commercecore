@@ -153,7 +153,17 @@ export const createOrderService = async (orderPayload, reqUser = null, reqMeta =
         throw new ApiError(400, `Invalid product variant for product "${product.name}"`);
       }
       variant = variantMap.get(pvId.toString());
-      selectedVariantLabel = variant ? variant.label : '';
+      selectedVariantLabel = variant ? (variant.label || variant.size || '') : '';
+    } else {
+      // Fallback to active variant for product (preferring in-stock)
+      const links = await ProductVariantLink.find({ productId: pId }).populate('productVariantId');
+      const activeLinks = links.filter((l) => l.productVariantId && l.productVariantId.isActive === true);
+      link = activeLinks.find((l) => (l.quantity || 0) >= (item.quantity || 1)) || activeLinks.find((l) => (l.quantity || 0) > 0) || activeLinks[0] || links[0] || null;
+      if (link && link.productVariantId) {
+        variant = link.productVariantId;
+        pvId = variant._id || variant.id;
+        selectedVariantLabel = variant.label || variant.size || 'Standard';
+      }
     }
 
     const qty = item.quantity && item.quantity > 0 ? item.quantity : 1;
@@ -179,7 +189,7 @@ export const createOrderService = async (orderPayload, reqUser = null, reqMeta =
     processedItems.push({
       product,
       productId: product.id,
-      productVariantId: variant ? variant.id : null,
+      productVariantId: variant ? (variant.id || variant._id) : null,
       productName: product.name,
       selectedVariantLabel: selectedVariantLabel || 'Standard',
       size: selectedVariantLabel || 'Standard',

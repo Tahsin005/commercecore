@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -25,6 +25,8 @@ import { OrderSuccessSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useClaimAccountMutation } from "@/hooks/useAuthMutations";
+import { trackPurchase } from "@/lib/meta-pixel";
+import { trackGaPurchase } from "@/lib/gtag";
 
 interface OrderSuccessPageProps {
   params: Promise<{ orderNumber: string }>;
@@ -35,6 +37,7 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
   const claimMutation = useClaimAccountMutation();
+  const trackedRef = useRef<string | null>(null);
 
   const [claimEmail, setClaimEmail] = useState<string>(
     user?.email && !user.email.startsWith("guest_") ? user.email : ""
@@ -52,6 +55,27 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
 
   const order = response?.data?.order;
   const items = response?.data?.items || [];
+
+  useEffect(() => {
+    if (order && items && items.length > 0 && trackedRef.current !== order.orderNumber) {
+      trackedRef.current = order.orderNumber;
+      const storageKey = `cc_tracked_order_${order.orderNumber}`;
+      if (typeof window !== "undefined" && !sessionStorage.getItem(storageKey)) {
+        sessionStorage.setItem(storageKey, "true");
+        trackPurchase({
+          orderNumber: order.orderNumber,
+          total: order.total,
+          items: items,
+        });
+        trackGaPurchase({
+          orderNumber: order.orderNumber,
+          total: order.total,
+          shipping: order.deliveryCharge,
+          items: items,
+        });
+      }
+    }
+  }, [order, items]);
 
   const handleClaimAccount = (e: React.FormEvent) => {
     e.preventDefault();

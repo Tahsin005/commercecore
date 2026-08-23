@@ -115,18 +115,22 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
 
     setPendingIds((prev) => new Set(prev).add(itemKey));
     try {
-      await addItem({
-        productId: item.productId,
-        productVariantId: item.productVariantId,
-        name: item.name,
-        slug: item.slug,
-        size: item.size || "Standard",
-        price: item.price,
-        imageUrl: item.imageUrl,
-      }, 1);
+      await addItem(
+        {
+          productId: item.productId,
+          productVariantId: item.productVariantId,
+          name: item.name,
+          slug: item.slug,
+          size: item.size || "Standard",
+          price: item.price,
+          imageUrl: item.imageUrl,
+        },
+        1
+      );
       toast.success(t.wishlist?.addedToCartToast || "Added to cart!");
-    } catch {
-      toast.error("Failed to add to cart");
+    } catch (err: unknown) {
+      const msg = (err as Error)?.message || "Failed to add to cart";
+      toast.error(msg);
     } finally {
       setPendingIds((prev) => {
         const next = new Set(prev);
@@ -137,18 +141,26 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
   };
 
   const handleMoveAllToCart = async () => {
-    for (const item of items) {
-      await addItem({
-        productId: item.productId,
-        productVariantId: item.productVariantId,
-        name: item.name,
-        slug: item.slug,
-        size: item.size || "Standard",
-        price: item.price,
-        imageUrl: item.imageUrl,
-      }, 1);
+    try {
+      for (const item of items) {
+        await addItem(
+          {
+            productId: item.productId,
+            productVariantId: item.productVariantId,
+            name: item.name,
+            slug: item.slug,
+            size: item.size || "Standard",
+            price: item.price,
+            imageUrl: item.imageUrl,
+          },
+          1
+        );
+      }
+      toast.success(t.wishlist?.allMovedToast || "All items moved to cart!");
+    } catch (err: unknown) {
+      const msg = (err as Error)?.message || "Failed to move items to cart";
+      toast.error(msg);
     }
-    toast.success(t.wishlist?.allMovedToast || "All items moved to cart!");
   };
 
   return (
@@ -207,13 +219,14 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
             </div>
           ) : (
             <div className="space-y-3">
-              {items.map((item) => {
+              {items.map((item, idx) => {
                 const itemKey = item.productVariantId || item.productId;
+                const rowKey = `${itemKey}_${item.size || "std"}_${idx}`;
                 const isPending = pendingIds.has(itemKey);
 
                 return (
                   <div
-                    key={itemKey}
+                    key={rowKey}
                     className={`flex items-center justify-between p-3.5 bg-off-white rounded-xl border border-maroon-100 shadow-xs space-x-3 transition-opacity ${
                       isPending ? "opacity-60" : "opacity-100"
                     }`}

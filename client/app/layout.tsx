@@ -122,18 +122,20 @@ export default function RootLayout({
         {gaId && (
           <>
             <Script
+              id="ga4-src"
               src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
               strategy="afterInteractive"
             />
             <Script id="ga4-init" strategy="afterInteractive">
               {`
-                if (!window._ga4_initialized) {
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${gaId}');
-                  window._ga4_initialized = true;
-                }
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                window.gtag = gtag;
+                gtag('js', new Date());
+                gtag('config', '${gaId}', {
+                  send_page_view: false,
+                  debug_mode: ${process.env.NODE_ENV === "development" ? "true" : "false"}
+                });
               `}
             </Script>
           </>
