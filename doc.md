@@ -1,6 +1,6 @@
-# Meta Pixel & Conversions API (CAPI) Tracking Architecture
+# Meta Tracking Architecture & Google Analytics 4 (GA4)
 
-We implement a **Dual-Tracking Setup** (Browser Pixel + Server-Side Conversions API) with **Event Deduplication** to maximize data accuracy, bypass ad-blockers/browser restrictions, and calculate exact Return on Ad Spend (ROAS).
+We implement a **Dual-Tracking Setup** (Browser Pixel + Server-Side Conversions API) with **Event Deduplication** for Meta, alongside standard e-commerce tracking for **Google Analytics 4 (GA4)**.
 
 ---
 
@@ -9,6 +9,7 @@ We implement a **Dual-Tracking Setup** (Browser Pixel + Server-Side Conversions 
 | Variable | Scope | Description | Default |
 |---|---|---|---|
 | `NEXT_PUBLIC_FB_PIXEL_ID` | Client (`client/.env`) | Meta Pixel ID used in browser initialization | `1738010567468201` |
+| `NEXT_PUBLIC_GA_ID` | Client (`client/.env`) | Google Analytics 4 Measurement ID (`G-XXXXXXXXXX`) | `G-JR8SSQWMHZ` |
 | `FB_PIXEL_ID` | Server (`server/.env`) | Meta Pixel ID used in server-side Graph API requests | `1738010567468201` |
 | `FB_CAPI_ACCESS_TOKEN` | Server (`server/.env`) | Meta System User Access Token generated from Events Manager | `""` |
 | `FB_TEST_EVENT_CODE` | Server (`server/.env`) | Optional test code (e.g. `TEST94112`) for real-time validation in Events Manager | `""` |
@@ -19,7 +20,7 @@ We implement a **Dual-Tracking Setup** (Browser Pixel + Server-Side Conversions 
 
 ## 2. Client-Side Meta Pixel Standard Events
 
-Managed through the type-safe utility `client/lib/meta-pixel.ts` and loaded via Next.js `next/script` (`strategy="afterInteractive"`) with route-change tracking (`FacebookPixelEvents`) in `client/app/layout.tsx`.
+Managed through `client/lib/meta-pixel.ts` and loaded via Next.js `next/script` (`strategy="afterInteractive"`) with route-change tracking (`FacebookPixelEvents`) in `client/app/layout.tsx`.
 
 | # | Event Name | Trigger Point / Source File | Parameters Sent |
 |---|---|---|---|
@@ -35,11 +36,29 @@ Managed through the type-safe utility `client/lib/meta-pixel.ts` and loaded via 
 
 ---
 
-## 3. Server-Side Conversions API (CAPI) Events
+## 3. Google Analytics 4 (GA4) Standard E-Commerce Events
+
+Managed through `client/lib/gtag.ts` and loaded via Next.js `next/script` in `client/app/layout.tsx`.
+
+| # | Event Name | Trigger Point / Source File | Parameters Sent |
+|---|---|---|---|
+| 1 | **`page_view`** | `client/components/seo/FacebookPixelEvents.tsx`<br>• Route & search param transitions | • `page_path`: `pathname + searchParams` |
+| 2 | **`view_item`** | `client/app/(customer)/product/[id]/page.tsx`<br>• Product details page load | • `currency`: `'BDT'`<br>• `value`: Effective Price<br>• `items`: `[{ item_id, item_name, item_category, price }]` |
+| 3 | **`add_to_cart`** | `client/app/(customer)/product/[id]/page.tsx`<br>`client/hooks/useProductCardActions.ts` | • `currency`: `'BDT'`<br>• `value`: Price × Quantity<br>• `items`: `[{ item_id, item_name, quantity, price }]` |
+| 4 | **`add_to_wishlist`** | `client/app/(customer)/product/[id]/page.tsx`<br>`client/hooks/useProductCardActions.ts` | • `currency`: `'BDT'`<br>• `value`: Item Price<br>• `items`: `[{ item_id, item_name, price }]` |
+| 5 | **`begin_checkout`** | `client/app/(customer)/checkout/page.tsx`<br>• Checkout page load with cart items | • `currency`: `'BDT'`<br>• `value`: Cart Subtotal<br>• `items`: `[{ item_id, item_name, quantity, price }]` |
+| 6 | **`purchase`** | `client/app/(customer)/checkout/page.tsx`<br>• Order creation `onSuccess` callback | • `transaction_id`: `order.orderNumber`<br>• `currency`: `'BDT'`<br>• `value`: Order Total<br>• `items`: `[{ item_id, item_name, quantity, price }]` |
+| 7 | **`search`** | `client/components/Navbar.tsx`<br>• Debounced search input (>= 2 characters) | • `search_term`: Query string |
+| 8 | **`generate_lead`** | `client/app/(customer)/product/[id]/page.tsx`<br>• WhatsApp link click | • `content_type`: `'whatsapp_inquiry'` |
+| 9 | **`sign_up`** | `client/hooks/useAuthMutations.ts`<br>• User signup & post-checkout claim account | • `method`: `'signup'` or `'claim_account'` |
+
+---
+
+## 4. Server-Side Conversions API (CAPI) Events
 
 Managed through `server/src/utils/metaCapi.js` using native Node.js `fetch`, SHA-256 PII hashing, and configurable Graph API versions.
 
-### 3.1 Website Event Requirements
+### 4.1 Website Event Requirements
 1. **`client_user_agent`**: Must forward the raw, unhashed browser User-Agent header (`req.headers['user-agent']`) in `user_data.client_user_agent`.
 2. **`event_source_url`**: Must provide an absolute URL on the verified domain (e.g. `https://rupzoncollection.com/checkout`) where the user initiated the event.
 
@@ -51,7 +70,7 @@ Managed through `server/src/utils/metaCapi.js` using native Node.js `fetch`, SHA
 
 ---
 
-## 4. Deduplication Mechanism (`event_id` ↔ `eventID`)
+## 5. Deduplication Mechanism (`event_id` ↔ `eventID`)
 
 To prevent duplicate conversion counting in Meta Ads Manager when both the browser pixel and server CAPI fire for the same action:
 

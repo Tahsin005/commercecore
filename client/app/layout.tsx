@@ -104,6 +104,7 @@ export default function RootLayout({
   };
 
   const fbPixelId = process.env.NEXT_PUBLIC_FB_PIXEL_ID || "1738010567468201";
+  const gaId = process.env.NEXT_PUBLIC_GA_ID || "G-JR8SSQWMHZ";
 
   return (
     <html
@@ -113,23 +114,45 @@ export default function RootLayout({
       <head>
         <JsonLd data={[organizationSchema, webSiteSchema]} />
       </head>
-      <body className="min-h-full flex flex-col font-sans">
+      <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
         <Providers>{children}</Providers>
         <Suspense fallback={null}>
           <FacebookPixelEvents />
         </Suspense>
+        {gaId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`
+                if (!window._ga4_initialized) {
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${gaId}');
+                  window._ga4_initialized = true;
+                }
+              `}
+            </Script>
+          </>
+        )}
         <Script id="fb-pixel" strategy="afterInteractive">
           {`
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
-            'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '${fbPixelId}');
-            fbq('track', 'PageView');
+            if (!window._fbq_initialized) {
+              !function(f,b,e,v,n,t,s)
+              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+              n.queue=[];t=b.createElement(e);t.async=!0;
+              t.src=v;s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s)}(window, document,'script',
+              'https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', '${fbPixelId}');
+              fbq('track', 'PageView');
+              window._fbq_initialized = true;
+            }
           `}
         </Script>
         <noscript>

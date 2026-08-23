@@ -36,6 +36,7 @@ import { WishlistDrawer } from "@/components/WishlistDrawer";
 import { LogoutWarningModal } from "@/components/modals/LogoutWarningModal";
 import { ClaimAccountModal } from "@/components/modals/ClaimAccountModal";
 import { trackSearch } from "@/lib/meta-pixel";
+import { trackGaSearch } from "@/lib/gtag";
 
 export function Navbar() {
   const router = useRouter();
@@ -64,6 +65,7 @@ export function Navbar() {
       setActiveIndex(-1);
       if (trimmed.length >= 2) {
         trackSearch(trimmed);
+        trackGaSearch(trimmed);
       }
     }, 300);
     return () => clearTimeout(handler);

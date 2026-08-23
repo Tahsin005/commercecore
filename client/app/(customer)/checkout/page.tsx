@@ -33,6 +33,7 @@ import { getCheckoutSchema, CheckoutInput } from "@/lib/validations/order";
 import { CheckoutSkeleton, OrderSuccessSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
+import { trackGaBeginCheckout, trackGaPurchase } from "@/lib/gtag";
 
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
 import { useUserAddressesQuery } from "@/hooks/useAddressQueries";
@@ -73,10 +74,11 @@ export default function CheckoutPage() {
   const hasInitializedAddressRef = useRef(false);
   const hasTrackedInitiateCheckoutRef = useRef(false);
 
-  // Track InitiateCheckout on page load if cart has items
+  // Track InitiateCheckout / begin_checkout on page load if cart has items
   useEffect(() => {
     if (isHydrated && !isCartLoading && cartItems.length > 0 && !hasTrackedInitiateCheckoutRef.current) {
       trackInitiateCheckout(cartItems, subtotal);
+      trackGaBeginCheckout(cartItems, subtotal);
       hasTrackedInitiateCheckoutRef.current = true;
     }
   }, [isHydrated, isCartLoading, cartItems, subtotal]);
@@ -156,6 +158,13 @@ export default function CheckoutPage() {
 
         // Track Purchase event with eventID for CAPI deduplication
         trackPurchase({
+          orderNumber: order.orderNumber,
+          total: order.total,
+          items: cartItems,
+        });
+
+        // Track GA4 purchase event
+        trackGaPurchase({
           orderNumber: order.orderNumber,
           total: order.total,
           items: cartItems,

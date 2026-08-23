@@ -39,6 +39,12 @@ import {
   trackAddToWishlist,
   trackContact,
 } from "@/lib/meta-pixel";
+import {
+  trackGaViewItem,
+  trackGaAddToCart,
+  trackGaAddToWishlist,
+  trackGaGenerateLead,
+} from "@/lib/gtag";
 
 interface ProductDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -93,6 +99,12 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
       const effective = getProductEffectivePrice(baseRegular, baseDiscount);
 
       trackViewContent({
+        id: product.id,
+        name: product.name,
+        price: effective,
+        category: categoryName,
+      });
+      trackGaViewItem({
         id: product.id,
         name: product.name,
         price: effective,
@@ -176,6 +188,12 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
       price: currentEffectivePrice,
       quantity,
     });
+    trackGaAddToCart({
+      productId: product.id,
+      name: product.name,
+      price: currentEffectivePrice,
+      quantity,
+    });
     toast.success(`${quantity} x "${product.name}" (${selectedLabel}) ${t.productDetails.addedToCart}`);
   };
 
@@ -195,6 +213,11 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         imageUrl: product.images?.[0],
       });
       trackAddToWishlist({
+        productId: product.id,
+        name: product.name,
+        price: currentEffectivePrice,
+      });
+      trackGaAddToWishlist({
         productId: product.id,
         name: product.name,
         price: currentEffectivePrice,
@@ -224,6 +247,12 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
       quantity
     );
     trackAddToCart({
+      productId: product.id,
+      name: product.name,
+      price: currentEffectivePrice,
+      quantity,
+    });
+    trackGaAddToCart({
       productId: product.id,
       name: product.name,
       price: currentEffectivePrice,
@@ -285,7 +314,10 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                         href={waUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={() => trackContact("whatsapp")}
+                        onClick={() => {
+                          trackContact("whatsapp");
+                          trackGaGenerateLead("whatsapp_inquiry");
+                        }}
                         className="inline-flex items-center space-x-1 text-emerald-700 hover:text-emerald-900 font-semibold underline cursor-pointer"
                       >
                         <MessageCircle className="w-3.5 h-3.5" />

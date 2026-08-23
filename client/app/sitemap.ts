@@ -1,18 +1,15 @@
 import { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/seo/site-config";
 
-interface ApiCategory {
-  id: string;
-  name: string;
-  slug: string;
-  updatedAt?: string;
-}
-
 interface ApiProduct {
   id: string;
   name: string;
   slug: string;
   updatedAt?: string;
+  isActive?: boolean;
+  seo?: {
+    noIndex?: boolean;
+  };
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -61,7 +58,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       page += 1;
     }
 
-    allProducts.forEach((product: any) => {
+    allProducts.forEach((product: ApiProduct) => {
       if (product && product.id && product.isActive !== false && product.seo?.noIndex !== true) {
         routes.push({
           url: `${baseUrl}/product/${product.id}`,
@@ -71,18 +68,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         });
       }
     });
-
-    // Fetch live categories
-    const categoriesRes = await fetch(`${apiUrl}/categories`, {
-      next: { revalidate: 3600 },
-    }).catch(() => null);
-
-    if (categoriesRes && categoriesRes.ok) {
-      const categoriesData = await categoriesRes.json().catch(() => null);
-      const categories: ApiCategory[] = Array.isArray(categoriesData?.data) ? categoriesData.data : [];
-
-      // Static /categories route is already present above; no per-category entries added.
-    }
   } catch {
     // Fallback gracefully to base static routes
   }

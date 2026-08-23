@@ -18,6 +18,15 @@ export function FacebookPixelEvents() {
     if (typeof window !== "undefined" && typeof window.fbq === "function") {
       window.fbq("track", "PageView");
     }
+
+    const query = searchParams.toString();
+    const url = query ? `${pathname}?${query}` : pathname;
+
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", "page_view", {
+        page_path: url,
+      });
+    }
   }, [pathname, searchParams]);
 
   return null;

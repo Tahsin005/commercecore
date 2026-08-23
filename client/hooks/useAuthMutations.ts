@@ -4,6 +4,7 @@ import { ApiResponse } from "@/types/api";
 import { useAuthStore, User } from "@/store/useAuthStore";
 import { LoginInput, SignupInput } from "@/lib/validations/auth";
 import { trackCompleteRegistration } from "@/lib/meta-pixel";
+import { trackGaSignUp } from "@/lib/gtag";
 
 interface AuthResponseData {
   user: User;
@@ -53,6 +54,7 @@ export function useSignupMutation() {
           response.data.eventId ||
           (response.data.user.id ? `reg_${response.data.user.id}` : undefined);
         trackCompleteRegistration("signup", eventId);
+        trackGaSignUp("signup");
       }
     },
   });
@@ -74,6 +76,7 @@ export function useClaimAccountMutation() {
           response.data.eventId ||
           (response.data.user.id ? `claim_${response.data.user.id}` : undefined);
         trackCompleteRegistration("claim_account", eventId);
+        trackGaSignUp("claim_account");
       }
     },
   });
