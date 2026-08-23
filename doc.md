@@ -1,212 +1,73 @@
-# Rupzon Collection — DB Schema & Feature List (v1)
+# Meta Pixel & Conversions API (CAPI) Tracking Architecture
 
-Stack: Next.js full stack (App Router + API routes/Server Actions), assumed Postgres + Prisma-style modeling below (adjust ORM syntax as needed).
-
----
-
-## 1. Database Schema
-
-### User
-| Field | Type | Notes |
-|---|---|---|
-| id | uuid/int PK | |
-| name | string | |
-| email | string, unique | |
-| phone | string, unique | |
-| password | string (hashed) | nullable if account created via guest checkout without setting a password initially |
-| isAdmin | boolean, default false | only two roles: admin / normal user |
-| createdAt / updatedAt | timestamp | |
-
-### Address
-| Field | Type | Notes |
-|---|---|---|
-| id | PK | |
-| userId | FK → User | |
-| label | string | e.g. "Home", "Office" — optional |
-| fullAddress | text | |
-| city | string | |
-| isDefault | boolean | |
-
-### Category
-| Field | Type | Notes |
-|---|---|---|
-| id | PK | |
-| name | string | |
-| slug | string, unique | |
-| imageUrl | string | |
-| isFeatured | boolean | |
-
-### Product
-| Field | Type | Notes |
-|---|---|---|
-| id | PK | |
-| categoryId | FK → Category, required | Mandatory association with category |
-| name | string | |
-| slug | string, unique | |
-| code | string | product code |
-| description | text | |
-| price | decimal | Base regular price |
-| discountPrice | decimal, nullable | Base manual discounted price (must be < price) |
-| images | string[] | simple array of image URLs |
-| isFeatured | boolean | |
-| isActive | boolean | for hiding without deleting |
-| createdAt / updatedAt | timestamp | |
-
-### ProductVariant  (global, standalone catalog — not tied to any product by default)
-
-| Field | Type | Notes |
-|---|---|---|
-| id | PK | |
-| label | string, unique | e.g. "1-2 years", "2-3 years" |
-| order | int | for display ordering in admin UI / on product page |
-| isActive | boolean | lets admin retire a label without deleting it |
-
-### ProductVariantLink  (join table — connects Product ↔ ProductVariant, many-to-many)
-
-| Field | Type | Notes |
-|---|---|---|
-| id | PK | |
-| productId | FK → Product | |
-| productVariantId | FK → ProductVariant | |
-| price | decimal, nullable | variant regular price override |
-| discountPrice | decimal, nullable | variant manual discounted price override |
-| quantity | int | variant stock quantity |
-| unique(productId, productVariantId) | | prevents linking the same variant twice to one product |
-
-### Review
-| Field | Type | Notes |
-|---|---|---|
-| id | PK | |
-| productId | FK → Product | |
-| customerName | string | not tied to a User account |
-| userId | FK → User, nullable | if a logged-in user leaves it |
-| rating | int (1–5) | |
-| description | text | |
-| imageUrl | string, nullable | |
-| status | enum: pending / approved / rejected | admin moderation |
-| createdAt | timestamp | |
-
-### Wishlist / WishlistItem *(same pattern as Cart — guests use localStorage, logged-in users get DB-backed storage, merge on login)*
-| Field | Type | Notes |
-|---|---|---|
-| Wishlist.id, userId | | one per user |
-| WishlistItem.id, wishlistId, productId | | wishlist has no price/stock concern, so no variant reference needed here |
-
-### Cart / CartItem *(guests use localStorage, logged-in users are DB-backed)*
-| Field | Type | Notes |
-|---|---|---|
-| Cart.id, userId | | |
-| CartItem.id, cartId, productId, quantity, productVariantId (nullable, FK → ProductVariant) | | variant is validated via ProductVariantLink for the productId; selectedVariantLabel is derived from the linked ProductVariant |
-
-### Order
-| Field | Type | Notes |
-|---|---|---|
-| id | PK | |
-| orderNumber | string, unique, indexed | date-based format, e.g. `MTF-20260811-001` (date + daily sequence), used for public tracking |
-| userId | FK → User, nullable | null if guest never converts to account |
-| customerName, phone, email | string | captured at checkout (works for both guest & logged-in) |
-| shippingAddress | text | snapshot at time of order (don't rely on live Address FK, in case it changes later) |
-| deliveryZone | enum: inside_dhaka / outside_dhaka | drives delivery charge |
-| deliveryCharge | decimal | snapshot of admin-configured value at order time |
-| subtotal | decimal | |
-| discountAmount | decimal | discount amount snapshot, if any (discounts are configured per product and variant unit price) |
-| total | decimal | |
-| status | enum (see below) | |
-| createdAt / updatedAt | timestamp | |
-
-**Order statuses (fixed enum, proposed):**
-`PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED`, with `CANCELLED` and `RETURNED` as side-branches.
-
-### OrderItem
-| Field | Type | Notes |
-|---|---|---|
-| id | PK | |
-| orderId | FK → Order | |
-| productId | FK → Product | |
-| productName, unitPrice | snapshot | store copies at order time so later product edits don't rewrite history |
-| selectedVariantLabel | string, nullable | plain text snapshot of the chosen age label (e.g. "2-3 years"), NOT an FK — so it stays correct even if the variant catalog changes later |
-| quantity | int | |
+We implement a **Dual-Tracking Setup** (Browser Pixel + Server-Side Conversions API) with **Event Deduplication** to maximize data accuracy, bypass ad-blockers/browser restrictions, and calculate exact Return on Ad Spend (ROAS).
 
 ---
 
-### Admin-configurable content (site settings / CMS)
+## 1. Configuration & Environment Variables
 
-Implemented using a **Hybrid Storage Architecture**:
-
-#### 1. Global Key-Value Store (`site_settings` collection)
-Stores single-row configuration objects in a polymorphic `{ key, value }` collection:
-- **`delivery_charge`**: `{ insideDhaka: number, outsideDhaka: number }`
-- **`marquee`**: `{ text: string, isActive: boolean }`
-- **`footer_settings`**: `{ description: string, helpline: string, socialLinks: { platform: string, url: string }[] }`
-
-#### 2. Dedicated Multi-Row CMS Collections
-
-##### `Banner` (Homepage Slider)
-| Field | Type | Notes |
-|---|---|---|
-| id | PK | |
-| imageUrl | string | Uploaded to Cloudinary |
-| title | string | Optional caption title |
-| sortOrder | int | Carousel display order |
-| isActive | boolean | Toggle banner visibility |
-
-##### `ContactChannel` (Helplines & Payments)
-| Field | Type | Notes |
-|---|---|---|
-| id | PK | |
-| label | string | e.g. "Bkash Personal", "Customer Helpline" |
-| phoneNumber | string | Contact phone or account number |
-| type | enum | `call`, `whatsapp`, `bkash`, `nagad` |
-| sortOrder | int | Display sequence |
-| isActive | boolean | Active toggle |
-
-##### `ContentBlock` (Static Content Pages)
-| Field | Type | Notes |
-|---|---|---|
-| id | PK | |
-| key | string (enum) | Fixed core keys: `about_us`, `contact_us`, `how_to_buy`, `return_policy` |
-| title | string | Page header title |
-| body | string | Rich text / markdown page content |
-
-##### `ProductInfoBullet` (Product Highlight Bullets)
-| Field | Type | Notes |
-|---|---|---|
-| id | PK | |
-| text | string | e.g. "100% Authentic Quality Guaranteed" |
-| sortOrder | int | Display order |
-| isActive | boolean | Active toggle |
-| productId | FK → Product (nullable) | Optional per-product override (null = global default) |
+| Variable | Scope | Description | Default |
+|---|---|---|---|
+| `NEXT_PUBLIC_FB_PIXEL_ID` | Client (`client/.env`) | Meta Pixel ID used in browser initialization | `1738010567468201` |
+| `FB_PIXEL_ID` | Server (`server/.env`) | Meta Pixel ID used in server-side Graph API requests | `1738010567468201` |
+| `FB_CAPI_ACCESS_TOKEN` | Server (`server/.env`) | Meta System User Access Token generated from Events Manager | `""` |
+| `FB_TEST_EVENT_CODE` | Server (`server/.env`) | Optional test code (e.g. `TEST94112`) for real-time validation in Events Manager | `""` |
+| `FB_API_VERSION` | Server (`server/.env`) | Meta Graph API Version | `v20.0` |
+| `CLIENT_URL` | Server (`server/.env`) | Frontend verified base domain URL for absolute event source resolution | `https://rupzoncollection.com` |
 
 ---
 
-## 2. Feature List
+## 2. Client-Side Meta Pixel Standard Events
 
-### Public storefront
-- Home: banners slider, marquee ticker, featured categories, featured products
-- Category listing → product grid, filter by category
-- Product detail: images, age size selector (pulls linked global ProductVariants with per-variant stock & price overrides), base price from Product, stock quantity from linked ProductVariantLink, quantity selector, add to cart/wishlist, reviews list, product info bullets, "questions? call us" block
-- Reviews: submit (name, rating, description, optional image) → goes to pending queue
-- Cart: guest = localStorage, logged-in = DB-backed; merge localStorage cart into DB cart on login
-- Wishlist: same behavior as cart — guest = localStorage, logged-in = DB-backed, merge on login
-- Checkout: guest or logged-in, address entry with optional order notes/instructions, delivery zone selection, order summary with live delivery rates
-- Order confirmation screen with order number & guest account claiming card
-- Public order tracking page (lookup by order number, no login)
-- About Us / Contact Us / How to Buy / Return Policy pages (driven by ContentBlock CMS)
-- Account area (logged-in): profile, saved addresses, order history, wishlist, account claiming password setup
+Managed through the type-safe utility `client/lib/meta-pixel.ts` and loaded via Next.js `next/script` (`strategy="afterInteractive"`) with route-change tracking (`FacebookPixelEvents`) in `client/app/layout.tsx`.
 
-### Admin panel
-- Auth (separate admin role or `isAdmin` flag on User)
-- Category CRUD (with Cloudinary image uploads)
-- Product CRUD (base price, category, code, details, images)
-- Master Global Age Variant CRUD (standalone catalog: label, display order, active status)
-- Product-Variant Linker (link/unlink global variants to products with per-variant stock quantity & optional price override via ProductVariantLink)
-- Review moderation queue (approve/reject)
-- Order management: view, update status, view/edit shipping info manually, view order notes
-- Site Settings & Rates management (Delivery charges, Sitewide discount, Header marquee ticker, Footer info)
-- Homepage Banners manager (with Cloudinary image upload)
-- Contact Channels manager (Bkash, WhatsApp, Nagad, Call Us)
-- Content Pages editor (About Us, Contact Us, How to Buy, Return Policy)
-- Product Info Bullets manager
-- Media Upload Endpoints (Cloudinary accounts load balancer)
+| # | Event Name | Trigger Point / Source File | Parameters Sent |
+|---|---|---|---|
+| 1 | **`PageView`** | `client/app/layout.tsx`<br>• Script mount on site visit<br>`client/components/seo/FacebookPixelEvents.tsx`<br>• Client-side SPA route & search param changes (skips initial load) | `fbq('track', 'PageView')` |
+| 2 | **`ViewContent`** | `client/app/(customer)/product/[id]/page.tsx`<br>• Triggered when product details page loads | • `content_name`: Product Name<br>• `content_ids`: `[product.id]`<br>• `content_type`: `'product'`<br>• `content_category`: Category Name<br>• `value`: Effective Price<br>• `currency`: `'BDT'` |
+| 3 | **`AddToCart`** | `client/app/(customer)/product/[id]/page.tsx`<br>• "Add to Cart" & "Order Now" buttons<br>`client/hooks/useProductCardActions.ts`<br>• Product card quick add | • `content_name`: Product Name<br>• `content_ids`: `[product.id]`<br>• `content_type`: `'product'`<br>• `value`: Total item price (Price × Qty)<br>• `currency`: `'BDT'`<br>• `quantity`: Quantity added |
+| 4 | **`AddToWishlist`** | `client/app/(customer)/product/[id]/page.tsx`<br>• Wishlist toggle button<br>`client/hooks/useProductCardActions.ts`<br>• Heart icon on product cards | • `content_name`: Product Name<br>• `content_ids`: `[product.id]`<br>• `content_type`: `'product'`<br>• `value`: Item Price<br>• `currency`: `'BDT'` |
+| 5 | **`InitiateCheckout`** | `client/app/(customer)/checkout/page.tsx`<br>• Triggered once on checkout page load with cart items | • `content_ids`: Array of item product IDs<br>• `content_type`: `'product'`<br>• `value`: Cart subtotal<br>• `currency`: `'BDT'`<br>• `num_items`: Number of unique items |
+| 6 | **`Purchase`** | `client/app/(customer)/checkout/page.tsx`<br>• Order creation `onSuccess` callback | • `content_ids`: Array of item product IDs<br>• `content_type`: `'product'`<br>• `value`: Order Grand Total (subtotal + delivery)<br>• `currency`: `'BDT'`<br>• `num_items`: Item count<br>• `{ eventID: order.orderNumber }` (Deduplication key) |
+| 7 | **`Search`** | `client/components/Navbar.tsx`<br>• Search input (debounced, >= 2 characters) | • `search_string`: Search query text |
+| 8 | **`Contact`** | `client/app/(customer)/product/[id]/page.tsx`<br>• WhatsApp "Ask for details" link click | • `content_name`: `'whatsapp'` |
+| 9 | **`CompleteRegistration`** | `client/hooks/useAuthMutations.ts`<br>• User signup & post-checkout claim account | • `content_name`: `'signup'` or `'claim_account'`<br>• `status`: `true`<br>• `{ eventID: 'reg_<id>' | 'claim_<id>' }` (Deduplication key) |
 
+---
 
+## 3. Server-Side Conversions API (CAPI) Events
+
+Managed through `server/src/utils/metaCapi.js` using native Node.js `fetch`, SHA-256 PII hashing, and configurable Graph API versions.
+
+### 3.1 Website Event Requirements
+1. **`client_user_agent`**: Must forward the raw, unhashed browser User-Agent header (`req.headers['user-agent']`) in `user_data.client_user_agent`.
+2. **`event_source_url`**: Must provide an absolute URL on the verified domain (e.g. `https://rupzoncollection.com/checkout`) where the user initiated the event.
+
+| # | Event Name | Trigger Point / Source File | Parameters Sent |
+|---|---|---|---|
+| 1 | **`Purchase`** | `server/src/modules/order/order.service.js`<br>• Triggered immediately after `Order.create` and `OrderItem.insertMany` succeed | • `event_name`: `'Purchase'`<br>• `event_id`: `order.orderNumber` (Matches client `eventID`)<br>• `event_time`: Unix Timestamp (seconds)<br>• `action_source`: `'website'`<br>• `event_source_url`: `https://rupzoncollection.com/checkout`<br>• `user_data`: SHA-256 hashed email (`em`), normalized & hashed phone (`ph`), name (`fn`/`ln`), userId (`external_id`), raw `client_user_agent`, `client_ip_address`<br>• `custom_data`: `currency: 'BDT'`, `value: order.total`, `order_id: order.orderNumber`, `content_ids`, `num_items` |
+| 2 | **`CompleteRegistration` (Signup)** | `server/src/modules/user/user.service.js`<br>• Triggered inside `registerUser` after DB user creation | • `event_name`: `'CompleteRegistration'`<br>• `event_id`: `reg_{userId}` (Matches client `eventID`)<br>• `event_time`: Unix Timestamp (seconds)<br>• `action_source`: `'website'`<br>• `event_source_url`: `https://rupzoncollection.com/signup`<br>• `user_data`: SHA-256 hashed email (`em`), phone (`ph`), name (`fn`/`ln`), userId (`external_id`), raw `client_user_agent`, `client_ip_address`<br>• `custom_data`: `status: true`, `content_name: 'signup'` |
+| 3 | **`CompleteRegistration` (Claim Account)** | `server/src/modules/user/user.service.js`<br>• Triggered inside `claimAccountService` after account password is set | • `event_name`: `'CompleteRegistration'`<br>• `event_id`: `claim_{userId}` (Matches client `eventID`)<br>• `event_time`: Unix Timestamp (seconds)<br>• `action_source`: `'website'`<br>• `event_source_url`: `https://rupzoncollection.com/order-success/{orderNumber}`<br>• `user_data`: SHA-256 hashed email (`em`), phone (`ph`), name (`fn`/`ln`), userId (`external_id`), raw `client_user_agent`, `client_ip_address`<br>• `custom_data`: `status: true`, `content_name: 'claim_account'` |
+
+---
+
+## 4. Deduplication Mechanism (`event_id` ↔ `eventID`)
+
+To prevent duplicate conversion counting in Meta Ads Manager when both the browser pixel and server CAPI fire for the same action:
+
+```
+[User Action: Place Order / Register]
+          │
+          ├──► (1) Frontend fires Browser Pixel:
+          │        fbq('track', 'Purchase', {...}, { eventID: 'CC-20260823-2838' })
+          │        fbq('track', 'CompleteRegistration', {...}, { eventID: 'reg_60d0fe4f...' })
+          │
+          └──► (2) Backend DB saves record & fires Server CAPI:
+                   sendMetaConversionEvent({ eventName: 'Purchase', eventId: 'CC-20260823-2838', ... })
+                   sendMetaConversionEvent({ eventName: 'CompleteRegistration', eventId: 'reg_60d0fe4f...', ... })
+          │
+          ▼
+[Meta Events Manager]
+  Receives both payloads ➔ Matches identical event_id ('CC-20260823-2838' or 'reg_...')
+  ➔ Automatically deduplicates into 1 single verified conversion.
+```

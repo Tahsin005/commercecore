@@ -14,7 +14,10 @@ export const getMe = async (req, res, next) => {
 
 export const signup = async (req, res, next) => {
   try {
-    const result = await registerUser(req.body);
+    const result = await registerUser(req.body, {
+      clientUserAgent: req.headers['user-agent'],
+      clientIpAddress: req.ip,
+    });
     res
       .status(201)
       .json(new ApiResponse(201, result, 'User registered successfully'));
@@ -36,7 +39,11 @@ export const login = async (req, res, next) => {
 
 export const claimAccount = async (req, res, next) => {
   try {
-    const result = await claimAccountService(req.user.id, req.body);
+    const result = await claimAccountService(req.user.id, req.body, {
+      clientUserAgent: req.headers['user-agent'],
+      clientIpAddress: req.ip,
+      orderNumber: req.body.orderNumber,
+    });
     res
       .status(200)
       .json(new ApiResponse(200, result, 'Account claimed successfully with new password'));

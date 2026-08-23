@@ -10,7 +10,10 @@ import ApiResponse from '../../utils/ApiResponse.js';
 
 export const placeOrder = async (req, res, next) => {
   try {
-    const result = await createOrderService(req.body, req.user);
+    const result = await createOrderService(req.body, req.user, {
+      clientUserAgent: req.headers['user-agent'],
+      clientIpAddress: req.ip,
+    });
     res.status(201).json(new ApiResponse(201, result, 'Order placed successfully'));
   } catch (error) {
     next(error);

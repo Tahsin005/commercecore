@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import User from './user.model.js';
 import env from '../../config/env.js';
 import ApiError from '../../utils/ApiError.js';
+import { sendMetaConversionEvent } from '../../utils/metaCapi.js';
 
 // helper function to check if email is in ADMIN_EMAILS env list
 const checkIsAdminEmail = (email) => {
@@ -35,7 +36,7 @@ export const getMeService = async (userId) => {
 };
 
 // register a new user
-export const registerUser = async (userData) => {
+export const registerUser = async (userData, reqMeta = {}) => {
   const { name, email, phone, password } = userData;
 
   const existingEmail = await User.findOne({ email: email.toLowerCase() });
@@ -59,10 +60,30 @@ export const registerUser = async (userData) => {
   });
 
   const token = generateAuthToken(user);
+  const eventId = user.id ? `reg_${user.id.toString()}` : undefined;
+
+  sendMetaConversionEvent({
+    eventName: 'CompleteRegistration',
+    eventId,
+    userData: {
+      email: user.email,
+      phone: user.phone,
+      name: user.name,
+      userId: user.id ? user.id.toString() : undefined,
+    },
+    customData: {
+      status: true,
+      content_name: 'signup',
+    },
+    eventSourceUrl: '/signup',
+    clientUserAgent: reqMeta.clientUserAgent,
+    clientIpAddress: reqMeta.clientIpAddress,
+  }).catch(() => {});
 
   return {
     user: user.toJSON(),
     token,
+    eventId,
   };
 };
 
@@ -108,7 +129,7 @@ export const loginUser = async ({ email, phone, identifier, password }) => {
 };
 
 // claim guest account by setting password & email
-export const claimAccountService = async (userId, { email, password }) => {
+export const claimAccountService = async (userId, { email, password }, reqMeta = {}) => {
   const user = await User.findById(userId).select('+password');
   if (!user) {
     throw new ApiError(404, 'User not found');
@@ -135,10 +156,33 @@ export const claimAccountService = async (userId, { email, password }) => {
   await user.save();
 
   const token = generateAuthToken(user);
+  const eventId = user.id ? `claim_${user.id.toString()}` : undefined;
+  const eventSourceUrl = reqMeta.orderNumber
+    ? `/order-success/${reqMeta.orderNumber}`
+    : '/order-success';
+
+  sendMetaConversionEvent({
+    eventName: 'CompleteRegistration',
+    eventId,
+    userData: {
+      email: user.email,
+      phone: user.phone,
+      name: user.name,
+      userId: user.id ? user.id.toString() : undefined,
+    },
+    customData: {
+      status: true,
+      content_name: 'claim_account',
+    },
+    eventSourceUrl,
+    clientUserAgent: reqMeta.clientUserAgent,
+    clientIpAddress: reqMeta.clientIpAddress,
+  }).catch(() => {});
 
   return {
     user: user.toJSON(),
     token,
+    eventId,
   };
 };
 

@@ -32,6 +32,7 @@ import { useCreateOrderMutation } from "@/hooks/useOrderQueries";
 import { getCheckoutSchema, CheckoutInput } from "@/lib/validations/order";
 import { CheckoutSkeleton, OrderSuccessSkeleton } from "@/components/skeletons";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
 
 import { useSiteSettingsQuery } from "@/hooks/useSettingsQueries";
 import { useUserAddressesQuery } from "@/hooks/useAddressQueries";
@@ -70,6 +71,15 @@ export default function CheckoutPage() {
   const addresses = addressesRes?.data || [];
 
   const hasInitializedAddressRef = useRef(false);
+  const hasTrackedInitiateCheckoutRef = useRef(false);
+
+  // Track InitiateCheckout on page load if cart has items
+  useEffect(() => {
+    if (isHydrated && !isCartLoading && cartItems.length > 0 && !hasTrackedInitiateCheckoutRef.current) {
+      trackInitiateCheckout(cartItems, subtotal);
+      hasTrackedInitiateCheckoutRef.current = true;
+    }
+  }, [isHydrated, isCartLoading, cartItems, subtotal]);
 
   // autofill user details & default address when authenticated
   useEffect(() => {
@@ -143,6 +153,13 @@ export default function CheckoutPage() {
     createOrderMutation.mutate(orderPayload, {
       onSuccess: (response) => {
         const { order, user: orderUser, token } = response.data;
+
+        // Track Purchase event with eventID for CAPI deduplication
+        trackPurchase({
+          orderNumber: order.orderNumber,
+          total: order.total,
+          items: cartItems,
+        });
 
         if (token && orderUser) {
           toast.success(t.checkout.accountRegisteredToast(orderUser.name));

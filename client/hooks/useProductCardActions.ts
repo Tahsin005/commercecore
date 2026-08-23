@@ -7,6 +7,7 @@ import { useWishlist } from "@/hooks/useWishlist";
 import { useCart } from "@/hooks/useCart";
 import { isProductOnSale, getProductEffectivePrice, getProductDiscountPercentage } from "@/lib/discount";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { trackAddToCart, trackAddToWishlist } from "@/lib/meta-pixel";
 
 export function getProductStock(product: Product): number {
   if (product.variants && product.variants.length > 0) {
@@ -71,6 +72,11 @@ export function useProductCardActions() {
         price: effectivePrice,
         imageUrl: product.images?.[0],
       });
+      trackAddToWishlist({
+        productId: product.id,
+        name: product.name,
+        price: effectivePrice,
+      });
       toast.success(`"${product.name}" ${t.home.addToWishlist}`);
     }
   };
@@ -103,6 +109,12 @@ export function useProductCardActions() {
         },
         1
       );
+      trackAddToCart({
+        productId: product.id,
+        name: product.name,
+        price: effectivePrice,
+        quantity: 1,
+      });
       toast.success(t.productDetails?.addedToCart || "Added to cart!");
       return true;
     } catch (err: unknown) {
