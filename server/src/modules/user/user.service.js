@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import User from './user.model.js';
 import env from '../../config/env.js';
 import ApiError from '../../utils/ApiError.js';
+import { sendMetaConversionEvent } from '../../utils/metaCapi.js';
 
 // helper function to check if email is in ADMIN_EMAILS env list
 const checkIsAdminEmail = (email) => {
@@ -59,6 +60,21 @@ export const registerUser = async (userData) => {
   });
 
   const token = generateAuthToken(user);
+
+  sendMetaConversionEvent({
+    eventName: 'CompleteRegistration',
+    eventId: user.id ? `reg_${user.id.toString()}` : undefined,
+    userData: {
+      email: user.email,
+      phone: user.phone,
+      name: user.name,
+      userId: user.id ? user.id.toString() : undefined,
+    },
+    customData: {
+      status: true,
+      content_name: 'signup',
+    },
+  }).catch(() => {});
 
   return {
     user: user.toJSON(),
@@ -135,6 +151,21 @@ export const claimAccountService = async (userId, { email, password }) => {
   await user.save();
 
   const token = generateAuthToken(user);
+
+  sendMetaConversionEvent({
+    eventName: 'CompleteRegistration',
+    eventId: user.id ? `claim_${user.id.toString()}` : undefined,
+    userData: {
+      email: user.email,
+      phone: user.phone,
+      name: user.name,
+      userId: user.id ? user.id.toString() : undefined,
+    },
+    customData: {
+      status: true,
+      content_name: 'claim_account',
+    },
+  }).catch(() => {});
 
   return {
     user: user.toJSON(),

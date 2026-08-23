@@ -7,7 +7,7 @@ declare global {
   }
 }
 
-export const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID || "1081378940933748";
+export const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID || "1738010567468201";
 
 // Generic safe event tracker
 export const trackEvent = (

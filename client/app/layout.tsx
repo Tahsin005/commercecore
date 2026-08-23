@@ -101,7 +101,7 @@ export default function RootLayout({
     inLanguage: ["en-US", "bn-BD"],
   };
 
-  const fbPixelId = process.env.NEXT_PUBLIC_FB_PIXEL_ID || "1081378940933748";
+  const fbPixelId = process.env.NEXT_PUBLIC_FB_PIXEL_ID || "1738010567468201";
 
   return (
     <html

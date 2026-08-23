@@ -9,6 +9,7 @@ import { syncGuestWishlistService } from '../wishlist/wishlist.service.js';
 import { getSiteSettingsService } from '../setting/setting.service.js';
 import { orderStatusEnum } from './order.validation.js';
 import ApiError from '../../utils/ApiError.js';
+import { sendMetaConversionEvent } from '../../utils/metaCapi.js';
 
 export const createOrderService = async (orderPayload, reqUser = null) => {
   const {
@@ -240,6 +241,27 @@ export const createOrderService = async (orderPayload, reqUser = null) => {
     );
 
     await clearUserCartService(user.id);
+
+    // Send CAPI Purchase event asynchronously (fire-and-forget, with orderNumber as eventId for deduplication)
+    sendMetaConversionEvent({
+      eventName: 'Purchase',
+      eventId: order.orderNumber,
+      userData: {
+        email: order.email,
+        phone: order.phone,
+        name: order.customerName,
+        userId: user.id ? user.id.toString() : undefined,
+      },
+      customData: {
+        currency: 'BDT',
+        value: order.total,
+        order_id: order.orderNumber,
+        content_ids: processedItems.map((i) => (i.productId ? i.productId.toString() : '')).filter(Boolean),
+        content_type: 'product',
+        num_items: processedItems.length,
+      },
+      eventSourceUrl: `/order-success/${order.orderNumber}`,
+    }).catch(() => {});
 
     return {
       order: order.toJSON(),
