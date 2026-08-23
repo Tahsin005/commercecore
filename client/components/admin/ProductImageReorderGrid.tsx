@@ -165,7 +165,7 @@ export function ProductImageReorderGrid({
                     e.stopPropagation();
                     onRemove(idx);
                   }}
-                  className="absolute top-1.5 right-1.5 p-1 bg-red-600/90 hover:bg-red-700 text-white rounded-full transition-all cursor-pointer opacity-0 group-hover:opacity-100 shadow-md hover:scale-110 z-10"
+                  className="absolute top-1.5 right-1.5 p-1 bg-red-600/90 hover:bg-red-700 text-white rounded-full transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-red-500 focus-visible:outline-none shadow-md hover:scale-110 z-10"
                   title="Remove image"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -183,7 +183,7 @@ export function ProductImageReorderGrid({
                       e.stopPropagation();
                       handleMakeCover(idx);
                     }}
-                    className="absolute bottom-0 inset-x-0 bg-maroon-900/90 hover:bg-maroon-900 text-white text-[9px] font-semibold text-center py-1 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-all cursor-pointer shadow-xs"
+                    className="absolute bottom-0 inset-x-0 bg-maroon-900/90 hover:bg-maroon-900 text-white text-[9px] font-semibold text-center py-1 uppercase tracking-wider opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-maroon-500 focus-visible:outline-none transition-all cursor-pointer shadow-xs z-10"
                   >
                     Set as Cover
                   </button>
