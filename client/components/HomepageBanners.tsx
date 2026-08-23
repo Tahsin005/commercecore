@@ -44,7 +44,7 @@ export function HomepageBanners() {
           src="/banner.png"
           alt="Rupzon Collection Banner"
           fill
-          sizes="100vw"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1152px"
           priority
           className="object-cover"
         />
@@ -73,7 +73,7 @@ export function HomepageBanners() {
             src={banner.imageUrl}
             alt={banner.title || "Homepage Banner"}
             fill
-            sizes="100vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1152px"
             priority={idx === 0}
             className="object-cover"
           />

@@ -112,12 +112,26 @@ export const addToCartService = async (userId, productId, productVariantId = nul
     throw new ApiError(404, 'Product not found or inactive');
   }
 
-  if (!productVariantId) {
+  let finalVariantId = productVariantId || null;
+  let link = null;
+
+  if (finalVariantId) {
+    link = await validateProductVariant(pId, finalVariantId);
+  } else {
+    // If no variant was explicitly selected (e.g. moving from wishlist), fallback to the first active variant
+    const links = await ProductVariantLink.find({ productId: pId }).populate('productVariantId');
+    const activeLinks = links.filter((l) => l.productVariantId && l.productVariantId.isActive === true);
+    link = activeLinks.find((l) => (l.quantity || 0) > 0) || activeLinks[0] || null;
+    if (link) {
+      finalVariantId = link.productVariantId?._id || link.productVariantId?.id || link.productVariantId;
+    }
+  }
+
+  if (!finalVariantId) {
     throw new ApiError(400, 'Product variant selection is required');
   }
 
   let availableStock = 0;
-  const link = await validateProductVariant(pId, productVariantId);
   if (link && link.quantity !== undefined && link.quantity !== null) {
     availableStock = link.quantity;
   }
@@ -127,7 +141,7 @@ export const addToCartService = async (userId, productId, productVariantId = nul
   let cartItem = await CartItem.findOne({
     cartId: cart.id,
     productId: pId,
-    productVariantId: productVariantId || null,
+    productVariantId: finalVariantId,
   });
 
   const totalQuantity = (cartItem ? cartItem.quantity : 0) + quantity;
@@ -261,6 +275,17 @@ export const syncGuestCartService = async (userId, guestItems = []) => {
         pvId = null;
       }
     }
+
+    if (!pvId) {
+      const links = await ProductVariantLink.find({ productId: pId }).populate('productVariantId');
+      const activeLinks = links.filter((l) => l.productVariantId && l.productVariantId.isActive === true);
+      const link = activeLinks.find((l) => (l.quantity || 0) > 0) || activeLinks[0] || null;
+      if (link) {
+        pvId = link.productVariantId?._id || link.productVariantId?.id || link.productVariantId;
+      }
+    }
+
+    if (!pvId) continue;
 
     const qty = guestItem.quantity && guestItem.quantity > 0 ? guestItem.quantity : 1;
 

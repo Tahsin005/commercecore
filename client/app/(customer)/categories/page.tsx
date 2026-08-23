@@ -350,36 +350,44 @@ export default function CategoriesPage() {
 
                 const stock = getProductStock(product);
                 const isOutOfStock = stock <= 0;
+                const productId = product.id;
+                const productHref = `/product/${productId}`;
 
                 return (
                   <div
-                    key={product.id}
-                    onClick={() => router.push(`/product/${product.id}`)}
-                    className="bg-white rounded-xl shadow-md border border-maroon-100 hover:shadow-xl transition-all flex flex-col justify-between group relative cursor-pointer"
+                    key={productId}
+                    className="bg-white rounded-xl shadow-md border border-maroon-100 hover:shadow-xl transition-all flex flex-col justify-between group relative"
                   >
                     {hasDiscount && (
                       <span className="absolute -top-2.5 -right-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-mono text-[10px] font-black tracking-wider px-2 py-0.5 rounded-md shadow-md border-2 border-white uppercase z-20 pointer-events-none">
-                        {discountPercent}% {t.common.off || "OFF"}
+                        {discountPercent}% {t.common?.off || "OFF"}
                       </span>
                     )}
 
                     <div className="bg-off-white p-6 relative flex items-center justify-center border-b border-maroon-100/60 h-48 overflow-hidden rounded-t-xl">
-                      {hasImage ? (
-                        <Image
-                          src={product.images![0]}
-                          alt={product.name}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <Package className="w-16 h-16 text-maroon-300 group-hover:scale-110 transition-transform duration-300" />
-                      )}
-                      
+                      <Link
+                        href={productHref}
+                        className="absolute inset-0 flex items-center justify-center"
+                        aria-label={product.name}
+                      >
+                        {hasImage ? (
+                          <Image
+                            src={product.images![0]}
+                            alt={product.name}
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <Package className="w-16 h-16 text-maroon-300 group-hover:scale-110 transition-transform duration-300" />
+                        )}
+                      </Link>
+
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
+                          e.preventDefault();
                           handleToggleWishlist(product);
                         }}
                         className={`absolute top-3 left-3 p-2 rounded-full border transition-all cursor-pointer shadow-sm z-10 ${
@@ -393,7 +401,7 @@ export default function CategoriesPage() {
                       </button>
 
                       {product.isFeatured && !hasDiscount && (
-                        <span className="absolute top-3 right-3 bg-maroon-900 text-cream text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow z-10">
+                        <span className="absolute top-3 right-3 bg-maroon-900 text-cream text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow z-10 pointer-events-none">
                           {t.common.featured}
                         </span>
                       )}
@@ -410,9 +418,8 @@ export default function CategoriesPage() {
                         )}
                         <h3 className="font-serif font-bold text-base text-maroon-900 line-clamp-1 group-hover:text-maroon-700 transition-colors">
                           <Link
-                            href={`/product/${product.id}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="hover:underline"
+                            href={productHref}
+                            className="hover:underline block"
                           >
                             {product.name}
                           </Link>

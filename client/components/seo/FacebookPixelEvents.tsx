@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { trackGaPageView } from "@/lib/gtag";
 
 export function FacebookPixelEvents() {
   const pathname = usePathname();
@@ -9,7 +10,8 @@ export function FacebookPixelEvents() {
   const isFirstRender = useRef(true);
 
   useEffect(() => {
-    // Skip the very first render so the initial document-load PageView is not duplicated
+    trackGaPageView(pathname);
+
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;

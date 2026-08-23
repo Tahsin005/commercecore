@@ -39,6 +39,12 @@ import {
   trackAddToWishlist,
   trackContact,
 } from "@/lib/meta-pixel";
+import {
+  trackGaViewItem,
+  trackGaAddToCart,
+  trackGaAddToWishlist,
+  trackGaGenerateLead,
+} from "@/lib/gtag";
 
 interface ProductDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -98,6 +104,12 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         price: effective,
         category: categoryName,
       });
+      trackGaViewItem({
+        id: product.id,
+        name: product.name,
+        price: effective,
+        category: categoryName,
+      });
     }
   }, [product]);
 
@@ -150,7 +162,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   const images = product.images || [];
   const currentImage = images.length > 0 ? images[selectedImageIndex] || images[0] : null;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (isOutOfStock) {
       toast.error(t.productDetails.outOfStockMsg);
       return;
@@ -158,25 +170,37 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
 
     const selectedLabel = selectedVariant?.label || selectedVariant?.size || t.common.standard;
 
-    addToCart(
-      {
-        productVariantId: selectedVariant?.id,
+    try {
+      await addToCart(
+        {
+          productVariantId: selectedVariant?.id,
+          productId: product.id,
+          name: product.name,
+          slug: product.slug,
+          size: selectedLabel,
+          price: currentEffectivePrice,
+          imageUrl: currentImage || undefined,
+        },
+        quantity
+      );
+      trackAddToCart({
         productId: product.id,
         name: product.name,
-        slug: product.slug,
-        size: selectedLabel,
         price: currentEffectivePrice,
-        imageUrl: currentImage || undefined,
-      },
-      quantity
-    );
-    trackAddToCart({
-      productId: product.id,
-      name: product.name,
-      price: currentEffectivePrice,
-      quantity,
-    });
-    toast.success(`${quantity} x "${product.name}" (${selectedLabel}) ${t.productDetails.addedToCart}`);
+        quantity,
+      });
+      trackGaAddToCart({
+        productId: product.id,
+        name: product.name,
+        price: currentEffectivePrice,
+        quantity,
+        variant: selectedLabel,
+      });
+      toast.success(`${quantity} x "${product.name}" (${selectedLabel}) ${t.productDetails.addedToCart}`);
+    } catch (err: unknown) {
+      const errorMsg = (err as Error)?.message || t.common?.error || "Failed to add item to cart";
+      toast.error(errorMsg);
+    }
   };
 
   const handleToggleWishlist = () => {
@@ -199,11 +223,16 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         name: product.name,
         price: currentEffectivePrice,
       });
+      trackGaAddToWishlist({
+        productId: product.id,
+        name: product.name,
+        price: currentEffectivePrice,
+      });
       toast.success(`"${product.name}" ${t.home.addToWishlist}`);
     }
   };
 
-  const handleOrderNow = () => {
+  const handleOrderNow = async () => {
     if (isOutOfStock) {
       toast.error(t.productDetails.outOfStockMsg);
       return;
@@ -211,25 +240,37 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
 
     const selectedLabel = selectedVariant?.label || selectedVariant?.size || t.common.standard;
 
-    addToCart(
-      {
-        productVariantId: selectedVariant?.id,
+    try {
+      await addToCart(
+        {
+          productVariantId: selectedVariant?.id,
+          productId: product.id,
+          name: product.name,
+          slug: product.slug,
+          size: selectedLabel,
+          price: currentEffectivePrice,
+          imageUrl: currentImage || undefined,
+        },
+        quantity
+      );
+      trackAddToCart({
         productId: product.id,
         name: product.name,
-        slug: product.slug,
-        size: selectedLabel,
         price: currentEffectivePrice,
-        imageUrl: currentImage || undefined,
-      },
-      quantity
-    );
-    trackAddToCart({
-      productId: product.id,
-      name: product.name,
-      price: currentEffectivePrice,
-      quantity,
-    });
-    router.push("/checkout");
+        quantity,
+      });
+      trackGaAddToCart({
+        productId: product.id,
+        name: product.name,
+        price: currentEffectivePrice,
+        quantity,
+        variant: selectedLabel,
+      });
+      router.push("/checkout");
+    } catch (err: unknown) {
+      const errorMsg = (err as Error)?.message || t.common?.error || "Failed to add item to cart";
+      toast.error(errorMsg);
+    }
   };
 
   return (
@@ -285,7 +326,10 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                         href={waUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={() => trackContact("whatsapp")}
+                        onClick={() => {
+                          trackContact("whatsapp");
+                          trackGaGenerateLead("whatsapp_inquiry");
+                        }}
                         className="inline-flex items-center space-x-1 text-emerald-700 hover:text-emerald-900 font-semibold underline cursor-pointer"
                       >
                         <MessageCircle className="w-3.5 h-3.5" />

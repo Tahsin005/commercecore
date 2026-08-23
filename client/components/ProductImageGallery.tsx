@@ -2,10 +2,13 @@
 
 import React, { useState, useRef, useCallback } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { Package, Maximize2 } from "lucide-react";
-import Lightbox from "yet-another-react-lightbox";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
-import "yet-another-react-lightbox/styles.css";
+
+const Lightbox = dynamic(() => import("yet-another-react-lightbox"), {
+  ssr: false,
+});
 
 interface ProductImageGalleryProps {
   images: string[];
