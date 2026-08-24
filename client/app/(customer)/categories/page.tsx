@@ -28,6 +28,7 @@ import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { isProductOnSale, getProductEffectivePrice, getProductDiscountPercentage } from "@/lib/discount";
 import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
 import { ProductCardImageSlider } from "@/components/ProductCardImageSlider";
+import { PriceRangeSlider } from "@/components/PriceRangeSlider";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function CategoriesPage() {
@@ -36,6 +37,8 @@ export default function CategoriesPage() {
   const [sortBy, setSortBy] = useState<string>("newest");
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
+  const [appliedMinPrice, setAppliedMinPrice] = useState<string>("");
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState<string>("");
   const [page, setPage] = useState<number>(1);
   const limit = 12;
 
@@ -59,14 +62,16 @@ export default function CategoriesPage() {
     categoryId: selectedCategory === "all" ? undefined : selectedCategory,
     search: searchQuery,
     sortBy,
-    minPrice: minPrice !== "" ? minPrice : undefined,
-    maxPrice: maxPrice !== "" ? maxPrice : undefined,
+    minPrice: appliedMinPrice !== "" ? appliedMinPrice : undefined,
+    maxPrice: appliedMaxPrice !== "" ? appliedMaxPrice : undefined,
     page,
     limit,
   });
 
   const products = response?.data?.products || [];
   const pagination = response?.data?.pagination;
+  const minBound = 10;
+  const maxBound = 99999;
   const totalProducts = pagination?.totalProducts ?? products.length;
   const totalPages = pagination?.totalPages ?? 1;
   const currentPage = pagination?.currentPage ?? page;
@@ -89,13 +94,9 @@ export default function CategoriesPage() {
     setPage(1);
   };
 
-  const handleMinPriceChange = (val: string) => {
-    setMinPrice(val);
-    setPage(1);
-  };
-
-  const handleMaxPriceChange = (val: string) => {
-    setMaxPrice(val);
+  const handleApplyFilters = () => {
+    setAppliedMinPrice(minPrice);
+    setAppliedMaxPrice(maxPrice);
     setPage(1);
   };
 
@@ -105,6 +106,8 @@ export default function CategoriesPage() {
     setSortBy("newest");
     setMinPrice("");
     setMaxPrice("");
+    setAppliedMinPrice("");
+    setAppliedMaxPrice("");
     setPage(1);
   };
 
@@ -112,8 +115,8 @@ export default function CategoriesPage() {
     selectedCategory !== "all" ||
     searchQuery.trim() !== "" ||
     sortBy !== "newest" ||
-    minPrice !== "" ||
-    maxPrice !== "";
+    appliedMinPrice !== "" ||
+    appliedMaxPrice !== "";
 
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
@@ -230,9 +233,9 @@ export default function CategoriesPage() {
           </div>
         ) : null}
 
-        <div className="bg-white p-4 rounded-2xl border border-maroon-100 shadow-sm space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-            <div className="relative md:col-span-5">
+        <div className="bg-white p-5 rounded-2xl border border-maroon-100 shadow-sm space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+            <div className="relative md:col-span-4">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
                 <Search className="w-4 h-4" />
               </div>
@@ -254,7 +257,7 @@ export default function CategoriesPage() {
               )}
             </div>
 
-            <div className="relative md:col-span-4 flex items-center">
+            <div className="relative md:col-span-3 flex items-center">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-maroon-500">
                 <ArrowUpDown className="w-3.5 h-3.5" />
               </div>
@@ -275,24 +278,33 @@ export default function CategoriesPage() {
               </div>
             </div>
 
-            <div className="md:col-span-3 flex items-center space-x-2">
-              <div className="flex items-center space-x-1.5 flex-1 min-w-0">
-                <input
-                  type="number"
-                  placeholder={t.home.minPrice || "Min ৳"}
-                  value={minPrice}
-                  onChange={(e) => handleMinPriceChange(e.target.value)}
-                  className="w-full py-2 px-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs placeholder-maroon-500/70 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all font-mono"
-                />
-                <span className="text-maroon-400 text-xs font-bold">-</span>
-                <input
-                  type="number"
-                  placeholder={t.home.maxPrice || "Max ৳"}
-                  value={maxPrice}
-                  onChange={(e) => handleMaxPriceChange(e.target.value)}
-                  className="w-full py-2 px-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs placeholder-maroon-500/70 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all font-mono"
+            <div className="md:col-span-5 flex items-center space-x-2.5">
+              <div className="flex-1 min-w-0">
+                <PriceRangeSlider
+                  minBound={minBound}
+                  maxBound={maxBound}
+                  minPrice={minPrice}
+                  maxPrice={maxPrice}
+                  showPresets={false}
+                  onChange={(min, max) => {
+                    setMinPrice(min);
+                    setMaxPrice(max);
+                  }}
                 />
               </div>
+
+              <button
+                type="button"
+                onClick={handleApplyFilters}
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                  minPrice !== appliedMinPrice || maxPrice !== appliedMaxPrice
+                    ? "bg-maroon-900 hover:bg-maroon-800 text-cream shadow-xs"
+                    : "bg-maroon-100 hover:bg-maroon-200 text-maroon-900 border border-maroon-200"
+                }`}
+                title={t.home?.applyFilters || "Apply Filters"}
+              >
+                {t.home?.applyFilters || "Apply"}
+              </button>
 
               {hasActiveFilters && (
                 <button

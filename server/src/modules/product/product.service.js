@@ -135,17 +135,41 @@ export const getAllProductsService = async (query = {}) => {
     ];
   }
 
-  // Min & Max price range filtering
+  // Min & Max price range filtering (supporting effective price)
   if (
     (query.minPrice !== undefined && query.minPrice !== '') ||
     (query.maxPrice !== undefined && query.maxPrice !== '')
   ) {
-    filter.price = {};
-    if (query.minPrice !== undefined && query.minPrice !== '') {
-      filter.price.$gte = Number(query.minPrice);
+    const minP = query.minPrice !== undefined && query.minPrice !== '' ? Number(query.minPrice) : null;
+    const maxP = query.maxPrice !== undefined && query.maxPrice !== '' ? Number(query.maxPrice) : null;
+
+    const priceConditions = [];
+    if (minP !== null && !isNaN(minP)) {
+      priceConditions.push({
+        $or: [
+          { discountPrice: { $gte: minP } },
+          { $and: [{ $or: [{ discountPrice: null }, { discountPrice: { $exists: false } }] }, { price: { $gte: minP } }] },
+        ],
+      });
     }
-    if (query.maxPrice !== undefined && query.maxPrice !== '') {
-      filter.price.$lte = Number(query.maxPrice);
+    if (maxP !== null && !isNaN(maxP)) {
+      priceConditions.push({
+        $or: [
+          { discountPrice: { $lte: maxP } },
+          { $and: [{ $or: [{ discountPrice: null }, { discountPrice: { $exists: false } }] }, { price: { $lte: maxP } }] },
+        ],
+      });
+    }
+
+    if (priceConditions.length > 0) {
+      if (filter.$or) {
+        filter.$and = [{ $or: filter.$or }, ...priceConditions];
+        delete filter.$or;
+      } else if (filter.$and) {
+        filter.$and.push(...priceConditions);
+      } else {
+        filter.$and = priceConditions;
+      }
     }
   }
 
@@ -170,7 +194,33 @@ export const getAllProductsService = async (query = {}) => {
   const page = Math.max(1, parseInt(query.page || 1, 10));
   const limit = query.limit !== undefined ? Math.max(0, parseInt(query.limit, 10)) : (isPaginated ? 12 : 0);
 
-  const totalProducts = await Product.countDocuments(filter);
+  const [totalProducts, priceBoundsAgg] = await Promise.all([
+    Product.countDocuments(filter),
+    Product.aggregate([
+      { $match: { isActive: { $ne: false } } },
+      {
+        $project: {
+          effectivePrice: {
+            $cond: {
+              if: { $and: [{ $ne: ['$discountPrice', null] }, { $gt: ['$discountPrice', 0] }] },
+              then: '$discountPrice',
+              else: '$price',
+            },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          minPrice: { $min: '$effectivePrice' },
+          maxPrice: { $max: '$effectivePrice' },
+        },
+      },
+    ]),
+  ]);
+
+  const globalMinPrice = Math.max(10, Math.floor(priceBoundsAgg[0]?.minPrice ?? 10));
+  const globalMaxPrice = Math.max(99999, Math.ceil(priceBoundsAgg[0]?.maxPrice ?? 99999));
 
   let productQuery = Product.find(filter)
     .populate('categoryId', 'name slug isFeatured')
@@ -218,6 +268,10 @@ export const getAllProductsService = async (query = {}) => {
       limit: effectiveLimit,
       hasNextPage: page < totalPages,
       hasPrevPage: page > 1,
+    },
+    priceBounds: {
+      minPrice: globalMinPrice,
+      maxPrice: globalMaxPrice > globalMinPrice ? globalMaxPrice : globalMinPrice + 1000,
     },
   };
 };

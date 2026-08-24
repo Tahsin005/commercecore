@@ -65,15 +65,13 @@ export function Footer() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-8">
         <div className="sm:col-span-2 md:col-span-5 space-y-4">
           <Link href="/" className="inline-flex items-center space-x-3 group">
-            <div className="p-1.5 bg-white rounded-lg shadow-sm group-hover:bg-cream transition-colors shrink-0">
-              <Image
-                src="/logo.png"
-                alt="Rupzon Collection Logo"
-                width={32}
-                height={32}
-                className="w-7 h-7 object-contain"
-              />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="Rupzon Collection Logo"
+              width={40}
+              height={40}
+              className="w-10 h-10 object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
+            />
             <span className="font-serif text-2xl font-bold tracking-tight text-white group-hover:text-cream transition-colors">
               {t.common.rupzonCollection}
             </span>

@@ -64,16 +64,14 @@ export function AdminSidebar({ collapsed, onToggleCollapse }: AdminSidebarProps)
               </div>
             ) : (
               <div className="h-16 border-b border-maroon-800 flex items-center justify-between px-4">
-                <Link href="/admin" className="flex items-center space-x-3 overflow-hidden">
-                  <div className="p-1 bg-white rounded-md shrink-0">
-                    <Image
-                      src="/logo.png"
-                      alt="Rupzon Collection Admin"
-                      width={28}
-                      height={28}
-                      className="w-6 h-6 object-contain"
-                    />
-                  </div>
+                <Link href="/admin" className="flex items-center space-x-2.5 overflow-hidden group">
+                  <Image
+                    src="/logo.png"
+                    alt="Rupzon Collection Admin"
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
+                  />
                   <span className="font-serif font-bold text-lg text-white truncate tracking-tight">
                     Admin Panel
                   </span>

@@ -10,6 +10,12 @@ export const getProductsSchema = z.object({
     categoryId: objectIdString.optional(),
     isFeatured: z.enum(['true', 'false']).optional(),
     isActive: z.enum(['true', 'false']).optional(),
+    search: z.string().trim().optional(),
+    sortBy: z.enum(['newest', 'oldest', 'price_asc', 'price_desc', 'name_asc', 'name_desc']).optional(),
+    minPrice: z.string().optional(),
+    maxPrice: z.string().optional(),
+    page: z.string().optional(),
+    limit: z.string().optional(),
   }),
 });
 
