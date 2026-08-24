@@ -81,7 +81,6 @@ export function ProductCardImageSlider({
               </div>
             ))}
 
-            {/* Accessible Slideshow Pause/Play Control */}
             <button
               type="button"
               onClick={(e) => {
@@ -98,7 +97,6 @@ export function ProductCardImageSlider({
               {isPaused ? <Play className="w-3 h-3 fill-current" /> : <Pause className="w-3 h-3 fill-current" />}
             </button>
 
-            {/* Subtle bottom indicator dots */}
             <div className="absolute bottom-2 inset-x-0 flex items-center justify-center gap-1 z-20 pointer-events-none">
               {imageList.map((_, idx) => (
                 <span

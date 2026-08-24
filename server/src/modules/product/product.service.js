@@ -286,6 +286,7 @@ export const createProductService = async ({
   isFeatured = false,
   isActive = true,
   images = [],
+  colors = [],
   variantIds = [],
   variants = [],
   seo = undefined,
@@ -332,6 +333,12 @@ export const createProductService = async ({
 
   try {
     const opts = session ? { session } : {};
+    const finalImages = Array.isArray(images) ? images : [];
+    let finalColors = Array.isArray(colors) ? colors : [];
+    if (finalColors.length > 0 && finalColors.length !== finalImages.length) {
+      throw new ApiError(400, 'Number of colors must match the number of images');
+    }
+
     const [product] = await Product.create(
       [
         {
@@ -344,7 +351,8 @@ export const createProductService = async ({
           discountPrice: cleanDiscountPrice,
           isFeatured: Boolean(isFeatured),
           isActive: Boolean(isActive),
-          images: Array.isArray(images) ? images : [],
+          images: finalImages,
+          colors: finalColors,
           seo: seo || undefined,
         },
       ],
@@ -392,6 +400,7 @@ export const updateProductService = async (
     isFeatured,
     isActive,
     images,
+    colors,
     variantIds,
     variants,
     seo,
@@ -437,6 +446,10 @@ export const updateProductService = async (
     if (isFeatured !== undefined) product.isFeatured = Boolean(isFeatured);
     if (isActive !== undefined) product.isActive = Boolean(isActive);
     if (images !== undefined) product.images = Array.isArray(images) ? images : [];
+    if (colors !== undefined) product.colors = Array.isArray(colors) ? colors : [];
+    if (product.colors.length > 0 && product.colors.length !== product.images.length) {
+      throw new ApiError(400, 'Number of colors must match the number of images');
+    }
 
     if (categoryId !== undefined) {
       if (!categoryId) {

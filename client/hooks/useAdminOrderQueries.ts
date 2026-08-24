@@ -21,6 +21,7 @@ export interface AdminOrderItem {
     code?: string;
     price: number;
     images?: string[];
+    colors?: string[];
     imageUrl?: string;
   } | null;
   productVariantId?: {
@@ -30,6 +31,7 @@ export interface AdminOrderItem {
   productName: string;
   selectedVariantLabel: string;
   size: string;
+  color?: string;
   unitPrice: number;
   quantity: number;
   imageUrl?: string;

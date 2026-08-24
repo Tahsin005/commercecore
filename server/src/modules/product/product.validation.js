@@ -88,12 +88,16 @@ export const createProductSchema = z.object({
       isFeatured: z.boolean().optional(),
       isActive: z.boolean().optional(),
       images: z.array(cloudinaryImageUrl).optional(),
+      colors: z.array(z.string().trim()).optional(),
       variantIds: z.array(objectIdString).optional(),
       variants: z.array(variantInputSchema).optional(),
       seo: productSeoSchema.optional(),
     })
     .refine(
       (data) => {
+        if (Array.isArray(data.images) && Array.isArray(data.colors)) {
+          if (data.colors.length > 0 && data.colors.length !== data.images.length) return false;
+        }
         if (data.discountPrice !== undefined && data.discountPrice !== null && data.discountPrice > 0) {
           if (data.discountPrice >= data.price) return false;
         }
@@ -108,7 +112,7 @@ export const createProductSchema = z.object({
         return true;
       },
       {
-        message: 'Discount price must be less than regular price',
+        message: 'Discount price must be less than regular price and colors must match number of images',
         path: ['discountPrice'],
       }
     ),
@@ -130,12 +134,16 @@ export const updateProductSchema = z.object({
       isFeatured: z.boolean().optional(),
       isActive: z.boolean().optional(),
       images: z.array(cloudinaryImageUrl).optional(),
+      colors: z.array(z.string().trim()).optional(),
       variantIds: z.array(objectIdString).optional(),
       variants: z.array(variantInputSchema).optional(),
       seo: productSeoSchema.optional(),
     })
     .refine(
       (data) => {
+        if (Array.isArray(data.images) && Array.isArray(data.colors)) {
+          if (data.colors.length > 0 && data.colors.length !== data.images.length) return false;
+        }
         if (
           data.discountPrice !== undefined &&
           data.discountPrice !== null &&
@@ -155,7 +163,7 @@ export const updateProductSchema = z.object({
         return true;
       },
       {
-        message: 'Discount price must be less than regular price',
+        message: 'Discount price must be less than regular price and colors must match number of images',
         path: ['discountPrice'],
       }
     ),

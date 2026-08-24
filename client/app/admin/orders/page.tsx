@@ -725,9 +725,20 @@ export default function AdminOrdersPage() {
                                 </div>
                               </td>
                             <td className="py-3 px-4">
-                              <span className="text-[11px] font-semibold bg-off-white text-maroon-800 border border-maroon-200 px-2 py-0.5 rounded">
-                                {item.size || item.selectedVariantLabel || "Standard"}
-                              </span>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="text-[11px] font-semibold bg-off-white text-maroon-800 border border-maroon-200 px-2 py-0.5 rounded">
+                                  {item.size || item.selectedVariantLabel || "Standard"}
+                                </span>
+                                {item.color && (
+                                  <span className="inline-flex items-center gap-1 text-[11px] font-bold font-mono text-maroon-800 bg-off-white border border-maroon-200 px-2 py-0.5 rounded">
+                                    <span
+                                      className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0"
+                                      style={{ backgroundColor: item.color }}
+                                    />
+                                    <span className="uppercase">{item.color}</span>
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="py-3 px-4 text-center font-mono text-maroon-800">
                               ৳{item.unitPrice.toLocaleString()}

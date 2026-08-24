@@ -35,6 +35,7 @@ export interface Product {
   defaultDiscountPrice?: number | null;
   quantity?: number;
   images?: string[];
+  colors?: string[];
   isFeatured?: boolean;
   isActive?: boolean;
   variants?: ProductVariant[];
@@ -53,6 +54,7 @@ export interface CreateProductPayload {
   isFeatured?: boolean;
   isActive?: boolean;
   images?: string[];
+  colors?: string[];
   variantIds?: string[];
   variants?: VariantPayloadItem[];
 }
@@ -69,6 +71,7 @@ export interface UpdateProductPayload {
   isFeatured?: boolean;
   isActive?: boolean;
   images?: string[];
+  colors?: string[];
   variantIds?: string[];
   variants?: VariantPayloadItem[];
 }

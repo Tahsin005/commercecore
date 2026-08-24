@@ -29,6 +29,8 @@ export const placeOrderSchema = z.object({
           productId: objectIdString,
           productVariantId: objectIdString.nullable().optional(),
           selectedVariantLabel: z.string().optional(),
+          color: z.string().trim().optional(),
+          imageUrl: z.string().trim().optional(),
           quantity: z.number().int().min(1, 'Quantity must be at least 1'),
         })
       )
@@ -39,6 +41,8 @@ export const placeOrderSchema = z.object({
           productId: objectIdString.optional(),
           productVariantId: objectIdString.nullable().optional(),
           selectedVariantLabel: z.string().optional(),
+          color: z.string().trim().optional(),
+          imageUrl: z.string().trim().optional(),
           quantity: z.number().optional(),
         })
       )

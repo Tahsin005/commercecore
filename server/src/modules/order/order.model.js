@@ -135,6 +135,16 @@ const orderItemSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    color: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    imageUrl: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     unitPrice: {
       type: Number,
       required: [true, 'Unit price is required'],

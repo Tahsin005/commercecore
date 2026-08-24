@@ -129,6 +129,8 @@ export default function CheckoutPage() {
             ? item.productVariantId
             : undefined,
         selectedVariantLabel: item.size,
+        color: item.color,
+        imageUrl: item.imageUrl,
         quantity: item.quantity,
       })),
       guestCartItems: !isAuthenticated
@@ -138,6 +140,9 @@ export default function CheckoutPage() {
               typeof item.productVariantId === "string" && item.productVariantId !== item.productId
                 ? item.productVariantId
                 : undefined,
+            selectedVariantLabel: item.size,
+            color: item.color,
+            imageUrl: item.imageUrl,
             quantity: item.quantity,
           }))
         : [],
@@ -495,7 +500,7 @@ export default function CheckoutPage() {
                 <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
                   {cartItems.map((item, idx) => {
                     const itemKey = item.productVariantId || item.productId;
-                    const rowKey = `${itemKey}_${item.size || "std"}_${idx}`;
+                    const rowKey = `${itemKey}_${item.size || "std"}_${item.color || "none"}_${idx}`;
                     return (
                       <div
                         key={rowKey}
@@ -509,12 +514,21 @@ export default function CheckoutPage() {
                           )}
                         </div>
 
-                        <div className="flex-1 space-y-0.5 pr-2">
-                          <div className="flex items-center space-x-1.5">
+                        <div className="flex-1 space-y-0.5 pr-2 min-w-0">
+                          <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
                             <h4 className="font-semibold text-xs text-maroon-900 line-clamp-1">{item.name}</h4>
                             <span className="text-[10px] font-bold font-mono text-maroon-700 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm shrink-0">
                               {item.size}
                             </span>
+                            {item.color && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold font-mono text-maroon-700 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm shrink-0">
+                                <span
+                                  className="w-2 h-2 rounded-full border border-black/20 shrink-0"
+                                  style={{ backgroundColor: item.color }}
+                                />
+                                <span className="uppercase">{item.color}</span>
+                              </span>
+                            )}
                           </div>
                           <span className="text-xs font-mono text-maroon-700 block">
                             ৳{item.price.toFixed(2)} × {item.quantity}
@@ -526,7 +540,7 @@ export default function CheckoutPage() {
                             <button
                               type="button"
                               disabled={item.quantity <= 1}
-                              onClick={() => updateQuantity(itemKey, item.quantity - 1)}
+                              onClick={() => updateQuantity(itemKey, item.quantity - 1, item.color)}
                               className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <Minus className="w-3.5 h-3.5" />
@@ -536,7 +550,7 @@ export default function CheckoutPage() {
                             </span>
                             <button
                               type="button"
-                              onClick={() => updateQuantity(itemKey, item.quantity + 1)}
+                              onClick={() => updateQuantity(itemKey, item.quantity + 1, item.color)}
                               className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer"
                             >
                               <Plus className="w-3.5 h-3.5" />
@@ -545,7 +559,7 @@ export default function CheckoutPage() {
 
                           <button
                             type="button"
-                            onClick={() => removeItem(itemKey)}
+                            onClick={() => removeItem(itemKey, item.color)}
                             className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
                             title={t.cartDrawer.removeItem}
                           >

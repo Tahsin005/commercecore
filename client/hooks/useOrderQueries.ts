@@ -11,6 +11,8 @@ export interface OrderItemPayload {
   productId: string;
   productVariantId?: string;
   selectedVariantLabel?: string;
+  color?: string;
+  imageUrl?: string;
   quantity: number;
 }
 

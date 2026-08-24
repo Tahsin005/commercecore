@@ -16,6 +16,8 @@ export interface OrderItem {
   productName?: string;
   size?: string;
   selectedVariantLabel?: string;
+  color?: string;
+  imageUrl?: string;
   quantity: number;
   price?: number;
   unitPrice?: number;

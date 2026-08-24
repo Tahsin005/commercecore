@@ -25,7 +25,8 @@ export function getSelectedVariant(product: Product): ProductVariant | null {
   return (
     product.variants.find((v) => v.isActive !== false && (v.quantity ?? 0) > 0) ||
     product.variants.find((v) => v.isActive !== false) ||
-    product.variants[0]
+    product.variants[0] ||
+    null
   );
 }
 
@@ -54,24 +55,30 @@ export function useProductCardActions() {
   const { addItem: addToCart } = useCart();
 
   const handleToggleWishlist = (product: Product) => {
-    const wishlisted = isInWishlist(product.id);
-    const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
-    const regularPrice = defaultVariant?.overridePrice ?? defaultVariant?.price ?? product.price ?? product.defaultPrice ?? 0;
-    const discountPrice = defaultVariant?.overrideDiscountPrice ?? defaultVariant?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
+    const selectedVariant = getSelectedVariant(product);
+    const defaultColor = (product.colors && product.colors.length > 0 && product.colors[0]) ? product.colors[0] : undefined;
+    const defaultImage = (product.images && product.images.length > 0 && product.images[0]) ? product.images[0] : undefined;
+
+    const regularPrice = selectedVariant?.overridePrice ?? selectedVariant?.price ?? product.price ?? product.defaultPrice ?? 0;
+    const discountPrice = selectedVariant?.overrideDiscountPrice ?? selectedVariant?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
     const effectivePrice = getProductEffectivePrice(regularPrice, discountPrice);
 
+    const targetVariantId = selectedVariant?.id || product.id;
+    const wishlisted = isInWishlist(targetVariantId, defaultColor);
+
     if (wishlisted) {
-      removeFromWishlist(product.id);
+      removeFromWishlist(targetVariantId, defaultColor);
       toast.success(`"${product.name}" ${t.home.removeFromWishlist}`);
     } else {
       addToWishlist({
         productId: product.id,
-        productVariantId: defaultVariant?.id,
+        productVariantId: selectedVariant?.id,
         name: product.name,
         slug: product.slug,
-        size: defaultVariant?.label || defaultVariant?.size || t.common.standard,
+        size: selectedVariant?.label || selectedVariant?.size || t.common.standard,
+        color: defaultColor,
         price: effectivePrice,
-        imageUrl: product.images?.[0],
+        imageUrl: defaultImage,
       });
       trackAddToWishlist({
         productId: product.id,
@@ -97,21 +104,25 @@ export function useProductCardActions() {
       return false;
     }
 
-    const v = getSelectedVariant(product);
-    const regularPrice = v?.overridePrice ?? v?.price ?? product.price ?? product.defaultPrice ?? 0;
-    const discountPrice = v?.overrideDiscountPrice ?? v?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
+    const selectedVariant = getSelectedVariant(product);
+    const defaultColor = (product.colors && product.colors.length > 0 && product.colors[0]) ? product.colors[0] : undefined;
+    const defaultImage = (product.images && product.images.length > 0 && product.images[0]) ? product.images[0] : undefined;
+
+    const regularPrice = selectedVariant?.overridePrice ?? selectedVariant?.price ?? product.price ?? product.defaultPrice ?? 0;
+    const discountPrice = selectedVariant?.overrideDiscountPrice ?? selectedVariant?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
     const effectivePrice = getProductEffectivePrice(regularPrice, discountPrice);
 
     try {
       await addToCart(
         {
-          productVariantId: v?.id,
+          productVariantId: selectedVariant?.id,
           productId: product.id,
           name: product.name,
           slug: product.slug,
-          size: v?.size || v?.label || t.common.standard,
+          size: selectedVariant?.size || selectedVariant?.label || t.common.standard,
+          color: defaultColor,
           price: effectivePrice,
-          imageUrl: product.images?.[0],
+          imageUrl: defaultImage,
         },
         1
       );

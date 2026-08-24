@@ -164,6 +164,8 @@ export const bn = {
     returnPolicyFallback: "পণ্য গ্রহণের ৭ দিনের মধ্যে অব্যবহৃত এবং মূল প্যাকেজিং সহ পণ্য পরিবর্তন বা রিটার্ন সুবিধা প্রযোজ্য। যেকোনো সহায়তায় আমাদের কল করুন।",
     productCodeCopied: "পণ্য কোড কপি করা হয়েছে!",
     copyProductCode: "পণ্য কোড কপি করুন",
+    selectColor: "রঙ নির্বাচন করুন",
+    allColors: "সবগুলো",
   },
 
   // Checkout Page
