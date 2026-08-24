@@ -43,7 +43,7 @@ export default function CustomerProfilePage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8 font-sans w-full overflow-hidden">
+    <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 py-8 space-y-8 font-sans overflow-hidden">
       <ProfileHeader user={user} onEditProfileClick={() => setActiveTab("info")} />
 
       <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 bg-maroon-100/40 sm:bg-transparent p-1.5 sm:p-0 rounded-2xl sm:rounded-none border border-maroon-200/60 sm:border-0 sm:border-b sm:border-maroon-200/80 sm:pb-3">

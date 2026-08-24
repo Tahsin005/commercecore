@@ -126,12 +126,14 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                           <span>{name}</span>
                           <span className="text-maroon-600 font-mono text-[10px]">({size})</span>
                           {item.color && (
-                            <span className="inline-flex items-center gap-1 text-[9px] font-bold font-mono text-maroon-800 bg-white border border-maroon-200 px-1 rounded-sm">
+                            <span
+                              className="inline-flex items-center text-[9px] font-bold text-maroon-800 bg-white border border-maroon-200 p-0.5 rounded shrink-0 shadow-2xs"
+                              title={`Color: ${item.color}`}
+                            >
                               <span
-                                className="w-1.5 h-1.5 rounded-full border border-black/20 shrink-0"
+                                className="w-2.5 h-2.5 rounded-xs border border-black/20 shrink-0"
                                 style={{ backgroundColor: item.color }}
                               />
-                              <span className="uppercase">{item.color}</span>
                             </span>
                           )}
                           <span>× {item.quantity}</span>
@@ -215,12 +217,14 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                                 <span>{name}</span>
                                 <span>({size})</span>
                                 {item.color && (
-                                  <span className="inline-flex items-center gap-1 text-[9px] font-bold font-mono text-maroon-800 bg-white border border-maroon-200 px-1 rounded-sm">
+                                  <span
+                                    className="inline-flex items-center text-[9px] font-bold text-maroon-800 bg-white border border-maroon-200 p-0.5 rounded shrink-0 shadow-2xs"
+                                    title={`Color: ${item.color}`}
+                                  >
                                     <span
-                                      className="w-1.5 h-1.5 rounded-full border border-black/20 shrink-0"
+                                      className="w-2.5 h-2.5 rounded-xs border border-black/20 shrink-0"
                                       style={{ backgroundColor: item.color }}
                                     />
-                                    <span className="uppercase">{item.color}</span>
                                   </span>
                                 )}
                                 <span>× {item.quantity}</span>
@@ -352,12 +356,14 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                             <div className="inline-flex items-center justify-center gap-1.5 flex-wrap">
                               <span>{size}</span>
                               {item.color && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold font-mono text-maroon-800 bg-off-white border border-maroon-200 px-1.5 py-0.5 rounded-sm">
+                                <span
+                                  className="inline-flex items-center text-[10px] font-bold text-maroon-800 bg-off-white border border-maroon-200 p-0.5 rounded shrink-0 shadow-2xs"
+                                  title={`Color: ${item.color}`}
+                                >
                                   <span
-                                    className="w-2 h-2 rounded-full border border-black/20 shrink-0"
+                                    className="w-3.5 h-3.5 rounded-xs border border-black/20 shrink-0"
                                     style={{ backgroundColor: item.color }}
                                   />
-                                  <span className="uppercase">{item.color}</span>
                                 </span>
                               )}
                             </div>
@@ -384,12 +390,14 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                           <p className="text-maroon-600 text-[11px] flex items-center gap-1 flex-wrap">
                             <span className="font-mono text-maroon-700 bg-off-white px-1 rounded border border-maroon-200">{size}</span>
                             {item.color && (
-                              <span className="inline-flex items-center gap-1 text-[9px] font-bold font-mono text-maroon-800 bg-off-white border border-maroon-200 px-1 rounded-sm">
+                              <span
+                                className="inline-flex items-center text-[9px] font-bold text-maroon-800 bg-off-white border border-maroon-200 p-0.5 rounded shrink-0 shadow-2xs"
+                                title={`Color: ${item.color}`}
+                              >
                                 <span
-                                  className="w-1.5 h-1.5 rounded-full border border-black/20 shrink-0"
+                                  className="w-2.5 h-2.5 rounded-xs border border-black/20 shrink-0"
                                   style={{ backgroundColor: item.color }}
                                 />
-                                <span className="uppercase">{item.color}</span>
                               </span>
                             )}
                             <span>× {item.quantity}</span>

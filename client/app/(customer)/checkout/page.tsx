@@ -217,7 +217,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 w-full flex-1">
+      <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 py-8 w-full flex-1">
         {cartItems.length === 0 && !createOrderMutation.isSuccess && !createOrderMutation.isPending ? (
           <div className="py-8 sm:py-12 flex flex-col justify-between min-h-[70vh]">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center max-w-5xl mx-auto w-full my-auto">
@@ -497,18 +497,18 @@ export default function CheckoutPage() {
                   <ShoppingBag className="w-5 h-5 text-maroon-700" />
                 </div>
 
-                <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
+                <div className="space-y-3.5 max-h-[420px] overflow-y-auto pr-1 scrollbar-thin">
                   {cartItems.map((item, idx) => {
                     const itemKey = item.productVariantId || item.productId;
                     const rowKey = `${itemKey}_${item.size || "std"}_${item.color || "none"}_${idx}`;
                     return (
                       <div
                         key={rowKey}
-                        className="flex items-center justify-between p-3.5 bg-off-white rounded-xl border border-maroon-100"
+                        className="flex items-center justify-between p-3.5 bg-off-white rounded-xl border border-maroon-100 shadow-2xs"
                       >
-                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-white border border-maroon-200 flex items-center justify-center shrink-0 relative mr-3">
+                        <div className="w-12 h-14 sm:w-14 sm:h-16 aspect-[4/5] rounded-lg overflow-hidden bg-white border border-maroon-200 flex items-center justify-center shrink-0 relative mr-3">
                           {item.imageUrl ? (
-                            <Image src={item.imageUrl} alt={item.name} fill sizes="48px" className="object-cover" />
+                            <Image src={item.imageUrl} alt={item.name} fill sizes="56px" className="object-cover" />
                           ) : (
                             <Package className="w-5 h-5 text-maroon-300" />
                           )}
@@ -521,12 +521,14 @@ export default function CheckoutPage() {
                               {item.size}
                             </span>
                             {item.color && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold font-mono text-maroon-700 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm shrink-0">
+                              <span
+                                className="inline-flex items-center text-[10px] font-bold text-maroon-700 bg-white border border-maroon-200 p-0.5 rounded shrink-0 shadow-2xs"
+                                title={`Color: ${item.color}`}
+                              >
                                 <span
-                                  className="w-2 h-2 rounded-full border border-black/20 shrink-0"
+                                  className="w-3.5 h-3.5 rounded-xs border border-black/20 shrink-0"
                                   style={{ backgroundColor: item.color }}
                                 />
-                                <span className="uppercase">{item.color}</span>
                               </span>
                             )}
                           </div>

@@ -336,12 +336,12 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
             />
           </div>
 
-          <div className="lg:col-span-4 flex flex-col justify-between space-y-5">
+          <div className="lg:col-span-4 flex flex-col space-y-5">
             <div className="space-y-4">
-              <div>
+              <div className="pb-3 border-b border-maroon-100/70">
                 {product.categoryId && typeof product.categoryId === "object" && product.categoryId.name && (
-                  <div className="mb-1">
-                    <span className="inline-block bg-maroon-100/70 border border-maroon-200/80 text-maroon-900 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded">
+                  <div className="mb-1.5">
+                    <span className="inline-block bg-maroon-100/70 border border-maroon-200/80 text-maroon-900 text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded">
                       {product.categoryId.name}
                     </span>
                   </div>
@@ -351,24 +351,26 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   {product.name}
                 </h1>
 
-                <div className="mt-2 flex flex-wrap items-center gap-3">
+                <div className="mt-2.5 space-y-1.5">
                   {product.code && (
-                    <div className="inline-flex items-center space-x-1 px-2 py-0.5 bg-off-white border border-maroon-200/80 rounded font-mono text-[10px] font-bold text-maroon-700">
-                      <span className="text-[9px] text-maroon-500 font-sans uppercase tracking-wider font-semibold">{t.common.code}:</span>
-                      <span>{product.code}</span>
-                      <button
-                        type="button"
-                        onClick={handleCopyCode}
-                        className="p-0.5 hover:bg-maroon-100 text-maroon-600 hover:text-maroon-900 rounded transition-colors cursor-pointer ml-1"
-                        title={t.productDetails?.copyProductCode || "Copy product code"}
-                        aria-label={t.productDetails?.copyProductCode || "Copy product code"}
-                      >
-                        {copiedCode ? (
-                          <Check className="w-3 h-3 text-emerald-600" />
-                        ) : (
-                          <Copy className="w-3 h-3" />
-                        )}
-                      </button>
+                    <div>
+                      <div className="inline-flex items-center space-x-1 px-2 py-0.5 bg-off-white border border-maroon-200/80 rounded font-mono text-[10px] font-bold text-maroon-700">
+                        <span className="text-[9px] text-maroon-500 font-sans uppercase tracking-wider font-semibold">{t.common.code}:</span>
+                        <span>{product.code}</span>
+                        <button
+                          type="button"
+                          onClick={handleCopyCode}
+                          className="p-0.5 hover:bg-maroon-100 text-maroon-600 hover:text-maroon-900 rounded transition-colors cursor-pointer ml-1"
+                          title={t.productDetails?.copyProductCode || "Copy product code"}
+                          aria-label={t.productDetails?.copyProductCode || "Copy product code"}
+                        >
+                          {copiedCode ? (
+                            <Check className="w-3 h-3 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -378,25 +380,27 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                     const waUrl = `https://wa.me/${formattedNum}?text=${encodeURIComponent(`Hi, I would like to ask details about ${product.name}`)}`;
 
                     return (
-                      <a
-                        href={waUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => {
-                          trackContact("whatsapp");
-                          trackGaGenerateLead("whatsapp_inquiry");
-                        }}
-                        className="inline-flex items-center space-x-1 text-emerald-700 hover:text-emerald-900 font-semibold underline cursor-pointer text-xs"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        <span>{t.productDetails.askForDetails}</span>
-                      </a>
+                      <div>
+                        <a
+                          href={waUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => {
+                            trackContact("whatsapp");
+                            trackGaGenerateLead("whatsapp_inquiry");
+                          }}
+                          className="inline-flex items-center space-x-1.5 text-emerald-700 hover:text-emerald-900 font-semibold underline cursor-pointer text-xs"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>{t.productDetails.askForDetails}</span>
+                        </a>
+                      </div>
                     );
                   })()}
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-maroon-100 flex items-center justify-between">
+              <div className="py-2.5 border-b border-maroon-100/70 flex items-center justify-between">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-wider text-maroon-500 block mb-0.5">
                     {t.common.price}
@@ -432,68 +436,12 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                 </div>
               </div>
 
-              {availableColors.length > 0 && (
-                <div className="pt-1">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-xs font-bold text-maroon-900">
-                      {t.productDetails?.selectColor || "Select Color"}
-                    </label>
-                    {selectedColor && (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedColor(null)}
-                        className="text-[10px] text-maroon-700 hover:text-maroon-900 underline cursor-pointer font-medium"
-                      >
-                        {t.productDetails?.allColors || "Show All"}
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {availableColors.map((color) => {
-                      const isSelected = selectedColor?.toLowerCase() === color.toLowerCase();
-                      return (
-                        <button
-                          key={color}
-                          type="button"
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedColor(null);
-                            } else {
-                              setSelectedColor(color);
-                              const firstIdx = (product.colors || []).findIndex(
-                                (c) => c && c.toLowerCase() === color.toLowerCase()
-                              );
-                              if (firstIdx !== -1) {
-                                setSelectedImageIndex(firstIdx);
-                              }
-                            }
-                          }}
-                          className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-all cursor-pointer shadow-2xs ${
-                            isSelected
-                              ? "bg-maroon-900 text-cream border-maroon-900 ring-2 ring-maroon-700/30 shadow-xs"
-                              : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
-                          }`}
-                        >
-                          <span
-                            className="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0"
-                            style={{ backgroundColor: color }}
-                          />
-                          <span className="font-mono text-[11px] uppercase font-bold">
-                            {color}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
               {product.variants && product.variants.length > 0 && (
-                <div className="pt-1">
-                  <label className="block text-xs font-bold text-maroon-900 mb-1.5">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-maroon-900">
                     {t.productDetails.selectAgeRange}
                   </label>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-2">
                     {product.variants.map((variant) => {
                       const isSelected = selectedVariant?.id === variant.id;
                       const label = variant.label || variant.size || t.common.standard;
@@ -507,12 +455,12 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                             setSelectedVariant(variant);
                             setQuantity(1);
                           }}
-                          className={`px-3 py-1.5 rounded-md border text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1.5 ${
+                          className={`px-3.5 py-2 rounded-lg border text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1.5 ${
                             isVOutOfStock
                               ? "bg-stone-100 text-stone-400 border-stone-200 line-through opacity-70 cursor-not-allowed"
                               : isSelected
                               ? "bg-maroon-900 text-cream border-maroon-900 shadow-xs ring-1 ring-maroon-700"
-                              : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
+                              : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50 hover:border-maroon-300"
                           }`}
                         >
                           <span>{label}</span>
@@ -528,25 +476,79 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                 </div>
               )}
 
-              <div className="pt-1">
-                <label className="block text-xs font-bold text-maroon-900 mb-1.5">
+              {availableColors.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-maroon-900">
+                      {t.productDetails?.selectColor || "Select Color"}
+                    </label>
+                    {selectedColor && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedColor(null)}
+                        className="text-[11px] text-maroon-700 hover:text-maroon-900 underline cursor-pointer font-medium"
+                      >
+                        {t.productDetails?.allColors || "Show All"}
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {availableColors.map((color) => {
+                      const isSelected = selectedColor?.toLowerCase() === color.toLowerCase();
+                      return (
+                        <button
+                          key={color}
+                          type="button"
+                          title={`Color: ${color}`}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedColor(null);
+                            } else {
+                              setSelectedColor(color);
+                              const firstIdx = (product.colors || []).findIndex(
+                                (c) => c && c.toLowerCase() === color.toLowerCase()
+                              );
+                              if (firstIdx !== -1) {
+                                setSelectedImageIndex(firstIdx);
+                              }
+                            }
+                          }}
+                          className={`relative w-9 h-9 rounded-lg transition-all cursor-pointer flex items-center justify-center shadow-xs ${
+                            isSelected
+                              ? "ring-2 ring-maroon-900 ring-offset-2 scale-105 shadow-md"
+                              : "border border-black/15 hover:scale-105 hover:shadow-sm"
+                          }`}
+                          style={{ backgroundColor: color }}
+                        >
+                          {isSelected && (
+                            <Check className="w-4 h-4 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-maroon-900">
                   {t.productDetails.selectQuantity}
                 </label>
-                <div className="inline-flex items-center border border-maroon-200 rounded-md bg-off-white overflow-hidden shadow-xs">
+                <div className="inline-flex items-center border border-maroon-200 rounded-lg bg-off-white overflow-hidden shadow-xs h-10">
                   <button
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                     disabled={isOutOfStock}
-                    className="p-2 hover:bg-maroon-100 text-maroon-800 transition-colors cursor-pointer disabled:opacity-40"
+                    className="px-3 h-full hover:bg-maroon-100 text-maroon-800 transition-colors cursor-pointer disabled:opacity-40 flex items-center justify-center"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
-                  <span className="w-10 text-center font-bold font-mono text-xs text-maroon-900">
+                  <span className="w-12 text-center font-bold font-mono text-sm text-maroon-900">
                     {quantity}
                   </span>
                   <button
                     onClick={() => setQuantity((q) => q + 1)}
                     disabled={isOutOfStock || quantity >= stockQuantity}
-                    className="p-2 hover:bg-maroon-100 text-maroon-800 transition-colors cursor-pointer disabled:opacity-40"
+                    className="px-3 h-full hover:bg-maroon-100 text-maroon-800 transition-colors cursor-pointer disabled:opacity-40 flex items-center justify-center"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -554,26 +556,26 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
               </div>
             </div>
 
-            <div className="space-y-2.5 pt-3 border-t border-maroon-100">
-              <div className="grid grid-cols-2 gap-2.5">
+            <div className="space-y-3 pt-4 border-t border-maroon-100/80">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={handleAddToCart}
                   disabled={isOutOfStock}
-                  className="py-2.5 px-3 bg-maroon-800 hover:bg-maroon-700 active:scale-[0.98] text-white font-semibold text-xs rounded-md transition-all flex items-center justify-center space-x-1.5 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="py-3 px-4 bg-maroon-800 hover:bg-maroon-700 active:scale-[0.98] text-white font-semibold text-xs rounded-xl transition-all flex items-center justify-center space-x-2 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ShoppingCart className="w-3.5 h-3.5 text-cream" />
+                  <ShoppingCart className="w-4 h-4 text-cream" />
                   <span>{t.productDetails.addToCart}</span>
                 </button>
 
                 <button
                   onClick={handleToggleWishlist}
-                  className={`py-2.5 px-3 border font-semibold text-xs rounded-md transition-all flex items-center justify-center space-x-1.5 shadow-xs cursor-pointer ${
+                  className={`py-3 px-4 border font-semibold text-xs rounded-xl transition-all flex items-center justify-center space-x-2 shadow-xs cursor-pointer ${
                     wishlisted
                       ? "bg-maroon-900 text-cream border-maroon-800"
                       : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
                   }`}
                 >
-                  <Heart className={`w-3.5 h-3.5 ${wishlisted ? "fill-cream" : ""}`} />
+                  <Heart className={`w-4 h-4 ${wishlisted ? "fill-cream" : ""}`} />
                   <span>{wishlisted ? t.productDetails.wishlisted : t.productDetails.wishlist}</span>
                 </button>
               </div>
@@ -581,9 +583,9 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
               <button
                 onClick={handleOrderNow}
                 disabled={isOutOfStock}
-                className="w-full py-3 px-4 bg-maroon-900 hover:bg-maroon-800 active:scale-[0.98] text-white font-semibold text-xs rounded-md transition-all flex items-center justify-center space-x-1.5 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3.5 px-4 bg-maroon-900 hover:bg-maroon-800 active:scale-[0.98] text-white font-bold text-xs sm:text-sm rounded-xl transition-all flex items-center justify-center space-x-2 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <ShoppingBag className="w-3.5 h-3.5 text-cream" />
+                <ShoppingBag className="w-4 h-4 text-cream" />
                 <span>{t.productDetails.orderNow}</span>
               </button>
             </div>

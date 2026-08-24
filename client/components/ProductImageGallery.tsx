@@ -99,7 +99,7 @@ export function ProductImageGallery({
               handleOpenLightbox();
             }
           }}
-          className="relative w-full h-96 sm:h-[460px] rounded-xl overflow-hidden flex items-center justify-center bg-off-white border border-maroon-100/80 shadow-xs cursor-zoom-in group select-none focus-visible:ring-2 focus-visible:ring-maroon-700 focus-visible:outline-none"
+          className="relative w-full aspect-[4/5] max-w-[480px] mx-auto rounded-2xl overflow-hidden flex items-center justify-center bg-off-white border border-maroon-100/80 shadow-xs cursor-zoom-in group select-none focus-visible:ring-2 focus-visible:ring-maroon-700 focus-visible:outline-none"
           title="Click or tap to view full screen with pinch zoom"
         >
           {currentImage ? (
@@ -118,7 +118,7 @@ export function ProductImageGallery({
                 alt={productName}
                 fill
                 sizes="(max-width: 1024px) 100vw, 40vw"
-                className="object-contain"
+                className="object-cover"
                 priority
               />
             </div>
@@ -147,7 +147,7 @@ export function ProductImageGallery({
                 key={idx}
                 type="button"
                 onClick={() => onSelectImageIndex(idx)}
-                className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
+                className={`relative w-14 aspect-[4/5] rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
                   isSelected
                     ? "border-maroon-900 ring-2 ring-maroon-700/40 scale-105 opacity-100"
                     : isMatchingColor

@@ -129,25 +129,25 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
 
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
-      <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 py-10 w-full">
-        <div className="bg-white rounded-2xl shadow-xl border border-maroon-100 overflow-hidden">
-          <div className="bg-maroon-900 p-8 sm:p-10 text-white text-center space-y-3">
-            <div className="w-14 h-14 bg-white/10 border border-maroon-700 rounded-full flex items-center justify-center mx-auto text-cream shadow-inner">
-              <CheckCircle2 className="w-8 h-8 text-cream" />
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
-              {t.orderSuccess.confirmedTitle}
-            </h1>
-            <p className="text-xs text-maroon-200 font-sans max-w-md mx-auto">
-              {t.orderSuccess.confirmedDesc}
-            </p>
-            <div className="inline-block bg-maroon-800 border border-maroon-700 px-4 py-1.5 rounded-full text-xs font-mono font-bold text-cream tracking-wide">
-              {t.orderSuccess.orderNumber} #{order.orderNumber}
-            </div>
+      <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 py-8 sm:py-10 w-full flex-1 space-y-6 sm:space-y-8">
+        <div className="bg-maroon-900 p-6 sm:p-8 rounded-3xl text-white text-center space-y-3 shadow-lg border border-maroon-800">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/10 border border-maroon-700 rounded-full flex items-center justify-center mx-auto text-cream shadow-inner">
+            <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8 text-cream" />
           </div>
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
+            {t.orderSuccess.confirmedTitle}
+          </h1>
+          <p className="text-xs sm:text-sm text-maroon-200 font-sans max-w-lg mx-auto">
+            {t.orderSuccess.confirmedDesc}
+          </p>
+          <div className="inline-block bg-maroon-800 border border-maroon-700 px-4 py-1.5 rounded-full text-xs font-mono font-bold text-cream tracking-wide">
+            {t.orderSuccess.orderNumber} #{order.orderNumber}
+          </div>
+        </div>
 
-          <div className="p-6 sm:p-8 space-y-6">
-            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-3 text-emerald-900 text-xs font-medium">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          <div className="lg:col-span-6 space-y-6">
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center space-x-3 text-emerald-900 text-xs font-medium shadow-xs">
               <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
               <span>
                 {t.orderSuccess.paymentMethod}: <strong>{t.orderSuccess.codLabel}</strong> ({t.orderSuccess.codNoticeAmount(order.total.toFixed(2))})
@@ -236,33 +236,33 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans">
-              <div className="p-4 bg-off-white rounded-xl border border-maroon-100 space-y-2">
-                <h3 className="font-semibold text-maroon-900 border-b border-maroon-200/60 pb-1 flex items-center space-x-1.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-5 bg-white rounded-2xl border border-maroon-100 shadow-xs space-y-2">
+                <h3 className="font-semibold text-maroon-900 border-b border-maroon-200/60 pb-1.5 flex items-center space-x-1.5 text-xs uppercase tracking-wider">
                   <User className="w-3.5 h-3.5 text-maroon-700" />
                   <span>{t.orderSuccess.customerDetails}</span>
                 </h3>
-                <p className="text-maroon-800 font-medium">{order.customerName}</p>
-                <p className="text-maroon-700 flex items-center space-x-1">
-                  <Phone className="w-3 h-3 text-maroon-500" />
+                <p className="text-maroon-900 font-bold text-sm">{order.customerName}</p>
+                <p className="text-maroon-700 flex items-center space-x-1 font-mono text-xs">
+                  <Phone className="w-3.5 h-3.5 text-maroon-500" />
                   <span>{order.phone}</span>
                 </p>
               </div>
 
-              <div className="p-4 bg-off-white rounded-xl border border-maroon-100 space-y-2">
-                <h3 className="font-semibold text-maroon-900 border-b border-maroon-200/60 pb-1 flex items-center space-x-1.5">
+              <div className="p-5 bg-white rounded-2xl border border-maroon-100 shadow-xs space-y-2">
+                <h3 className="font-semibold text-maroon-900 border-b border-maroon-200/60 pb-1.5 flex items-center space-x-1.5 text-xs uppercase tracking-wider">
                   <MapPin className="w-3.5 h-3.5 text-maroon-700" />
                   <span>{t.orderSuccess.shippingAddress}</span>
                 </h3>
-                <p className="text-maroon-800 font-medium leading-relaxed">{order.shippingAddress}</p>
-                <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-maroon-600 bg-white px-2 py-0.5 rounded border border-maroon-200">
+                <p className="text-maroon-900 font-medium text-xs leading-relaxed">{order.shippingAddress}</p>
+                <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-maroon-600 bg-maroon-50 px-2 py-0.5 rounded border border-maroon-200">
                   {order.deliveryZone === "inside_dhaka" ? t.checkout.insideDhaka : t.checkout.outsideDhaka}
                 </span>
               </div>
             </div>
 
             {order.notes && (
-              <div className="p-4 bg-amber-50/60 border border-amber-200/80 rounded-xl space-y-1.5 text-xs font-sans">
+              <div className="p-4 bg-amber-50/60 border border-amber-200/80 rounded-2xl space-y-1.5 text-xs font-sans shadow-xs">
                 <h3 className="font-semibold text-maroon-900 flex items-center space-x-1.5">
                   <FileText className="w-3.5 h-3.5 text-amber-700" />
                   <span>{t.orderSuccess.orderNotes}</span>
@@ -270,88 +270,92 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
                 <p className="text-maroon-800 leading-relaxed italic">"{order.notes}"</p>
               </div>
             )}
+          </div>
 
-            <div className="space-y-3">
-              <h3 className="font-serif font-bold text-base text-maroon-900 flex items-center space-x-2">
+          <div className="lg:col-span-6 space-y-6">
+            <div className="bg-white rounded-2xl border border-maroon-100 shadow-sm p-6 space-y-4">
+              <h3 className="font-serif font-bold text-base text-maroon-900 flex items-center space-x-2 border-b border-maroon-100 pb-3">
                 <ShoppingBag className="w-4 h-4 text-maroon-700" />
-                <span>{t.orderSuccess.itemsSummary}</span>
+                <span>{t.orderSuccess.itemsSummary} ({items.length})</span>
               </h3>
 
-              <div className="divide-y divide-maroon-100 border border-maroon-100 rounded-xl overflow-hidden bg-off-white/50">
+              <div className="divide-y divide-maroon-100/80 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
                 {items.map((item: any, idx: number) => {
                   const imageUrl = item.imageUrl || item.product?.images?.[0] || item.product?.imageUrl || item.productId?.images?.[0];
 
                   return (
-                    <div key={idx} className="p-3.5 flex items-center justify-between text-xs">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-white border border-maroon-200 flex items-center justify-center shrink-0 relative">
+                    <div key={idx} className="py-3 flex items-center justify-between text-xs gap-3">
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <div className="w-12 h-14 aspect-[4/5] rounded-lg overflow-hidden bg-off-white border border-maroon-200 flex items-center justify-center shrink-0 relative">
                           {imageUrl ? (
-                            <Image src={imageUrl} alt={item.productName} fill sizes="40px" className="object-cover" />
+                            <Image src={imageUrl} alt={item.productName} fill sizes="48px" className="object-cover" />
                           ) : (
                             <Package className="w-5 h-5 text-maroon-300" />
                           )}
                         </div>
-                        <div className="space-y-0.5">
+                        <div className="space-y-0.5 min-w-0">
                           <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
-                            <h4 className="font-semibold text-maroon-900">{item.productName}</h4>
+                            <h4 className="font-semibold text-maroon-900 truncate">{item.productName}</h4>
                             {item.size && (
-                              <span className="text-[10px] font-bold font-mono text-maroon-700 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm">
+                              <span className="text-[10px] font-bold font-mono text-maroon-700 bg-off-white border border-maroon-200 px-1.5 py-0.2 rounded-sm shrink-0">
                                 {item.size}
                               </span>
                             )}
                             {item.color && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold font-mono text-maroon-700 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm">
+                              <span
+                                className="inline-flex items-center text-[10px] font-bold text-maroon-700 bg-off-white border border-maroon-200 p-0.5 rounded shrink-0 shadow-2xs"
+                                title={`Color: ${item.color}`}
+                              >
                                 <span
-                                  className="w-2 h-2 rounded-full border border-black/20 shrink-0"
+                                  className="w-3.5 h-3.5 rounded-xs border border-black/20 shrink-0"
                                   style={{ backgroundColor: item.color }}
                                 />
-                                <span className="uppercase">{item.color}</span>
                               </span>
                             )}
                           </div>
-                          <span className="text-maroon-600 text-[11px] font-mono">
+                          <span className="text-maroon-600 text-[11px] font-mono block">
                             ৳{item.unitPrice.toFixed(2)} × {item.quantity}
                           </span>
                         </div>
                       </div>
-                      <span className="font-mono font-bold text-maroon-900">
+                      <span className="font-mono font-bold text-maroon-900 shrink-0">
                         ৳{(item.unitPrice * item.quantity).toFixed(2)}
                       </span>
                     </div>
                   );
                 })}
               </div>
-            </div>
 
-            <div className="p-4 bg-off-white rounded-xl border border-maroon-100 space-y-2 text-xs font-sans">
-              <div className="flex justify-between text-maroon-700">
-                <span>{t.orderSuccess.itemsSubtotal}</span>
-                <span className="font-mono font-semibold">৳{order.subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-maroon-700">
-                <span>{t.orderSuccess.deliveryCharge}</span>
-                <span className="font-mono font-semibold">৳{order.deliveryCharge.toFixed(2)}</span>
-              </div>
-              {Boolean(order.discountAmount && order.discountAmount > 0) && (
-                <div className="flex justify-between text-emerald-700 font-semibold">
-                  <span>Sitewide Discount</span>
-                  <span className="font-mono text-xs font-bold">-৳{order.discountAmount?.toFixed(2)}</span>
+              <div className="pt-3 border-t border-maroon-100 space-y-2 text-xs font-sans">
+                <div className="flex justify-between text-maroon-700">
+                  <span>{t.orderSuccess.itemsSubtotal}</span>
+                  <span className="font-mono font-semibold">৳{order.subtotal.toFixed(2)}</span>
                 </div>
-              )}
-              <div className="pt-2 border-t border-maroon-200/60 flex justify-between text-sm font-bold text-maroon-900">
-                <span>{t.orderSuccess.grandTotal}</span>
-                <span className="font-mono text-base text-maroon-900">৳{order.total.toFixed(2)}</span>
+                <div className="flex justify-between text-maroon-700">
+                  <span>{t.orderSuccess.deliveryCharge}</span>
+                  <span className="font-mono font-semibold">৳{order.deliveryCharge.toFixed(2)}</span>
+                </div>
+                {Boolean(order.discountAmount && order.discountAmount > 0) && (
+                  <div className="flex justify-between text-emerald-700 font-semibold">
+                    <span>Sitewide Discount</span>
+                    <span className="font-mono text-xs font-bold">-৳{order.discountAmount?.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="pt-2 border-t border-maroon-200/60 flex justify-between text-sm font-bold text-maroon-900">
+                  <span>{t.orderSuccess.grandTotal}</span>
+                  <span className="font-mono text-base text-maroon-900">৳{order.total.toFixed(2)}</span>
+                </div>
               </div>
-            </div>
 
-            <div className="pt-2 flex justify-center">
-              <Link
-                href="/"
-                className="inline-flex items-center space-x-2 px-6 py-3 bg-maroon-900 hover:bg-maroon-800 text-white text-xs font-semibold rounded-md shadow transition-all cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4 text-cream" />
-                <span>{t.orderSuccess.continueShopping}</span>
-              </Link>
+              <div className="pt-2">
+                <Link
+                  href="/"
+                  className="w-full py-3 bg-maroon-900 hover:bg-maroon-800 text-white text-xs font-semibold rounded-xl shadow transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4 text-cream" />
+                  <span>{t.orderSuccess.continueShopping}</span>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
