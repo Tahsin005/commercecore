@@ -523,7 +523,7 @@ export default function Home() {
                             </span>
                           )}
 
-                          <div className="relative">
+                          <div className="relative overflow-hidden rounded-t-xl">
                             <ProductCardImageSlider
                               images={product.images}
                               productName={product.name}

@@ -16,7 +16,7 @@ export function ProductCardImageSlider({
   images,
   productName,
   productHref,
-  className = "bg-off-white p-2 relative flex items-center justify-center border-b border-maroon-100/60 aspect-square sm:h-72 overflow-hidden rounded-t-xl",
+  className = "w-full relative bg-off-white aspect-[4/5] overflow-hidden rounded-t-xl border-b border-maroon-100/60 flex items-center justify-center",
 }: ProductCardImageSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -51,14 +51,14 @@ export function ProductCardImageSlider({
         aria-label={productName}
       >
         {imageList.length === 0 ? (
-          <Package className="w-16 h-16 text-maroon-300 group-hover:scale-110 transition-transform duration-300" />
+          <Package className="w-16 h-16 text-maroon-300" />
         ) : !hasMultipleImages ? (
           <Image
             src={imageList[0]}
             alt={productName}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+            className="object-cover"
           />
         ) : (
           <>
@@ -76,7 +76,7 @@ export function ProductCardImageSlider({
                   alt={`${productName} image ${idx + 1}`}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                  className="object-cover"
                 />
               </div>
             ))}

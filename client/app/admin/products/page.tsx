@@ -40,6 +40,7 @@ import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { useUploadImageMutation } from "@/hooks/useUploadMutation";
 import { productSchema, variantSchema, ProductInput, VariantInput } from "@/lib/validations/product";
 import { ProductImageReorderGrid } from "@/components/admin/ProductImageReorderGrid";
+import { ImageFramingModal, ImageCropItem } from "@/components/admin/ImageFramingModal";
 
 const slugify = (text: string) => {
   return text
@@ -71,6 +72,12 @@ export default function AdminProductsPage() {
   const [editImages, setEditImages] = useState<string[]>([]);
   const [createColors, setCreateColors] = useState<string[]>([]);
   const [editColors, setEditColors] = useState<string[]>([]);
+
+  // Image Framing / Cropping Modal State
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [cropItems, setCropItems] = useState<ImageCropItem[]>([]);
+  const [cropTargetFormType, setCropTargetFormType] = useState<"create" | "edit">("create");
+  const [cropTargetIndex, setCropTargetIndex] = useState<number | null>(null);
 
   const fileInputRefCreate = useRef<HTMLInputElement>(null);
   const fileInputRefEdit = useRef<HTMLInputElement>(null);
@@ -180,44 +187,124 @@ export default function AdminProductsPage() {
     });
   };
 
-  const handleImagesUpload = async (
+  const handleImagesUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
     formType: "create" | "edit"
   ) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const inputTarget = e.currentTarget;
-    const editingProductId = editingProduct?.id;
     const fileList = Array.from(files);
+    const items: ImageCropItem[] = fileList.map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+      name: file.name,
+    }));
+
+    setCropItems(items);
+    setCropTargetFormType(formType);
+    setCropTargetIndex(null);
+    setIsCropModalOpen(true);
+
+    e.currentTarget.value = "";
+  };
+
+  const handleReframeExisting = (index: number, formType: "create" | "edit") => {
+    const targetUrl = formType === "create" ? createImages[index] : editImages[index];
+    if (!targetUrl) return;
+
+    setCropItems([
+      {
+        url: targetUrl,
+        name: `reframed-image-${index + 1}.jpg`,
+      },
+    ]);
+    setCropTargetFormType(formType);
+    setCropTargetIndex(index);
+    setIsCropModalOpen(true);
+  };
+
+  const handleCropComplete = async (croppedFiles: File[]) => {
+    setIsCropModalOpen(false);
+
+    // Clean up object URLs
+    cropItems.forEach((item) => {
+      if (item.file && item.url.startsWith("blob:")) {
+        URL.revokeObjectURL(item.url);
+      }
+    });
+
+    if (!croppedFiles || croppedFiles.length === 0) return;
+
+    const editingProductId = editingProduct?.id;
+    const isSingleReframe = cropTargetIndex !== null;
 
     let successCount = 0;
-    for (const file of fileList) {
+    const loadingToastId = toast.loading(
+      isSingleReframe
+        ? "Uploading reframed image..."
+        : `Uploading ${croppedFiles.length} framed image(s)...`
+    );
+
+    for (let i = 0; i < croppedFiles.length; i++) {
+      const file = croppedFiles[i];
       try {
         const res = await uploadMutation.mutateAsync(file);
-        if (formType === "create" && !isCreateModalOpen) continue;
-        if (formType === "edit" && (!editingProduct || editingProduct.id !== editingProductId)) continue;
+        if (cropTargetFormType === "create" && !isCreateModalOpen) continue;
+        if (cropTargetFormType === "edit" && (!editingProduct || editingProduct.id !== editingProductId)) continue;
 
         const url = res.data.url;
-        if (formType === "create") {
-          setCreateImages((prev) => [...prev, url]);
-          setCreateColors((prev) => [...prev, "#808080"]);
+        if (isSingleReframe) {
+          // Replace in-place at cropTargetIndex
+          if (cropTargetFormType === "create") {
+            setCreateImages((prev) => {
+              const copy = [...prev];
+              copy[cropTargetIndex] = url;
+              return copy;
+            });
+          } else {
+            setEditImages((prev) => {
+              const copy = [...prev];
+              copy[cropTargetIndex] = url;
+              return copy;
+            });
+          }
         } else {
-          setEditImages((prev) => [...prev, url]);
-          setEditColors((prev) => [...prev, "#808080"]);
+          // Append new images
+          if (cropTargetFormType === "create") {
+            setCreateImages((prev) => [...prev, url]);
+            setCreateColors((prev) => [...prev, "#808080"]);
+          } else {
+            setEditImages((prev) => [...prev, url]);
+            setEditColors((prev) => [...prev, "#808080"]);
+          }
         }
         successCount += 1;
-      } catch (err: any) {
-        if (formType === "create" && !isCreateModalOpen) continue;
-        if (formType === "edit" && (!editingProduct || editingProduct.id !== editingProductId)) continue;
-        toast.error(`Failed to upload ${file.name}: ${err.message || "Error"}`);
+      } catch (err: unknown) {
+        const errorMsg = (err as Error)?.message || "Upload error";
+        toast.error(`Failed to upload ${file.name || "image"}: ${errorMsg}`);
       }
     }
 
+    toast.dismiss(loadingToastId);
     if (successCount > 0) {
-      toast.success("Product image(s) uploaded successfully!");
+      toast.success(
+        isSingleReframe
+          ? "Image reframed and updated successfully!"
+          : `${successCount} product image(s) framed & uploaded!`
+      );
     }
-    inputTarget.value = "";
+  };
+
+  const handleCropCancel = () => {
+    setIsCropModalOpen(false);
+    cropItems.forEach((item) => {
+      if (item.file && item.url.startsWith("blob:")) {
+        URL.revokeObjectURL(item.url);
+      }
+    });
+    setCropItems([]);
+    setCropTargetIndex(null);
   };
 
   const handleRemoveImage = (index: number, formType: "create" | "edit") => {
@@ -926,6 +1013,7 @@ export default function AdminProductsPage() {
                     onReorder={handleCreateReorder}
                     onRemove={(idx) => handleRemoveImage(idx, "create")}
                     onColorChange={handleCreateColorChange}
+                    onReframe={(idx) => handleReframeExisting(idx, "create")}
                   />
                 </div>
               </div>
@@ -1261,6 +1349,7 @@ export default function AdminProductsPage() {
                     onReorder={handleEditReorder}
                     onRemove={(idx) => handleRemoveImage(idx, "edit")}
                     onColorChange={handleEditColorChange}
+                    onReframe={(idx) => handleReframeExisting(idx, "edit")}
                   />
                 </div>
               </div>
@@ -1761,6 +1850,16 @@ export default function AdminProductsPage() {
           </div>
         </div>
       )}
+
+      <ImageFramingModal
+        isOpen={isCropModalOpen}
+        items={cropItems}
+        onComplete={handleCropComplete}
+        onCancel={handleCropCancel}
+        defaultAspect={4 / 5}
+        targetWidth={1122}
+        targetHeight={1402}
+      />
     </div>
   );
 }

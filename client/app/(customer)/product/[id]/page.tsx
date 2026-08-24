@@ -302,7 +302,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
 
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 w-full flex-1">
+      <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 py-6 flex-1">
         <div className="mb-4">
           <Link
             href="/"
