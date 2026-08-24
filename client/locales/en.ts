@@ -151,6 +151,8 @@ export const en: TranslationType = {
     returnPolicyFallback: "Returns accepted within 7 days of delivery for unused items in original packaging. Contact customer support for hassle-free returns.",
     productCodeCopied: "Product code copied!",
     copyProductCode: "Copy product code",
+    selectColor: "Select Color",
+    allColors: "Show All",
   },
   checkout: {
     title: "Order Checkout",

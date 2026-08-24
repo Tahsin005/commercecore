@@ -9,28 +9,34 @@ import {
   ChevronRight,
   Sparkles,
   Info,
+  Palette,
 } from "lucide-react";
 
 interface ProductImageReorderGridProps {
   images: string[];
-  onReorder: (newImages: string[]) => void;
+  colors?: string[];
+  onReorder: (newImages: string[], newColors: string[]) => void;
   onRemove: (index: number) => void;
+  onColorChange?: (index: number, newColor: string) => void;
 }
 
 export function ProductImageReorderGrid({
   images,
+  colors = [],
   onReorder,
   onRemove,
+  onColorChange,
 }: ProductImageReorderGridProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   if (!images || images.length === 0) return null;
 
+  const currentColors = images.map((_, i) => (colors && colors[i]) || "#808080");
+
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = "move";
-    // Set format for cross-browser support
     e.dataTransfer.setData("text/plain", index.toString());
   };
 
@@ -47,7 +53,6 @@ export function ProductImageReorderGrid({
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     e.preventDefault();
-    // Only reset if leaving the current target element
     if (dragOverIndex === index) {
       setDragOverIndex(null);
     }
@@ -61,11 +66,15 @@ export function ProductImageReorderGrid({
       return;
     }
 
-    const updated = [...images];
-    const [movedItem] = updated.splice(draggedIndex, 1);
-    updated.splice(targetIndex, 0, movedItem);
+    const updatedImages = [...images];
+    const [movedImg] = updatedImages.splice(draggedIndex, 1);
+    updatedImages.splice(targetIndex, 0, movedImg);
 
-    onReorder(updated);
+    const updatedColors = [...currentColors];
+    const [movedColor] = updatedColors.splice(draggedIndex, 1);
+    updatedColors.splice(targetIndex, 0, movedColor);
+
+    onReorder(updatedImages, updatedColors);
     setDraggedIndex(null);
     setDragOverIndex(null);
   };
@@ -75,23 +84,32 @@ export function ProductImageReorderGrid({
     setDragOverIndex(null);
   };
 
-  // Quick action buttons for touch & keyboard accessibility
   const handleMove = (index: number, direction: "left" | "right") => {
     const targetIndex = direction === "left" ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= images.length) return;
 
-    const updated = [...images];
-    const [item] = updated.splice(index, 1);
-    updated.splice(targetIndex, 0, item);
-    onReorder(updated);
+    const updatedImages = [...images];
+    const [movedImg] = updatedImages.splice(index, 1);
+    updatedImages.splice(targetIndex, 0, movedImg);
+
+    const updatedColors = [...currentColors];
+    const [movedColor] = updatedColors.splice(index, 1);
+    updatedColors.splice(targetIndex, 0, movedColor);
+
+    onReorder(updatedImages, updatedColors);
   };
 
   const handleMakeCover = (index: number) => {
     if (index === 0) return;
-    const updated = [...images];
-    const [item] = updated.splice(index, 1);
-    updated.unshift(item);
-    onReorder(updated);
+    const updatedImages = [...images];
+    const [movedImg] = updatedImages.splice(index, 1);
+    updatedImages.unshift(movedImg);
+
+    const updatedColors = [...currentColors];
+    const [movedColor] = updatedColors.splice(index, 1);
+    updatedColors.unshift(movedColor);
+
+    onReorder(updatedImages, updatedColors);
   };
 
   return (
@@ -99,7 +117,7 @@ export function ProductImageReorderGrid({
       <div className="flex items-center justify-between text-xs text-maroon-700">
         <span className="flex items-center gap-1.5 font-medium">
           <Info className="w-3.5 h-3.5 text-maroon-500" />
-          <span>Drag images to rearrange order ({images.length} uploaded)</span>
+          <span>Drag images to rearrange order & set color for each image ({images.length} uploaded)</span>
         </span>
         <span className="text-[10px] text-maroon-500 font-mono">
           First image (#1) is Cover
@@ -111,6 +129,7 @@ export function ProductImageReorderGrid({
           const isCover = idx === 0;
           const isBeingDragged = draggedIndex === idx;
           const isDropTarget = dragOverIndex === idx;
+          const itemColor = currentColors[idx] || "#808080";
 
           return (
             <div
@@ -122,7 +141,7 @@ export function ProductImageReorderGrid({
               onDragLeave={(e) => handleDragLeave(e, idx)}
               onDrop={(e) => handleDrop(e, idx)}
               onDragEnd={handleDragEnd}
-              className={`group relative rounded-xl overflow-hidden border bg-white shadow-xs transition-all duration-200 select-none cursor-grab active:cursor-grabbing ${
+              className={`group relative rounded-xl overflow-hidden border bg-white shadow-xs transition-all duration-200 select-none cursor-grab active:cursor-grabbing flex flex-col justify-between ${
                 isBeingDragged
                   ? "opacity-35 scale-95 border-dashed border-maroon-500 ring-2 ring-maroon-300"
                   : isDropTarget
@@ -132,6 +151,7 @@ export function ProductImageReorderGrid({
                   : "border-maroon-200 hover:border-maroon-400 hover:shadow-md"
               }`}
             >
+              {/* Image thumbnail section */}
               <div className="relative w-full aspect-square overflow-hidden bg-off-white">
                 <Image
                   src={imgUrl}
@@ -190,6 +210,26 @@ export function ProductImageReorderGrid({
                 )}
               </div>
 
+              {/* Color Picker Row */}
+              <div className="p-1.5 bg-white border-t border-maroon-100 flex items-center justify-between gap-1.5">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="relative flex items-center shrink-0">
+                    <input
+                      type="color"
+                      value={itemColor}
+                      onChange={(e) => onColorChange?.(idx, e.target.value)}
+                      className="w-5 h-5 rounded-full cursor-pointer border border-black/20 p-0 overflow-hidden bg-transparent shrink-0"
+                      title="Pick color for this image"
+                    />
+                  </div>
+                  <span className="font-mono text-[9px] text-maroon-800 uppercase font-semibold truncate" title={itemColor}>
+                    {itemColor}
+                  </span>
+                </div>
+                <Palette className="w-3 h-3 text-maroon-400 shrink-0" />
+              </div>
+
+              {/* Quick Reorder Arrow Buttons in bottom bar */}
               <div className="flex items-center justify-between p-1 bg-off-white border-t border-maroon-100 text-[10px] text-maroon-700">
                 <button
                   type="button"

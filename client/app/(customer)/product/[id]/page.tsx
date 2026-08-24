@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use, useEffect } from "react";
+import { useState, use, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -60,6 +60,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
 
   const handleCopyCode = async () => {
@@ -79,6 +80,18 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   // react Query hook for product details
   const { data: response, isLoading, error } = useProductDetailsQuery(id);
   const product = response?.data;
+
+  // Extract unique available colors from product colors array
+  const availableColors = useMemo(() => {
+    if (!product?.colors || !Array.isArray(product.colors)) return [];
+    const set = new Set<string>();
+    product.colors.forEach((c) => {
+      if (c && typeof c === "string" && c.trim()) {
+        set.add(c.trim());
+      }
+    });
+    return Array.from(set);
+  }, [product?.colors]);
 
   // Set default selected variant when product data loads
   useEffect(() => {
@@ -290,13 +303,20 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
           <div className="lg:col-span-5">
             <ProductImageGallery
               images={images}
+              colors={product.colors}
+              selectedColor={selectedColor}
               productName={product.name}
               isOnSale={isOnSale}
               discountPercent={discountPercent}
               offLabel={t.common.off || "OFF"}
               hoverToZoomLabel={t.productDetails.hoverToZoom}
               selectedImageIndex={selectedImageIndex}
-              onSelectImageIndex={setSelectedImageIndex}
+              onSelectImageIndex={(idx) => {
+                setSelectedImageIndex(idx);
+                if (product.colors && product.colors[idx]) {
+                  setSelectedColor(product.colors[idx]);
+                }
+              }}
             />
           </div>
 
@@ -395,6 +415,62 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                   )}
                 </div>
               </div>
+
+              {availableColors.length > 0 && (
+                <div className="pt-1">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-maroon-900">
+                      {t.productDetails?.selectColor || "Select Color"}
+                    </label>
+                    {selectedColor && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedColor(null)}
+                        className="text-[10px] text-maroon-700 hover:text-maroon-900 underline cursor-pointer font-medium"
+                      >
+                        {t.productDetails?.allColors || "Show All"}
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {availableColors.map((color) => {
+                      const isSelected = selectedColor?.toLowerCase() === color.toLowerCase();
+                      return (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedColor(null);
+                            } else {
+                              setSelectedColor(color);
+                              const firstIdx = (product.colors || []).findIndex(
+                                (c) => c && c.toLowerCase() === color.toLowerCase()
+                              );
+                              if (firstIdx !== -1) {
+                                setSelectedImageIndex(firstIdx);
+                              }
+                            }
+                          }}
+                          className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-all cursor-pointer shadow-2xs ${
+                            isSelected
+                              ? "bg-maroon-900 text-cream border-maroon-900 ring-2 ring-maroon-700/30 shadow-xs"
+                              : "bg-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
+                          }`}
+                        >
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0"
+                            style={{ backgroundColor: color }}
+                          />
+                          <span className="font-mono text-[11px] uppercase font-bold">
+                            {color}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {product.variants && product.variants.length > 0 && (
                 <div className="pt-1">

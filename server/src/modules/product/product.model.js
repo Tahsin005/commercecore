@@ -55,6 +55,12 @@ const productSchema = new mongoose.Schema(
         trim: true,
       },
     ],
+    colors: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     seo: {
       title: { type: String, trim: true, default: '' },
       description: { type: String, trim: true, default: '' },

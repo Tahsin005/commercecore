@@ -12,6 +12,8 @@ const Lightbox = dynamic(() => import("yet-another-react-lightbox"), {
 
 interface ProductImageGalleryProps {
   images: string[];
+  colors?: string[];
+  selectedColor?: string | null;
   productName: string;
   isOnSale: boolean;
   discountPercent: number;
@@ -23,6 +25,8 @@ interface ProductImageGalleryProps {
 
 export function ProductImageGallery({
   images,
+  colors,
+  selectedColor,
   productName,
   isOnSale,
   discountPercent,
@@ -133,26 +137,41 @@ export function ProductImageGallery({
 
       {images.length > 1 && (
         <div className="flex items-center justify-center gap-2.5 mt-4 pt-3 border-t border-maroon-100/80 w-full overflow-x-auto overflow-y-hidden py-1 scrollbar-none">
-          {images.map((imgUrl, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => onSelectImageIndex(idx)}
-              className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
-                selectedImageIndex === idx
-                  ? "border-maroon-900 ring-2 ring-maroon-700/30 scale-105"
-                  : "border-maroon-200 hover:border-maroon-500 opacity-70 hover:opacity-100"
-              }`}
-            >
-              <Image
-                src={imgUrl}
-                alt={`${productName} thumbnail ${idx + 1}`}
-                fill
-                sizes="56px"
-                className="object-cover"
-              />
-            </button>
-          ))}
+          {images.map((imgUrl, idx) => {
+            const isSelected = selectedImageIndex === idx;
+            const imgColor = colors && colors[idx];
+            const isMatchingColor = !selectedColor || (imgColor && imgColor.toLowerCase() === selectedColor.toLowerCase());
+
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => onSelectImageIndex(idx)}
+                className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
+                  isSelected
+                    ? "border-maroon-900 ring-2 ring-maroon-700/40 scale-105 opacity-100"
+                    : isMatchingColor
+                    ? "border-maroon-200 hover:border-maroon-500 opacity-90 hover:opacity-100"
+                    : "border-maroon-100 opacity-40 hover:opacity-80"
+                }`}
+              >
+                <Image
+                  src={imgUrl}
+                  alt={`${productName} thumbnail ${idx + 1}`}
+                  fill
+                  sizes="56px"
+                  className="object-cover"
+                />
+                {imgColor && (
+                  <span
+                    className="absolute bottom-1 right-1 w-2.5 h-2.5 rounded-full border border-white shadow-xs z-10"
+                    style={{ backgroundColor: imgColor }}
+                    title={`Color: ${imgColor}`}
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
 

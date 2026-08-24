@@ -61,6 +61,7 @@ export const productSchema = z
     isFeatured: z.boolean().optional(),
     isActive: z.boolean().optional(),
     images: z.array(cloudinaryImageUrl).optional(),
+    colors: z.array(z.string()).optional(),
     variantIds: z.array(z.string()).optional(),
     variants: z.array(variantInputItemSchema).optional(),
   })

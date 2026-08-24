@@ -69,6 +69,8 @@ export default function AdminProductsPage() {
   const [editVariantConfigs, setEditVariantConfigs] = useState<Record<string, { price: string; discountPrice: string; quantity: number }>>({});
   const [createImages, setCreateImages] = useState<string[]>([]);
   const [editImages, setEditImages] = useState<string[]>([]);
+  const [createColors, setCreateColors] = useState<string[]>([]);
+  const [editColors, setEditColors] = useState<string[]>([]);
 
   const fileInputRefCreate = useRef<HTMLInputElement>(null);
   const fileInputRefEdit = useRef<HTMLInputElement>(null);
@@ -133,6 +135,7 @@ export default function AdminProductsPage() {
     setSelectedVariantIds([]);
     setCreateVariantConfigs({});
     setCreateImages([]);
+    setCreateColors([]);
     setIsCreateModalOpen(true);
   };
 
@@ -141,6 +144,8 @@ export default function AdminProductsPage() {
     const existingVariantIds = (prod.variants || []).map((v) => v.id);
     setSelectedVariantIds(existingVariantIds);
     setEditImages(prod.images || []);
+    const initialColors = (prod.images || []).map((_, i) => (prod.colors && prod.colors[i]) || "#808080");
+    setEditColors(initialColors);
 
     const configs: Record<string, { price: string; discountPrice: string; quantity: number }> = {};
     (prod.variants || []).forEach((v) => {
@@ -196,8 +201,10 @@ export default function AdminProductsPage() {
         const url = res.data.url;
         if (formType === "create") {
           setCreateImages((prev) => [...prev, url]);
+          setCreateColors((prev) => [...prev, "#808080"]);
         } else {
           setEditImages((prev) => [...prev, url]);
+          setEditColors((prev) => [...prev, "#808080"]);
         }
         successCount += 1;
       } catch (err: any) {
@@ -216,9 +223,37 @@ export default function AdminProductsPage() {
   const handleRemoveImage = (index: number, formType: "create" | "edit") => {
     if (formType === "create") {
       setCreateImages((prev) => prev.filter((_, i) => i !== index));
+      setCreateColors((prev) => prev.filter((_, i) => i !== index));
     } else {
       setEditImages((prev) => prev.filter((_, i) => i !== index));
+      setEditColors((prev) => prev.filter((_, i) => i !== index));
     }
+  };
+
+  const handleCreateReorder = (newImages: string[], newColors: string[]) => {
+    setCreateImages(newImages);
+    setCreateColors(newColors);
+  };
+
+  const handleEditReorder = (newImages: string[], newColors: string[]) => {
+    setEditImages(newImages);
+    setEditColors(newColors);
+  };
+
+  const handleCreateColorChange = (index: number, newColor: string) => {
+    setCreateColors((prev) => {
+      const copy = createImages.map((_, i) => prev[i] || "#808080");
+      copy[index] = newColor;
+      return copy;
+    });
+  };
+
+  const handleEditColorChange = (index: number, newColor: string) => {
+    setEditColors((prev) => {
+      const copy = editImages.map((_, i) => prev[i] || "#808080");
+      copy[index] = newColor;
+      return copy;
+    });
   };
 
   const toggleCreateVariant = (variantId: string) => {
@@ -291,6 +326,7 @@ export default function AdminProductsPage() {
       isFeatured: data.isFeatured,
       isActive: data.isActive,
       images: createImages,
+      colors: createImages.map((_, i) => createColors[i] || "#808080"),
       variantIds: selectedVariantIds,
       variants: variantsPayload,
     };
@@ -303,6 +339,7 @@ export default function AdminProductsPage() {
         setSelectedVariantIds([]);
         setCreateVariantConfigs({});
         setCreateImages([]);
+        setCreateColors([]);
       },
       onError: (err) => {
         toast.error(err.message || "Failed to create product");
@@ -349,6 +386,7 @@ export default function AdminProductsPage() {
       isFeatured: data.isFeatured,
       isActive: data.isActive,
       images: editImages,
+      colors: editImages.map((_, i) => editColors[i] || "#808080"),
       variantIds: selectedVariantIds,
       variants: variantsPayload,
     };
@@ -360,6 +398,8 @@ export default function AdminProductsPage() {
         editForm.reset();
         setSelectedVariantIds([]);
         setEditVariantConfigs({});
+        setEditImages([]);
+        setEditColors([]);
       },
       onError: (err) => {
         toast.error(err.message || "Failed to update product");
@@ -882,8 +922,10 @@ export default function AdminProductsPage() {
 
                   <ProductImageReorderGrid
                     images={createImages}
-                    onReorder={setCreateImages}
+                    colors={createColors}
+                    onReorder={handleCreateReorder}
                     onRemove={(idx) => handleRemoveImage(idx, "create")}
+                    onColorChange={handleCreateColorChange}
                   />
                 </div>
               </div>
@@ -1215,8 +1257,10 @@ export default function AdminProductsPage() {
 
                   <ProductImageReorderGrid
                     images={editImages}
-                    onReorder={setEditImages}
+                    colors={editColors}
+                    onReorder={handleEditReorder}
                     onRemove={(idx) => handleRemoveImage(idx, "edit")}
+                    onColorChange={handleEditColorChange}
                   />
                 </div>
               </div>

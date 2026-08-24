@@ -286,6 +286,7 @@ export const createProductService = async ({
   isFeatured = false,
   isActive = true,
   images = [],
+  colors = [],
   variantIds = [],
   variants = [],
   seo = undefined,
@@ -345,6 +346,7 @@ export const createProductService = async ({
           isFeatured: Boolean(isFeatured),
           isActive: Boolean(isActive),
           images: Array.isArray(images) ? images : [],
+          colors: Array.isArray(colors) ? colors : [],
           seo: seo || undefined,
         },
       ],
@@ -392,6 +394,7 @@ export const updateProductService = async (
     isFeatured,
     isActive,
     images,
+    colors,
     variantIds,
     variants,
     seo,
@@ -437,6 +440,7 @@ export const updateProductService = async (
     if (isFeatured !== undefined) product.isFeatured = Boolean(isFeatured);
     if (isActive !== undefined) product.isActive = Boolean(isActive);
     if (images !== undefined) product.images = Array.isArray(images) ? images : [];
+    if (colors !== undefined) product.colors = Array.isArray(colors) ? colors : [];
 
     if (categoryId !== undefined) {
       if (!categoryId) {
