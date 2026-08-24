@@ -7,6 +7,7 @@ export interface WishlistItem {
   name: string;
   slug: string;
   size?: string;
+  color?: string;
   price: number;
   imageUrl?: string;
 }
@@ -19,10 +20,11 @@ interface GuestWishlistState {
     name: string;
     slug: string;
     size?: string;
+    color?: string;
     price: number;
     imageUrl?: string;
   }) => void;
-  removeItem: (id: string) => void;
+  removeItem: (id: string, color?: string) => void;
   clearWishlist: () => void;
 }
 
@@ -36,14 +38,14 @@ export const useWishlistStore = create<GuestWishlistState>()(
         const targetProductId = item.productId || item.productVariantId;
         if (!targetProductId) return;
 
-        const exists = items.some((i) => {
-          const iProdId = i.productId || i.productVariantId;
-          const iVarId = i.productVariantId;
+        const cleanColor = item.color && item.color.trim() ? item.color.trim() : undefined;
 
-          return (
-            (iProdId && iProdId === targetProductId) ||
-            (iVarId && item.productVariantId && iVarId === item.productVariantId)
-          );
+        const exists = items.some((i) => {
+          const sameProduct = (i.productId || i.productVariantId) === targetProductId;
+          const sameVariant = (i.productVariantId || undefined) === (item.productVariantId || undefined);
+          const sameColor = (i.color || undefined) === cleanColor;
+
+          return sameProduct && sameVariant && sameColor;
         });
 
         if (!exists) {
@@ -56,6 +58,7 @@ export const useWishlistStore = create<GuestWishlistState>()(
                 name: item.name,
                 slug: item.slug,
                 size: item.size || "Standard",
+                color: cleanColor,
                 price: item.price,
                 imageUrl: item.imageUrl,
               },
@@ -64,11 +67,19 @@ export const useWishlistStore = create<GuestWishlistState>()(
         }
       },
 
-      removeItem: (id: string) => {
+      removeItem: (id: string, color?: string) => {
         set({
-          items: get().items.filter(
-            (i) => i.productId !== id && i.productVariantId !== id && (i.productId || i.productVariantId) !== id
-          ),
+          items: get().items.filter((i) => {
+            const matchId =
+              i.productId === id ||
+              i.productVariantId === id ||
+              (i.productId || i.productVariantId) === id;
+            if (!matchId) return true;
+            if (color !== undefined) {
+              return (i.color || undefined) !== (color || undefined);
+            }
+            return false;
+          }),
         });
       },
 

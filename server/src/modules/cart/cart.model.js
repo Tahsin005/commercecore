@@ -48,6 +48,11 @@ const cartItemSchema = new mongoose.Schema(
       ref: 'ProductVariant',
       default: null,
     },
+    color: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     quantity: {
       type: Number,
       required: [true, 'Quantity is required'],
@@ -76,10 +81,24 @@ const cartItemSchema = new mongoose.Schema(
   }
 );
 
-// Unique constraint per cart + product + variant combination
-cartItemSchema.index({ cartId: 1, productId: 1, productVariantId: 1 }, { unique: true });
+// Unique constraint per cart + product + variant + color combination
+cartItemSchema.index({ cartId: 1, productId: 1, productVariantId: 1, color: 1 }, { unique: true });
 
 export const Cart = mongoose.model('Cart', cartSchema);
 export const CartItem = mongoose.model('CartItem', cartItemSchema);
+
+export const ensureCartIndexes = async () => {
+  try {
+    const collection = CartItem.collection;
+    const indexes = await collection.indexes();
+    const oldIndex = indexes.find((idx) => idx.name === 'cartId_1_productId_1_productVariantId_1');
+    if (oldIndex) {
+      await collection.dropIndex('cartId_1_productId_1_productVariantId_1');
+    }
+    await CartItem.syncIndexes();
+  } catch (err) {
+    // Ignore transient index sync error
+  }
+};
 
 export default Cart;

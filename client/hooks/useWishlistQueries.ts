@@ -22,14 +22,33 @@ export const mapApiWishlistItems = (apiItems: any[]): WishlistItem[] => {
       const slug = pObj ? pObj.slug : "product";
       const size = vObj ? vObj.label || vObj.size || "Standard" : "Standard";
       const price = pObj && pObj.price !== undefined ? pObj.price : (pObj?.defaultPrice || 0);
+      const color = item.color || undefined;
+
+      const rawImages = pObj?.images || vObj?.productId?.images;
+      const rawColors = pObj?.colors || vObj?.productId?.colors;
+
+      let imageUrl = item.imageUrl;
+      if (!imageUrl && rawImages && Array.isArray(rawImages) && rawImages.length > 0) {
+        if (color && Array.isArray(rawColors)) {
+          const colorIdx = rawColors.findIndex((c: string) => c && c.toLowerCase() === color.toLowerCase());
+          imageUrl = colorIdx !== -1 && rawImages[colorIdx] ? rawImages[colorIdx] : rawImages[0];
+        } else {
+          imageUrl = rawImages[0];
+        }
+      }
+      if (!imageUrl) {
+        imageUrl = pObj?.imageUrl || vObj?.productId?.imageUrl || undefined;
+      }
 
       return {
         productId,
-        productVariantId,
+        productVariantId: productVariantId || productId,
         name,
         slug,
         size,
+        color,
         price,
+        imageUrl,
       };
     });
 };
@@ -51,18 +70,32 @@ export function useAddWishlistMutation() {
   return useMutation<
     ApiResponse<{ items: any[] }>,
     ApiError,
-    { productId: string; productVariantId?: string; name: string; slug: string; size?: string; price: number },
+    {
+      productId: string;
+      productVariantId?: string;
+      name: string;
+      slug: string;
+      size?: string;
+      color?: string;
+      price: number;
+      imageUrl?: string;
+    },
     { previousWishlist: WishlistItem[] | undefined }
   >({
     mutationFn: (item) =>
       apiClient<ApiResponse<{ items: any[] }>>("/wishlist", {
         method: "POST",
-        body: JSON.stringify({ productId: item.productId, productVariantId: item.productVariantId }),
+        body: JSON.stringify({
+          productId: item.productId,
+          productVariantId: item.productVariantId,
+          color: item.color,
+        }),
       }),
     onMutate: async (item) => {
       await queryClient.cancelQueries({ queryKey: WISHLIST_QUERY_KEY });
 
       const previousWishlist = queryClient.getQueryData<WishlistItem[]>(WISHLIST_QUERY_KEY) || [];
+      const cleanColor = item.color && item.color.trim() ? item.color.trim() : undefined;
 
       const newItem: WishlistItem = {
         productId: item.productId,
@@ -70,10 +103,18 @@ export function useAddWishlistMutation() {
         name: item.name,
         slug: item.slug,
         size: item.size || "Standard",
+        color: cleanColor,
         price: item.price,
+        imageUrl: item.imageUrl,
       };
 
-      if (!previousWishlist.some((i) => i.productId === item.productId)) {
+      const exists = previousWishlist.some(
+        (i) =>
+          (i.productId === item.productId || i.productVariantId === item.productId) &&
+          (i.color || undefined) === cleanColor
+      );
+
+      if (!exists) {
         queryClient.setQueryData<WishlistItem[]>(WISHLIST_QUERY_KEY, [
           ...previousWishlist,
           newItem,
@@ -107,21 +148,34 @@ export function useRemoveWishlistMutation() {
   return useMutation<
     ApiResponse<{ items: any[] }>,
     ApiError,
-    string,
+    string | { id: string; color?: string },
     { previousWishlist: WishlistItem[] | undefined }
   >({
-    mutationFn: (id) =>
-      apiClient<ApiResponse<{ items: any[] }>>(`/wishlist/${id}`, {
+    mutationFn: (target) => {
+      const id = typeof target === "string" ? target : target.id;
+      const color = typeof target === "object" ? target.color : undefined;
+      const url = color ? `/wishlist/${id}?color=${encodeURIComponent(color)}` : `/wishlist/${id}`;
+      return apiClient<ApiResponse<{ items: any[] }>>(url, {
         method: "DELETE",
-      }),
-    onMutate: async (id) => {
+      });
+    },
+    onMutate: async (target) => {
       await queryClient.cancelQueries({ queryKey: WISHLIST_QUERY_KEY });
 
       const previousWishlist = queryClient.getQueryData<WishlistItem[]>(WISHLIST_QUERY_KEY) || [];
+      const id = typeof target === "string" ? target : target.id;
+      const color = typeof target === "object" ? target.color : undefined;
 
       queryClient.setQueryData<WishlistItem[]>(
         WISHLIST_QUERY_KEY,
-        previousWishlist.filter((i) => i.productId !== id && i.productVariantId !== id)
+        previousWishlist.filter((i) => {
+          const matchId = i.productId === id || i.productVariantId === id;
+          if (!matchId) return true;
+          if (color !== undefined) {
+            return (i.color || undefined) !== (color || undefined);
+          }
+          return false;
+        })
       );
 
       return { previousWishlist };
@@ -148,7 +202,11 @@ export function useRemoveWishlistMutation() {
 export function useSyncWishlistMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<ApiResponse<{ items: any[] }>, ApiError, { productId?: string; productVariantId?: string }[]>({
+  return useMutation<
+    ApiResponse<{ items: any[] }>,
+    ApiError,
+    { productId?: string; productVariantId?: string; color?: string }[]
+  >({
     mutationFn: (items) =>
       apiClient<ApiResponse<{ items: any[] }>>("/wishlist/sync", {
         method: "POST",

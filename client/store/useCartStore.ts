@@ -7,6 +7,7 @@ export interface CartItem {
   name: string;
   slug: string;
   size: string;
+  color?: string;
   price: number;
   quantity: number;
   imageUrl?: string;
@@ -21,13 +22,14 @@ interface GuestCartState {
       name: string;
       slug: string;
       size?: string;
+      color?: string;
       price: number;
       imageUrl?: string;
     },
     quantity?: number
   ) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  removeItem: (id: string, color?: string) => void;
+  updateQuantity: (id: string, quantity: number, color?: string) => void;
   clearCart: () => void;
   getCartSubtotal: () => number;
   getCartCount: () => number;
@@ -44,15 +46,23 @@ export const useCartStore = create<GuestCartState>()(
         const pvId = item.productVariantId || item.productId;
         if (!pId) return;
 
+        const cleanColor = item.color && item.color.trim() ? item.color.trim() : undefined;
+
         const existingIndex = items.findIndex((i) => {
-          const iKey = i.productVariantId || i.productId;
-          return iKey === pvId || (i.productId === pId && i.productVariantId === item.productVariantId);
+          const sameProduct = i.productId === pId;
+          const sameVariant = (i.productVariantId || i.productId) === pvId;
+          const sameColor = (i.color || undefined) === cleanColor;
+          return sameProduct && sameVariant && sameColor;
         });
 
         if (existingIndex > -1) {
           const updatedItems = items.map((cartItem, idx) =>
             idx === existingIndex
-              ? { ...cartItem, quantity: cartItem.quantity + quantity, imageUrl: item.imageUrl || cartItem.imageUrl }
+              ? {
+                  ...cartItem,
+                  quantity: cartItem.quantity + quantity,
+                  imageUrl: item.imageUrl || cartItem.imageUrl,
+                }
               : cartItem
           );
           set({ items: updatedItems });
@@ -66,6 +76,7 @@ export const useCartStore = create<GuestCartState>()(
                 name: item.name,
                 slug: item.slug,
                 size: item.size || "Standard",
+                color: cleanColor,
                 price: item.price,
                 quantity,
                 imageUrl: item.imageUrl,
@@ -75,30 +86,44 @@ export const useCartStore = create<GuestCartState>()(
         }
       },
 
-      removeItem: (id: string) => {
+      removeItem: (id: string, color?: string) => {
         set({
-          items: get().items.filter(
-            (i) => i.productVariantId !== id && i.productId !== id && (i.productId || i.productVariantId) !== id
-          ),
+          items: get().items.filter((i) => {
+            const matchId =
+              i.productVariantId === id ||
+              i.productId === id ||
+              (i.productId || i.productVariantId) === id;
+            if (!matchId) return true;
+            if (color !== undefined) {
+              return (i.color || undefined) !== (color || undefined);
+            }
+            return false;
+          }),
         });
       },
 
-      updateQuantity: (id: string, quantity: number) => {
+      updateQuantity: (id: string, quantity: number, color?: string) => {
         if (quantity <= 0) {
-          set({
-            items: get().items.filter(
-              (i) => i.productVariantId !== id && i.productId !== id && (i.productId || i.productVariantId) !== id
-            ),
-          });
+          get().removeItem(id, color);
           return;
         }
 
         set({
-          items: get().items.map((i) =>
-            i.productVariantId === id || i.productId === id || (i.productId || i.productVariantId) === id
-              ? { ...i, quantity }
-              : i
-          ),
+          items: get().items.map((i) => {
+            const matchId =
+              i.productVariantId === id ||
+              i.productId === id ||
+              (i.productId || i.productVariantId) === id;
+            const matchColor =
+              color !== undefined
+                ? (i.color || undefined) === (color || undefined)
+                : true;
+
+            if (matchId && matchColor) {
+              return { ...i, quantity };
+            }
+            return i;
+          }),
         });
       },
 

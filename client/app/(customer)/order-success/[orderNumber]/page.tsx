@@ -292,11 +292,20 @@ export default function OrderSuccessPage({ params }: OrderSuccessPageProps) {
                           )}
                         </div>
                         <div className="space-y-0.5">
-                          <div className="flex items-center space-x-1.5">
+                          <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
                             <h4 className="font-semibold text-maroon-900">{item.productName}</h4>
                             {item.size && (
                               <span className="text-[10px] font-bold font-mono text-maroon-700 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm">
                                 {item.size}
+                              </span>
+                            )}
+                            {item.color && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold font-mono text-maroon-700 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm">
+                                <span
+                                  className="w-2 h-2 rounded-full border border-black/20 shrink-0"
+                                  style={{ backgroundColor: item.color }}
+                                />
+                                <span className="uppercase">{item.color}</span>
                               </span>
                             )}
                           </div>

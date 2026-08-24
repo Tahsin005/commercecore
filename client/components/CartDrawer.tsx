@@ -113,14 +113,17 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     router.push("/");
   };
 
-  const handleUpdateQuantity = async (productVariantId: string, newQuantity: number) => {
-    if (pendingVariantIds.has(productVariantId)) return;
+  const handleUpdateQuantity = async (productVariantId: string, newQuantity: number, color?: string) => {
+    const opKey = `${productVariantId}_${color || "none"}`;
+    if (pendingVariantIds.has(opKey)) return;
 
-    const currentItem = items.find((i) => (i.productVariantId || i.productId) === productVariantId);
+    const currentItem = items.find(
+      (i) => (i.productVariantId || i.productId) === productVariantId && (i.color || undefined) === (color || undefined)
+    );
 
-    setPendingVariantIds((prev) => new Set(prev).add(productVariantId));
+    setPendingVariantIds((prev) => new Set(prev).add(opKey));
     try {
-      await updateQuantity(productVariantId, newQuantity);
+      await updateQuantity(productVariantId, newQuantity, color);
 
       if (currentItem) {
         if (newQuantity > currentItem.quantity) {
@@ -150,20 +153,23 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     } finally {
       setPendingVariantIds((prev) => {
         const next = new Set(prev);
-        next.delete(productVariantId);
+        next.delete(opKey);
         return next;
       });
     }
   };
 
-  const handleRemoveItem = async (productVariantId: string) => {
-    if (pendingVariantIds.has(productVariantId)) return;
+  const handleRemoveItem = async (productVariantId: string, color?: string) => {
+    const opKey = `${productVariantId}_${color || "none"}`;
+    if (pendingVariantIds.has(opKey)) return;
 
-    const currentItem = items.find((i) => (i.productVariantId || i.productId) === productVariantId);
+    const currentItem = items.find(
+      (i) => (i.productVariantId || i.productId) === productVariantId && (i.color || undefined) === (color || undefined)
+    );
 
-    setPendingVariantIds((prev) => new Set(prev).add(productVariantId));
+    setPendingVariantIds((prev) => new Set(prev).add(opKey));
     try {
-      await removeItem(productVariantId);
+      await removeItem(productVariantId, color);
 
       if (currentItem) {
         trackGaRemoveFromCart({
@@ -177,7 +183,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     } finally {
       setPendingVariantIds((prev) => {
         const next = new Set(prev);
-        next.delete(productVariantId);
+        next.delete(opKey);
         return next;
       });
     }
@@ -266,8 +272,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             <div className="space-y-3">
               {items.map((item, idx) => {
                 const itemKey = item.productVariantId || item.productId;
-                const rowKey = `${itemKey}_${item.size || "std"}_${idx}`;
-                const isPending = pendingVariantIds.has(itemKey);
+                const rowKey = `${itemKey}_${item.size || "std"}_${item.color || "none"}_${idx}`;
+                const opKey = `${itemKey}_${item.color || "none"}`;
+                const isPending = pendingVariantIds.has(opKey);
 
                 return (
                   <div
@@ -285,7 +292,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     </div>
 
                     <div className="flex-1 space-y-1 min-w-0">
-                      <div className="flex items-center space-x-1.5">
+                      <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
                         <Link
                           href={`/product/${item.productId}`}
                           onClick={onClose}
@@ -296,6 +303,15 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         <span className="text-[10px] font-bold font-mono text-maroon-800 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm shrink-0">
                           {item.size}
                         </span>
+                        {item.color && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold font-mono text-maroon-800 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm shrink-0">
+                            <span
+                              className="w-2 h-2 rounded-full border border-black/20 shrink-0"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            <span className="uppercase">{item.color}</span>
+                          </span>
+                        )}
                       </div>
                       <span className="text-xs font-mono text-maroon-700 block font-semibold">
                         ৳{item.price.toFixed(2)}
@@ -307,7 +323,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         <button
                           type="button"
                           disabled={isPending}
-                          onClick={() => handleUpdateQuantity(itemKey, item.quantity - 1)}
+                          onClick={() => handleUpdateQuantity(itemKey, item.quantity - 1, item.color)}
                           className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <Minus className="w-3.5 h-3.5" />
@@ -318,7 +334,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         <button
                           type="button"
                           disabled={isPending}
-                          onClick={() => handleUpdateQuantity(itemKey, item.quantity + 1)}
+                          onClick={() => handleUpdateQuantity(itemKey, item.quantity + 1, item.color)}
                           className="p-1 text-maroon-800 hover:bg-maroon-100 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -328,7 +344,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       <button
                         type="button"
                         disabled={isPending}
-                        onClick={() => handleRemoveItem(itemKey)}
+                        onClick={() => handleRemoveItem(itemKey, item.color)}
                         className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                         title={t.cartDrawer.removeItem}
                       >

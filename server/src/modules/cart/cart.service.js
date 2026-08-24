@@ -16,7 +16,7 @@ const getOrCreateCart = async (userId) => {
 export const getUserCartService = async (userId) => {
   const cart = await getOrCreateCart(userId);
   const items = await CartItem.find({ cartId: cart.id })
-    .populate('productId', 'name slug code price discountPrice quantity isFeatured isActive images')
+    .populate('productId', 'name slug code price discountPrice quantity isFeatured isActive images colors')
     .populate('productVariantId', 'label order isActive');
 
   const variantLinkQueries = items
@@ -75,9 +75,22 @@ export const getUserCartService = async (userId) => {
       prodObj.price = unitPrice;
     }
 
+    let itemColor = itemObj.color || null;
+    let matchingImageUrl = null;
+    if (prodObj && Array.isArray(prodObj.images) && prodObj.images.length > 0) {
+      if (itemColor && Array.isArray(prodObj.colors)) {
+        const cIdx = prodObj.colors.findIndex((c) => c && c.toLowerCase() === itemColor.toLowerCase());
+        matchingImageUrl = cIdx !== -1 && prodObj.images[cIdx] ? prodObj.images[cIdx] : prodObj.images[0];
+      } else {
+        matchingImageUrl = prodObj.images[0];
+      }
+    }
+
     return {
       ...itemObj,
       productId: prodObj,
+      color: itemColor,
+      imageUrl: matchingImageUrl,
       price: unitPrice,
       unitPrice,
       regularPrice,
@@ -100,7 +113,7 @@ export const getUserCartService = async (userId) => {
   };
 };
 
-export const addToCartService = async (userId, productId, productVariantId = null, quantity = 1) => {
+export const addToCartService = async (userId, productId, productVariantId = null, quantity = 1, color = null) => {
   const pId = await resolveProductId(productId, productVariantId);
 
   if (!pId) {
@@ -138,10 +151,13 @@ export const addToCartService = async (userId, productId, productVariantId = nul
 
   const cart = await getOrCreateCart(userId);
 
+  const cleanColor = color && typeof color === 'string' && color.trim() ? color.trim() : null;
+
   let cartItem = await CartItem.findOne({
     cartId: cart.id,
     productId: pId,
     productVariantId: finalVariantId,
+    color: cleanColor,
   });
 
   const totalQuantity = (cartItem ? cartItem.quantity : 0) + quantity;
@@ -156,7 +172,8 @@ export const addToCartService = async (userId, productId, productVariantId = nul
     cartItem = await CartItem.create({
       cartId: cart.id,
       productId: pId,
-      productVariantId: productVariantId || null,
+      productVariantId: finalVariantId,
+      color: cleanColor,
       quantity,
     });
   }
@@ -288,11 +305,13 @@ export const syncGuestCartService = async (userId, guestItems = []) => {
     if (!pvId) continue;
 
     const qty = guestItem.quantity && guestItem.quantity > 0 ? guestItem.quantity : 1;
+    const cleanColor = guestItem.color && typeof guestItem.color === 'string' && guestItem.color.trim() ? guestItem.color.trim() : null;
 
     let cartItem = await CartItem.findOne({
       cartId: cart.id,
       productId: pId,
       productVariantId: pvId,
+      color: cleanColor,
     });
 
     if (cartItem) {
@@ -303,7 +322,8 @@ export const syncGuestCartService = async (userId, guestItems = []) => {
         cartId: cart.id,
         productId: pId,
         productVariantId: pvId,
-        quantity: qty,
+        color: cleanColor,
+        quantity,
       });
     }
   }

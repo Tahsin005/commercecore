@@ -23,9 +23,9 @@ export function getProductStock(product: Product): number {
 export function getSelectedVariant(product: Product): ProductVariant | null {
   if (!product.variants || product.variants.length === 0) return null;
   return (
+    product.variants[0] ||
     product.variants.find((v) => v.isActive !== false && (v.quantity ?? 0) > 0) ||
-    product.variants.find((v) => v.isActive !== false) ||
-    product.variants[0]
+    null
   );
 }
 
@@ -54,14 +54,18 @@ export function useProductCardActions() {
   const { addItem: addToCart } = useCart();
 
   const handleToggleWishlist = (product: Product) => {
-    const wishlisted = isInWishlist(product.id);
     const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+    const defaultColor = (product.colors && product.colors.length > 0 && product.colors[0]) ? product.colors[0] : undefined;
+    const defaultImage = (product.images && product.images.length > 0 && product.images[0]) ? product.images[0] : undefined;
+
     const regularPrice = defaultVariant?.overridePrice ?? defaultVariant?.price ?? product.price ?? product.defaultPrice ?? 0;
     const discountPrice = defaultVariant?.overrideDiscountPrice ?? defaultVariant?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
     const effectivePrice = getProductEffectivePrice(regularPrice, discountPrice);
 
+    const wishlisted = isInWishlist(product.id, defaultColor);
+
     if (wishlisted) {
-      removeFromWishlist(product.id);
+      removeFromWishlist(product.id, defaultColor);
       toast.success(`"${product.name}" ${t.home.removeFromWishlist}`);
     } else {
       addToWishlist({
@@ -70,8 +74,9 @@ export function useProductCardActions() {
         name: product.name,
         slug: product.slug,
         size: defaultVariant?.label || defaultVariant?.size || t.common.standard,
+        color: defaultColor,
         price: effectivePrice,
-        imageUrl: product.images?.[0],
+        imageUrl: defaultImage,
       });
       trackAddToWishlist({
         productId: product.id,
@@ -97,21 +102,25 @@ export function useProductCardActions() {
       return false;
     }
 
-    const v = getSelectedVariant(product);
-    const regularPrice = v?.overridePrice ?? v?.price ?? product.price ?? product.defaultPrice ?? 0;
-    const discountPrice = v?.overrideDiscountPrice ?? v?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
+    const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+    const defaultColor = (product.colors && product.colors.length > 0 && product.colors[0]) ? product.colors[0] : undefined;
+    const defaultImage = (product.images && product.images.length > 0 && product.images[0]) ? product.images[0] : undefined;
+
+    const regularPrice = defaultVariant?.overridePrice ?? defaultVariant?.price ?? product.price ?? product.defaultPrice ?? 0;
+    const discountPrice = defaultVariant?.overrideDiscountPrice ?? defaultVariant?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
     const effectivePrice = getProductEffectivePrice(regularPrice, discountPrice);
 
     try {
       await addToCart(
         {
-          productVariantId: v?.id,
+          productVariantId: defaultVariant?.id,
           productId: product.id,
           name: product.name,
           slug: product.slug,
-          size: v?.size || v?.label || t.common.standard,
+          size: defaultVariant?.size || defaultVariant?.label || t.common.standard,
+          color: defaultColor,
           price: effectivePrice,
-          imageUrl: product.images?.[0],
+          imageUrl: defaultImage,
         },
         1
       );

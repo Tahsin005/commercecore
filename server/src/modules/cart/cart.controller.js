@@ -19,8 +19,8 @@ export const getCart = async (req, res, next) => {
 
 export const addToCart = async (req, res, next) => {
   try {
-    const { productId, productVariantId, quantity } = req.body;
-    const cart = await addToCartService(req.user.id, productId, productVariantId, quantity);
+    const { productId, productVariantId, quantity, color } = req.body;
+    const cart = await addToCartService(req.user.id, productId, productVariantId, quantity, color);
     res.status(200).json(new ApiResponse(200, cart, 'Item added to cart successfully'));
   } catch (error) {
     next(error);

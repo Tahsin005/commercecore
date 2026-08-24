@@ -336,7 +336,8 @@ export default function Home() {
           <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product) => {
-                const wishlisted = isInWishlist(product.id);
+                const defaultColor = (product.colors && product.colors.length > 0 && product.colors[0]) ? product.colors[0] : undefined;
+                const wishlisted = isInWishlist(product.id, defaultColor);
                 const {
                   regularPrice,
                   hasDiscount,

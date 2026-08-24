@@ -122,8 +122,19 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                     const size = item.selectedVariantLabel || item.size || "Standard";
                     return (
                       <div key={idx} className="text-xs text-maroon-900 flex items-center justify-between gap-2">
-                        <span className="truncate text-[11px]">
-                          {name} <span className="text-maroon-600 font-mono text-[10px]">({size})</span> × {item.quantity}
+                        <span className="truncate text-[11px] flex items-center gap-1 flex-wrap">
+                          <span>{name}</span>
+                          <span className="text-maroon-600 font-mono text-[10px]">({size})</span>
+                          {item.color && (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-bold font-mono text-maroon-800 bg-white border border-maroon-200 px-1 rounded-sm">
+                              <span
+                                className="w-1.5 h-1.5 rounded-full border border-black/20 shrink-0"
+                                style={{ backgroundColor: item.color }}
+                              />
+                              <span className="uppercase">{item.color}</span>
+                            </span>
+                          )}
+                          <span>× {item.quantity}</span>
                         </span>
                         <span className="font-mono font-semibold text-[11px] shrink-0">
                           ৳{(price * item.quantity).toFixed(2)}
@@ -200,7 +211,20 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                           const size = item.selectedVariantLabel || item.size || "Standard";
                           return (
                             <div key={idx} className="text-xs text-maroon-900 flex items-center justify-between gap-2">
-                              <span className="truncate">{name} ({size}) × {item.quantity}</span>
+                              <span className="truncate flex items-center gap-1 flex-wrap">
+                                <span>{name}</span>
+                                <span>({size})</span>
+                                {item.color && (
+                                  <span className="inline-flex items-center gap-1 text-[9px] font-bold font-mono text-maroon-800 bg-white border border-maroon-200 px-1 rounded-sm">
+                                    <span
+                                      className="w-1.5 h-1.5 rounded-full border border-black/20 shrink-0"
+                                      style={{ backgroundColor: item.color }}
+                                    />
+                                    <span className="uppercase">{item.color}</span>
+                                  </span>
+                                )}
+                                <span>× {item.quantity}</span>
+                              </span>
                               <span className="font-mono font-semibold shrink-0">৳{(price * item.quantity).toFixed(2)}</span>
                             </div>
                           );
@@ -324,7 +348,20 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                       return (
                         <tr key={idx} className="hover:bg-maroon-50/50">
                           <td className="py-3 px-4 font-medium text-maroon-900">{name}</td>
-                          <td className="py-3 px-4 text-center font-mono text-maroon-700">{size}</td>
+                          <td className="py-3 px-4 text-center font-mono text-maroon-700">
+                            <div className="inline-flex items-center justify-center gap-1.5 flex-wrap">
+                              <span>{size}</span>
+                              {item.color && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold font-mono text-maroon-800 bg-off-white border border-maroon-200 px-1.5 py-0.5 rounded-sm">
+                                  <span
+                                    className="w-2 h-2 rounded-full border border-black/20 shrink-0"
+                                    style={{ backgroundColor: item.color }}
+                                  />
+                                  <span className="uppercase">{item.color}</span>
+                                </span>
+                              )}
+                            </div>
+                          </td>
                           <td className="py-3 px-4 text-center font-mono font-bold text-maroon-900">{item.quantity}</td>
                           <td className="py-3 px-4 text-right font-mono font-bold text-maroon-900">
                             ৳{(price * item.quantity).toFixed(2)}
@@ -344,8 +381,18 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                       <div key={idx} className="p-3 text-xs flex items-center justify-between gap-2">
                         <div className="space-y-0.5">
                           <p className="font-medium text-maroon-900 text-xs">{name}</p>
-                          <p className="text-maroon-600 text-[11px]">
-                            <span className="font-mono text-maroon-700 bg-off-white px-1 rounded border border-maroon-200">{size}</span> × {item.quantity}
+                          <p className="text-maroon-600 text-[11px] flex items-center gap-1 flex-wrap">
+                            <span className="font-mono text-maroon-700 bg-off-white px-1 rounded border border-maroon-200">{size}</span>
+                            {item.color && (
+                              <span className="inline-flex items-center gap-1 text-[9px] font-bold font-mono text-maroon-800 bg-off-white border border-maroon-200 px-1 rounded-sm">
+                                <span
+                                  className="w-1.5 h-1.5 rounded-full border border-black/20 shrink-0"
+                                  style={{ backgroundColor: item.color }}
+                                />
+                                <span className="uppercase">{item.color}</span>
+                              </span>
+                            )}
+                            <span>× {item.quantity}</span>
                           </p>
                         </div>
                         <span className="font-mono font-bold text-maroon-900 text-xs shrink-0">

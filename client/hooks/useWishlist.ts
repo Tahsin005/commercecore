@@ -27,8 +27,15 @@ export function useWishlist() {
   const items: WishlistItem[] = isAuthenticated ? serverItems || [] : guestItems;
   const isLoading = isAuthenticated ? isServerLoading : !isHydrated;
 
-  const isInWishlist = (id: string) => {
-    return items.some((item) => item.productId === id || item.productVariantId === id);
+  const isInWishlist = (id: string, color?: string) => {
+    return items.some((item) => {
+      const matchId = item.productId === id || item.productVariantId === id;
+      if (!matchId) return false;
+      if (color !== undefined) {
+        return (item.color || undefined) === (color || undefined);
+      }
+      return true;
+    });
   };
 
   const addToWishlist = async (item: {
@@ -37,6 +44,7 @@ export function useWishlist() {
     name: string;
     slug: string;
     size?: string;
+    color?: string;
     price: number;
     imageUrl?: string;
   }) => {
@@ -47,11 +55,11 @@ export function useWishlist() {
     }
   };
 
-  const removeFromWishlist = async (id: string) => {
+  const removeFromWishlist = async (id: string, color?: string) => {
     if (isAuthenticated) {
-      await removeMutation.mutateAsync(id);
+      await removeMutation.mutateAsync(color ? { id, color } : id);
     } else {
-      removeGuestItem(id);
+      removeGuestItem(id, color);
     }
   };
 

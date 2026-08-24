@@ -151,7 +151,6 @@ export function ProductImageReorderGrid({
                   : "border-maroon-200 hover:border-maroon-400 hover:shadow-md"
               }`}
             >
-              {/* Image thumbnail section */}
               <div className="relative w-full aspect-square overflow-hidden bg-off-white">
                 <Image
                   src={imgUrl}
@@ -210,7 +209,6 @@ export function ProductImageReorderGrid({
                 )}
               </div>
 
-              {/* Color Picker Row */}
               <div className="p-1.5 bg-white border-t border-maroon-100 flex items-center justify-between gap-1.5">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <div className="relative flex items-center shrink-0">
@@ -229,7 +227,6 @@ export function ProductImageReorderGrid({
                 <Palette className="w-3 h-3 text-maroon-400 shrink-0" />
               </div>
 
-              {/* Quick Reorder Arrow Buttons in bottom bar */}
               <div className="flex items-center justify-between p-1 bg-off-white border-t border-maroon-100 text-[10px] text-maroon-700">
                 <button
                   type="button"

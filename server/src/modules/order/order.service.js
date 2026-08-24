@@ -188,6 +188,17 @@ export const createOrderService = async (orderPayload, reqUser = null, reqMeta =
     const itemSubtotal = unitPrice * qty;
     subtotal += itemSubtotal;
 
+    let itemColor = item.color && typeof item.color === 'string' && item.color.trim() ? item.color.trim() : '';
+    let itemImageUrl = item.imageUrl && typeof item.imageUrl === 'string' && item.imageUrl.trim() ? item.imageUrl.trim() : '';
+    if (!itemImageUrl && product.images && product.images.length > 0) {
+      if (itemColor && product.colors) {
+        const colorIdx = product.colors.findIndex((c) => c && c.toLowerCase() === itemColor.toLowerCase());
+        itemImageUrl = colorIdx !== -1 && product.images[colorIdx] ? product.images[colorIdx] : product.images[0];
+      } else {
+        itemImageUrl = product.images[0];
+      }
+    }
+
     processedItems.push({
       product,
       productId: product.id,
@@ -195,6 +206,8 @@ export const createOrderService = async (orderPayload, reqUser = null, reqMeta =
       productName: product.name,
       selectedVariantLabel: selectedVariantLabel || 'Standard',
       size: selectedVariantLabel || 'Standard',
+      color: itemColor,
+      imageUrl: itemImageUrl,
       unitPrice,
       quantity: qty,
     });
@@ -301,7 +314,7 @@ export const getOrderByNumberService = async (orderNumber) => {
   }
 
   const items = await OrderItem.find({ orderId: order.id })
-    .populate('productId', 'name slug code price defaultPrice images')
+    .populate('productId', 'name slug code price defaultPrice images colors')
     .populate('productVariantId', 'label');
 
   return {
@@ -424,7 +437,7 @@ export const getOrderByIdAdminService = async (orderId) => {
   }
 
   const items = await OrderItem.find({ orderId: order.id })
-    .populate('productId', 'name slug code price defaultPrice images')
+    .populate('productId', 'name slug code price defaultPrice images colors')
     .populate('productVariantId', 'label');
 
   return {

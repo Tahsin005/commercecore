@@ -91,19 +91,20 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
     router.push("/");
   };
 
-  const handleRemoveItem = async (itemKey: string) => {
-    if (pendingIds.has(itemKey)) return;
+  const handleRemoveItem = async (itemKey: string, color?: string) => {
+    const opKey = `${itemKey}_${color || "none"}`;
+    if (pendingIds.has(opKey)) return;
 
-    setPendingIds((prev) => new Set(prev).add(itemKey));
+    setPendingIds((prev) => new Set(prev).add(opKey));
     try {
-      await removeFromWishlist(itemKey);
+      await removeFromWishlist(itemKey, color);
       toast.success("Removed from wishlist");
     } catch {
       toast.error("Failed to remove item");
     } finally {
       setPendingIds((prev) => {
         const next = new Set(prev);
-        next.delete(itemKey);
+        next.delete(opKey);
         return next;
       });
     }
@@ -122,6 +123,7 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
           name: item.name,
           slug: item.slug,
           size: item.size || "Standard",
+          color: item.color,
           price: item.price,
           imageUrl: item.imageUrl,
         },
@@ -150,6 +152,7 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
             name: item.name,
             slug: item.slug,
             size: item.size || "Standard",
+            color: item.color,
             price: item.price,
             imageUrl: item.imageUrl,
           },
@@ -221,8 +224,9 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
             <div className="space-y-3">
               {items.map((item, idx) => {
                 const itemKey = item.productVariantId || item.productId;
-                const rowKey = `${itemKey}_${item.size || "std"}_${idx}`;
-                const isPending = pendingIds.has(itemKey);
+                const rowKey = `${itemKey}_${item.size || "std"}_${item.color || "std"}_${idx}`;
+                const opKey = `${itemKey}_${item.color || "none"}`;
+                const isPending = pendingIds.has(opKey);
 
                 return (
                   <div
@@ -248,10 +252,19 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
                         {item.name}
                       </Link>
 
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 flex-wrap gap-y-1">
                         {item.size && (
                           <span className="text-[10px] font-bold font-mono text-maroon-800 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm shrink-0">
                             {item.size}
+                          </span>
+                        )}
+                        {item.color && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold font-mono text-maroon-800 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm shrink-0">
+                            <span
+                              className="w-2 h-2 rounded-full border border-black/20 shrink-0"
+                              style={{ backgroundColor: item.color }}
+                            />
+                            <span className="uppercase">{item.color}</span>
                           </span>
                         )}
                         <span className="text-xs font-mono text-maroon-700 font-bold">
@@ -274,9 +287,9 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
                       <button
                         type="button"
                         disabled={isPending}
-                        onClick={() => handleRemoveItem(itemKey)}
+                        onClick={() => handleRemoveItem(itemKey, item.color)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer disabled:opacity-40"
-                        title={t.home?.removeFromWishlist || "Remove from Wishlist"}
+                        title="Remove"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

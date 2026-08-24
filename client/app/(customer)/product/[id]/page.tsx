@@ -93,10 +93,15 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
     return Array.from(set);
   }, [product?.colors]);
 
-  // Set default selected variant when product data loads
+  // Set default selected variant and color when product data loads
   useEffect(() => {
-    if (product && product.variants && product.variants.length > 0) {
-      setSelectedVariant(product.variants[0]);
+    if (product) {
+      if (product.variants && product.variants.length > 0) {
+        setSelectedVariant(product.variants[0]);
+      }
+      if (product.colors && product.colors.length > 0 && product.colors[0]) {
+        setSelectedColor(product.colors[0]);
+      }
     }
   }, [product]);
 
@@ -170,10 +175,11 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
 
   const stockQuantity = selectedVariant ? (selectedVariant.quantity ?? 0) : (product.quantity ?? 0);
   const isOutOfStock = stockQuantity <= 0;
-  const wishlisted = isInWishlist(product.id);
 
   const images = product.images || [];
   const currentImage = images.length > 0 ? images[selectedImageIndex] || images[0] : null;
+  const activeColor = selectedColor || (product.colors && product.colors[selectedImageIndex]) || (product.colors && product.colors[0]) || undefined;
+  const wishlisted = isInWishlist(product.id, activeColor);
 
   const handleAddToCart = async () => {
     if (isOutOfStock) {
@@ -182,6 +188,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
     }
 
     const selectedLabel = selectedVariant?.label || selectedVariant?.size || t.common.standard;
+    const activeColor = selectedColor || (product.colors && product.colors[selectedImageIndex]) || (product.colors && product.colors[0]) || undefined;
 
     try {
       await addToCart(
@@ -191,6 +198,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
           name: product.name,
           slug: product.slug,
           size: selectedLabel,
+          color: activeColor,
           price: currentEffectivePrice,
           imageUrl: currentImage || undefined,
         },
@@ -209,7 +217,8 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         quantity,
         variant: selectedLabel,
       });
-      toast.success(`${quantity} x "${product.name}" (${selectedLabel}) ${t.productDetails.addedToCart}`);
+      const colorSuffix = activeColor ? ` • ${activeColor}` : "";
+      toast.success(`${quantity} x "${product.name}" (${selectedLabel}${colorSuffix}) ${t.productDetails.addedToCart}`);
     } catch (err: unknown) {
       const errorMsg = (err as Error)?.message || t.common?.error || "Failed to add item to cart";
       toast.error(errorMsg);
@@ -217,19 +226,22 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   };
 
   const handleToggleWishlist = () => {
+    const selectedLabel = selectedVariant?.label || selectedVariant?.size || t.common.standard;
+    const colorSuffix = activeColor ? ` • ${activeColor}` : "";
+
     if (wishlisted) {
-      removeFromWishlist(product.id);
-      toast.success(`"${product.name}" ${t.home.removeFromWishlist}`);
+      removeFromWishlist(product.id, activeColor);
+      toast.success(`"${product.name}" (${selectedLabel}${colorSuffix}) ${t.home.removeFromWishlist}`);
     } else {
-      const selectedLabel = selectedVariant?.label || selectedVariant?.size || t.common.standard;
       addToWishlist({
         productVariantId: selectedVariant?.id,
         productId: product.id,
         name: product.name,
         slug: product.slug,
         size: selectedLabel,
+        color: activeColor,
         price: currentEffectivePrice,
-        imageUrl: product.images?.[0],
+        imageUrl: currentImage || product.images?.[0],
       });
       trackAddToWishlist({
         productId: product.id,
@@ -241,7 +253,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
         name: product.name,
         price: currentEffectivePrice,
       });
-      toast.success(`"${product.name}" ${t.home.addToWishlist}`);
+      toast.success(`"${product.name}" (${selectedLabel}${colorSuffix}) ${t.home.addToWishlist}`);
     }
   };
 
@@ -252,6 +264,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
     }
 
     const selectedLabel = selectedVariant?.label || selectedVariant?.size || t.common.standard;
+    const activeColor = selectedColor || (product.colors && product.colors[selectedImageIndex]) || (product.colors && product.colors[0]) || undefined;
 
     try {
       await addToCart(
@@ -261,6 +274,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
           name: product.name,
           slug: product.slug,
           size: selectedLabel,
+          color: activeColor,
           price: currentEffectivePrice,
           imageUrl: currentImage || undefined,
         },
