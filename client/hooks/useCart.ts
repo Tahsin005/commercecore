@@ -63,7 +63,7 @@ export function useCart() {
 
   const removeItem = async (productVariantId: string, color?: string) => {
     if (isAuthenticated) {
-      await removeMutation.mutateAsync(productVariantId);
+      await removeMutation.mutateAsync(color ? { id: productVariantId, color } : productVariantId);
     } else {
       removeGuestItem(productVariantId, color);
     }
@@ -72,9 +72,9 @@ export function useCart() {
   const updateQuantity = async (productVariantId: string, quantity: number, color?: string) => {
     if (isAuthenticated) {
       if (quantity <= 0) {
-        await removeMutation.mutateAsync(productVariantId);
+        await removeMutation.mutateAsync(color ? { id: productVariantId, color } : productVariantId);
       } else {
-        await updateQtyMutation.mutateAsync({ productVariantId, quantity });
+        await updateQtyMutation.mutateAsync({ productVariantId, quantity, color });
       }
     } else {
       updateGuestQuantity(productVariantId, quantity, color);

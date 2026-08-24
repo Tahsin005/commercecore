@@ -91,7 +91,10 @@ export const ensureWishlistIndexes = async () => {
     }
     await WishlistItem.syncIndexes();
   } catch (err) {
-    // Ignore transient index sync error
+    // If collection doesn't exist yet (NamespaceNotFound), it's safe to ignore
+    if (err.codeName !== 'NamespaceNotFound') {
+      throw err;
+    }
   }
 };
 

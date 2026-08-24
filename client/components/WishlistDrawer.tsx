@@ -112,9 +112,10 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
 
   const handleAddToCart = async (item: any) => {
     const itemKey = item.productVariantId || item.productId;
-    if (pendingIds.has(itemKey)) return;
+    const opKey = `${itemKey}_${item.color || "none"}`;
+    if (pendingIds.has(opKey)) return;
 
-    setPendingIds((prev) => new Set(prev).add(itemKey));
+    setPendingIds((prev) => new Set(prev).add(opKey));
     try {
       await addItem(
         {
@@ -136,7 +137,7 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
     } finally {
       setPendingIds((prev) => {
         const next = new Set(prev);
-        next.delete(itemKey);
+        next.delete(opKey);
         return next;
       });
     }

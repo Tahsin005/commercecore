@@ -97,7 +97,9 @@ export const ensureCartIndexes = async () => {
     }
     await CartItem.syncIndexes();
   } catch (err) {
-    // Ignore transient index sync error
+    if (err.codeName !== 'NamespaceNotFound') {
+      throw err;
+    }
   }
 };
 

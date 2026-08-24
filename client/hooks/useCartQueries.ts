@@ -181,21 +181,34 @@ export function useRemoveFromCartMutation() {
   return useMutation<
     ApiResponse<{ items: any[] }>,
     ApiError,
-    string,
+    string | { id: string; color?: string },
     { previousCart: CartItem[] | undefined }
   >({
-    mutationFn: (id) =>
-      apiClient<ApiResponse<{ items: any[] }>>(`/cart/${id}`, {
+    mutationFn: (target) => {
+      const id = typeof target === "string" ? target : target.id;
+      const color = typeof target === "object" ? target.color : undefined;
+      const url = color ? `/cart/${id}?color=${encodeURIComponent(color)}` : `/cart/${id}`;
+      return apiClient<ApiResponse<{ items: any[] }>>(url, {
         method: "DELETE",
-      }),
-    onMutate: async (id) => {
+      });
+    },
+    onMutate: async (target) => {
       await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
 
       const previousCart = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY) || [];
+      const id = typeof target === "string" ? target : target.id;
+      const color = typeof target === "object" ? target.color : undefined;
 
       queryClient.setQueryData<CartItem[]>(
         CART_QUERY_KEY,
-        previousCart.filter((i) => i.productVariantId !== id && i.productId !== id)
+        previousCart.filter((i) => {
+          const matchId = i.productVariantId === id || i.productId === id;
+          if (!matchId) return true;
+          if (color !== undefined) {
+            return (i.color || undefined) !== (color || undefined);
+          }
+          return false;
+        })
       );
 
       return { previousCart };
@@ -217,30 +230,35 @@ export function useUpdateCartQuantityMutation() {
   return useMutation<
     ApiResponse<{ items: any[] }>,
     ApiError,
-    { productVariantId: string; quantity: number },
+    { productVariantId: string; quantity: number; color?: string },
     { previousCart: CartItem[] | undefined }
   >({
-    mutationFn: ({ productVariantId, quantity }) =>
+    mutationFn: ({ productVariantId, quantity, color }) =>
       apiClient<ApiResponse<{ items: any[] }>>("/cart", {
         method: "PUT",
-        body: JSON.stringify({ id: productVariantId, productVariantId, quantity }),
+        body: JSON.stringify({ id: productVariantId, productVariantId, quantity, color }),
       }),
-    onMutate: async ({ productVariantId, quantity }) => {
+    onMutate: async ({ productVariantId, quantity, color }) => {
       await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
 
       const previousCart = queryClient.getQueryData<CartItem[]>(CART_QUERY_KEY) || [];
 
       let newCart: CartItem[];
       if (quantity <= 0) {
-        newCart = previousCart.filter(
-          (i) => i.productVariantId !== productVariantId && i.productId !== productVariantId
-        );
+        newCart = previousCart.filter((i) => {
+          const matchId = i.productVariantId === productVariantId || i.productId === productVariantId;
+          if (!matchId) return true;
+          if (color !== undefined) {
+            return (i.color || undefined) !== (color || undefined);
+          }
+          return false;
+        });
       } else {
-        newCart = previousCart.map((i) =>
-          i.productVariantId === productVariantId || i.productId === productVariantId
-            ? { ...i, quantity }
-            : i
-        );
+        newCart = previousCart.map((i) => {
+          const matchId = i.productVariantId === productVariantId || i.productId === productVariantId;
+          const matchColor = color !== undefined ? (i.color || undefined) === (color || undefined) : true;
+          return matchId && matchColor ? { ...i, quantity } : i;
+        });
       }
 
       queryClient.setQueryData<CartItem[]>(CART_QUERY_KEY, newCart);

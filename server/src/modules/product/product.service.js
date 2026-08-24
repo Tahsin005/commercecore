@@ -333,6 +333,12 @@ export const createProductService = async ({
 
   try {
     const opts = session ? { session } : {};
+    const finalImages = Array.isArray(images) ? images : [];
+    let finalColors = Array.isArray(colors) ? colors : [];
+    if (finalColors.length > 0 && finalColors.length !== finalImages.length) {
+      throw new ApiError(400, 'Number of colors must match the number of images');
+    }
+
     const [product] = await Product.create(
       [
         {
@@ -345,8 +351,8 @@ export const createProductService = async ({
           discountPrice: cleanDiscountPrice,
           isFeatured: Boolean(isFeatured),
           isActive: Boolean(isActive),
-          images: Array.isArray(images) ? images : [],
-          colors: Array.isArray(colors) ? colors : [],
+          images: finalImages,
+          colors: finalColors,
           seo: seo || undefined,
         },
       ],
@@ -441,6 +447,9 @@ export const updateProductService = async (
     if (isActive !== undefined) product.isActive = Boolean(isActive);
     if (images !== undefined) product.images = Array.isArray(images) ? images : [];
     if (colors !== undefined) product.colors = Array.isArray(colors) ? colors : [];
+    if (product.colors.length > 0 && product.colors.length !== product.images.length) {
+      throw new ApiError(400, 'Number of colors must match the number of images');
+    }
 
     if (categoryId !== undefined) {
       if (!categoryId) {

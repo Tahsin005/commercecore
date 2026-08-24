@@ -23,8 +23,9 @@ export function getProductStock(product: Product): number {
 export function getSelectedVariant(product: Product): ProductVariant | null {
   if (!product.variants || product.variants.length === 0) return null;
   return (
-    product.variants[0] ||
     product.variants.find((v) => v.isActive !== false && (v.quantity ?? 0) > 0) ||
+    product.variants.find((v) => v.isActive !== false) ||
+    product.variants[0] ||
     null
   );
 }
@@ -54,26 +55,27 @@ export function useProductCardActions() {
   const { addItem: addToCart } = useCart();
 
   const handleToggleWishlist = (product: Product) => {
-    const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+    const selectedVariant = getSelectedVariant(product);
     const defaultColor = (product.colors && product.colors.length > 0 && product.colors[0]) ? product.colors[0] : undefined;
     const defaultImage = (product.images && product.images.length > 0 && product.images[0]) ? product.images[0] : undefined;
 
-    const regularPrice = defaultVariant?.overridePrice ?? defaultVariant?.price ?? product.price ?? product.defaultPrice ?? 0;
-    const discountPrice = defaultVariant?.overrideDiscountPrice ?? defaultVariant?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
+    const regularPrice = selectedVariant?.overridePrice ?? selectedVariant?.price ?? product.price ?? product.defaultPrice ?? 0;
+    const discountPrice = selectedVariant?.overrideDiscountPrice ?? selectedVariant?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
     const effectivePrice = getProductEffectivePrice(regularPrice, discountPrice);
 
-    const wishlisted = isInWishlist(product.id, defaultColor);
+    const targetVariantId = selectedVariant?.id || product.id;
+    const wishlisted = isInWishlist(targetVariantId, defaultColor);
 
     if (wishlisted) {
-      removeFromWishlist(product.id, defaultColor);
+      removeFromWishlist(targetVariantId, defaultColor);
       toast.success(`"${product.name}" ${t.home.removeFromWishlist}`);
     } else {
       addToWishlist({
         productId: product.id,
-        productVariantId: defaultVariant?.id,
+        productVariantId: selectedVariant?.id,
         name: product.name,
         slug: product.slug,
-        size: defaultVariant?.label || defaultVariant?.size || t.common.standard,
+        size: selectedVariant?.label || selectedVariant?.size || t.common.standard,
         color: defaultColor,
         price: effectivePrice,
         imageUrl: defaultImage,
@@ -102,22 +104,22 @@ export function useProductCardActions() {
       return false;
     }
 
-    const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+    const selectedVariant = getSelectedVariant(product);
     const defaultColor = (product.colors && product.colors.length > 0 && product.colors[0]) ? product.colors[0] : undefined;
     const defaultImage = (product.images && product.images.length > 0 && product.images[0]) ? product.images[0] : undefined;
 
-    const regularPrice = defaultVariant?.overridePrice ?? defaultVariant?.price ?? product.price ?? product.defaultPrice ?? 0;
-    const discountPrice = defaultVariant?.overrideDiscountPrice ?? defaultVariant?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
+    const regularPrice = selectedVariant?.overridePrice ?? selectedVariant?.price ?? product.price ?? product.defaultPrice ?? 0;
+    const discountPrice = selectedVariant?.overrideDiscountPrice ?? selectedVariant?.discountPrice ?? product.discountPrice ?? product.defaultDiscountPrice ?? null;
     const effectivePrice = getProductEffectivePrice(regularPrice, discountPrice);
 
     try {
       await addToCart(
         {
-          productVariantId: defaultVariant?.id,
+          productVariantId: selectedVariant?.id,
           productId: product.id,
           name: product.name,
           slug: product.slug,
-          size: defaultVariant?.size || defaultVariant?.label || t.common.standard,
+          size: selectedVariant?.size || selectedVariant?.label || t.common.standard,
           color: defaultColor,
           price: effectivePrice,
           imageUrl: defaultImage,

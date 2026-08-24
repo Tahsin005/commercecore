@@ -151,7 +151,19 @@ export const addToCartService = async (userId, productId, productVariantId = nul
 
   const cart = await getOrCreateCart(userId);
 
-  const cleanColor = color && typeof color === 'string' && color.trim() ? color.trim() : null;
+  let cleanColor = null;
+  if (color && typeof color === 'string' && color.trim()) {
+    const trimmed = color.trim();
+    if (product.colors && Array.isArray(product.colors) && product.colors.length > 0) {
+      const match = product.colors.find((c) => c && c.trim().toLowerCase() === trimmed.toLowerCase());
+      if (!match) {
+        throw new ApiError(400, `Invalid color "${trimmed}" for product "${product.name}"`);
+      }
+      cleanColor = match.trim();
+    } else {
+      throw new ApiError(400, `Product "${product.name}" does not have color options`);
+    }
+  }
 
   let cartItem = await CartItem.findOne({
     cartId: cart.id,
@@ -181,7 +193,7 @@ export const addToCartService = async (userId, productId, productVariantId = nul
   return getUserCartService(userId);
 };
 
-export const updateCartQuantityService = async (userId, itemId, quantity) => {
+export const updateCartQuantityService = async (userId, itemId, quantity, color = null) => {
   if (quantity < 1) {
     throw new ApiError(400, 'Quantity must be at least 1');
   }
@@ -190,6 +202,7 @@ export const updateCartQuantityService = async (userId, itemId, quantity) => {
     throw new ApiError(404, 'Cart item not found');
   }
 
+  const cleanColor = color && typeof color === 'string' && color.trim() ? color.trim() : null;
   const cart = await getOrCreateCart(userId);
 
   let cartItem = await CartItem.findOne({
@@ -198,18 +211,26 @@ export const updateCartQuantityService = async (userId, itemId, quantity) => {
   });
 
   if (!cartItem) {
-    cartItem = await CartItem.findOne({
+    const query = {
       cartId: cart.id,
       productVariantId: itemId,
-    });
+    };
+    if (cleanColor !== null) {
+      query.color = cleanColor;
+    }
+    cartItem = await CartItem.findOne(query);
   }
 
   if (!cartItem) {
-    cartItem = await CartItem.findOne({
+    const query = {
       cartId: cart.id,
       productId: itemId,
       productVariantId: null,
-    });
+    };
+    if (cleanColor !== null) {
+      query.color = cleanColor;
+    }
+    cartItem = await CartItem.findOne(query);
   }
 
   if (!cartItem) {
@@ -232,7 +253,7 @@ export const updateCartQuantityService = async (userId, itemId, quantity) => {
   return getUserCartService(userId);
 };
 
-export const removeFromCartService = async (userId, itemId) => {
+export const removeFromCartService = async (userId, itemId, color = null) => {
   if (!itemId || !mongoose.Types.ObjectId.isValid(itemId)) {
     throw new ApiError(404, 'Cart item not found');
   }
@@ -242,24 +263,34 @@ export const removeFromCartService = async (userId, itemId) => {
     throw new ApiError(404, 'Cart item not found');
   }
 
+  const cleanColor = color && typeof color === 'string' && color.trim() ? color.trim() : null;
+
   let result = await CartItem.deleteOne({
     cartId: cart.id,
     _id: itemId,
   });
 
   if (result.deletedCount === 0) {
-    result = await CartItem.deleteOne({
+    const query = {
       cartId: cart.id,
       productVariantId: itemId,
-    });
+    };
+    if (cleanColor !== null) {
+      query.color = cleanColor;
+    }
+    result = await CartItem.deleteOne(query);
   }
 
   if (result.deletedCount === 0) {
-    result = await CartItem.deleteOne({
+    const query = {
       cartId: cart.id,
       productId: itemId,
       productVariantId: null,
-    });
+    };
+    if (cleanColor !== null) {
+      query.color = cleanColor;
+    }
+    result = await CartItem.deleteOne(query);
   }
 
   if (result.deletedCount === 0) {
@@ -323,7 +354,7 @@ export const syncGuestCartService = async (userId, guestItems = []) => {
         productId: pId,
         productVariantId: pvId,
         color: cleanColor,
-        quantity,
+        quantity: qty,
       });
     }
   }

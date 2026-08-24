@@ -27,6 +27,9 @@ export const removeFromCartSchema = z.object({
   params: z.object({
     id: z.string().min(1, 'Cart item ID is required'),
   }),
+  query: z.object({
+    color: z.string().trim().optional(),
+  }).optional(),
 });
 
 export const syncCartSchema = z.object({

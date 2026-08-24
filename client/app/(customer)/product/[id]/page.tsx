@@ -179,7 +179,8 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
   const images = product.images || [];
   const currentImage = images.length > 0 ? images[selectedImageIndex] || images[0] : null;
   const activeColor = selectedColor || (product.colors && product.colors[selectedImageIndex]) || (product.colors && product.colors[0]) || undefined;
-  const wishlisted = isInWishlist(product.id, activeColor);
+  const targetWishlistId = selectedVariant?.id || product.id;
+  const wishlisted = isInWishlist(targetWishlistId, activeColor);
 
   const handleAddToCart = async () => {
     if (isOutOfStock) {
@@ -188,7 +189,6 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
     }
 
     const selectedLabel = selectedVariant?.label || selectedVariant?.size || t.common.standard;
-    const activeColor = selectedColor || (product.colors && product.colors[selectedImageIndex]) || (product.colors && product.colors[0]) || undefined;
 
     try {
       await addToCart(
@@ -230,7 +230,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
     const colorSuffix = activeColor ? ` • ${activeColor}` : "";
 
     if (wishlisted) {
-      removeFromWishlist(product.id, activeColor);
+      removeFromWishlist(targetWishlistId, activeColor);
       toast.success(`"${product.name}" (${selectedLabel}${colorSuffix}) ${t.home.removeFromWishlist}`);
     } else {
       addToWishlist({
@@ -327,8 +327,10 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
               selectedImageIndex={selectedImageIndex}
               onSelectImageIndex={(idx) => {
                 setSelectedImageIndex(idx);
-                if (product.colors && product.colors[idx]) {
-                  setSelectedColor(product.colors[idx]);
+                if (product.colors && product.colors[idx] && product.colors[idx].trim()) {
+                  setSelectedColor(product.colors[idx].trim());
+                } else {
+                  setSelectedColor(null);
                 }
               }}
             />
