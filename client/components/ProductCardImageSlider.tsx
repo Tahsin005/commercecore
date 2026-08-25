@@ -88,7 +88,7 @@ export function ProductCardImageSlider({
                 e.preventDefault();
                 setIsPaused((prev) => !prev);
               }}
-              className={`absolute top-2 right-2 p-1.5 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-xs transition-all z-20 cursor-pointer shadow-xs focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none ${
+              className={`absolute bottom-2 right-2 p-1.5 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-xs transition-all z-20 cursor-pointer shadow-xs focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none ${
                 isPaused ? "opacity-100" : "opacity-0 group-hover:opacity-100"
               }`}
               title={isPaused ? "Play slideshow" : "Pause slideshow"}

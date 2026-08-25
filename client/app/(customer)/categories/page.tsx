@@ -6,7 +6,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import {
-  Heart,
   Package,
   Eye,
   Tag,
@@ -17,19 +16,14 @@ import {
   RotateCcw,
   X,
   Layers,
-  ShoppingCart,
-  ShoppingBag,
   Sparkles,
   ListFilter,
 } from "lucide-react";
 
-import { useWishlist } from "@/hooks/useWishlist";
 import { useProductsQuery, Product } from "@/hooks/useProductQueries";
-import { useProductCardActions, getProductStock, getProductDisplayPricing } from "@/hooks/useProductCardActions";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
-import { isProductOnSale, getProductEffectivePrice, getProductDiscountPercentage } from "@/lib/discount";
 import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
-import { ProductCardImageSlider } from "@/components/ProductCardImageSlider";
+import { ProductCard } from "@/components/ProductCard";
 import { PriceRangeSlider } from "@/components/PriceRangeSlider";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
@@ -45,7 +39,6 @@ export default function CategoriesPage() {
   const limit = 12;
 
   const { t } = useLanguage();
-  const { handleAddToCart, handleBuyNow, handleToggleWishlist } = useProductCardActions();
 
   // React Query Hooks
   const { data: categoriesResponse, isLoading: isCategoriesLoading } = useCategoriesQuery();
@@ -78,7 +71,6 @@ export default function CategoriesPage() {
   const totalPages = pagination?.totalPages ?? 1;
   const currentPage = pagination?.currentPage ?? page;
 
-  const { isInWishlist } = useWishlist();
   const router = useRouter();
 
   const handleCategorySelect = (catId: string) => {
@@ -486,140 +478,10 @@ export default function CategoriesPage() {
 
         {!isLoading && !error && products.length > 0 && (
           <div className="space-y-8">
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
-              {products.map((product) => {
-                const defaultColor = (product.colors && product.colors.length > 0 && product.colors[0]) ? product.colors[0] : undefined;
-                const wishlisted = isInWishlist(product.id, defaultColor);
-                const {
-                  regularPrice,
-                  hasDiscount,
-                  discountPercent,
-                  effectivePrice,
-                } = getProductDisplayPricing(product);
-                const hasImage = Boolean(product.images && product.images.length > 0);
-
-                const stock = getProductStock(product);
-                const isOutOfStock = stock <= 0;
-                const productId = product.id;
-                const productHref = `/product/${productId}`;
-
-                return (
-                  <div
-                    key={productId}
-                    className="bg-white rounded-xl shadow-xs border border-maroon-100 hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden"
-                  >
-                    {hasDiscount && (
-                      <span className="absolute -top-2.5 -right-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-mono text-[10px] font-black tracking-wider px-2 py-0.5 rounded-md shadow-md border-2 border-white uppercase z-20 pointer-events-none">
-                        {discountPercent}% {t.common?.off || "OFF"}
-                      </span>
-                    )}
-
-                    <div className="relative overflow-hidden rounded-t-xl">
-                      <ProductCardImageSlider
-                        images={product.images}
-                        productName={product.name}
-                        productHref={productHref}
-                      />
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          handleToggleWishlist(product);
-                        }}
-                        className={`absolute top-3 left-3 p-2 rounded-full border transition-all cursor-pointer shadow-sm z-30 ${
-                          wishlisted
-                            ? "bg-maroon-900 text-cream border-maroon-800"
-                            : "bg-white text-maroon-600 border-maroon-200 hover:bg-maroon-50"
-                        }`}
-                        title={wishlisted ? t.home.removeFromWishlist : t.home.addToWishlist}
-                      >
-                        <Heart className={`w-4 h-4 ${wishlisted ? "fill-cream" : ""}`} />
-                      </button>
-
-                      {product.isFeatured && !hasDiscount && (
-                        <span className="absolute top-3 right-3 bg-maroon-900 text-cream text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-sm shadow z-30 pointer-events-none">
-                          {t.common.featured}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                      <div>
-                        {product.categoryId && typeof product.categoryId === "object" && product.categoryId.name && (
-                          <div className="mb-1">
-                            <span className="inline-block bg-maroon-100/70 border border-maroon-200/80 text-maroon-900 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded">
-                              {product.categoryId.name}
-                            </span>
-                          </div>
-                        )}
-                        <h3 className="font-serif font-bold text-base text-maroon-900 line-clamp-1 group-hover:text-maroon-700 transition-colors">
-                          <Link
-                            href={productHref}
-                            className="hover:underline block"
-                          >
-                            {product.name}
-                          </Link>
-                        </h3>
-                      </div>
-
-                      <div className="pt-3 border-t border-maroon-100 space-y-2.5">
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-[10px] font-semibold text-maroon-500 uppercase tracking-wider">
-                            {t.common.price}
-                          </span>
-                          {hasDiscount ? (
-                            <div className="flex items-baseline space-x-1.5">
-                              <span className="text-[11px] font-mono text-maroon-700/60 line-through">
-                                ৳{regularPrice.toFixed(2)}
-                              </span>
-                              <span className="text-base font-bold font-mono text-maroon-900">
-                                ৳{effectivePrice.toFixed(2)}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-base font-bold font-mono text-maroon-900">
-                              ৳{regularPrice.toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            disabled={isOutOfStock}
-                            onClick={(e) => handleAddToCart(e, product)}
-                            className="w-10 h-10 bg-off-white hover:bg-maroon-900 text-maroon-900 hover:text-cream border border-maroon-200 hover:border-maroon-900 active:scale-95 rounded-lg transition-all flex items-center justify-center shrink-0 shadow-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed group/cart"
-                            title={
-                              isOutOfStock
-                                ? t.productDetails?.outOfStockMsg || t.common?.outOfStock || "Out of Stock"
-                                : t.productDetails?.addToCart || "Add to Cart"
-                            }
-                            aria-label={t.productDetails?.addToCart || "Add to Cart"}
-                          >
-                            <ShoppingCart className="w-4 h-4 transition-transform group-hover/cart:scale-110 text-maroon-800 group-hover/cart:text-cream" />
-                          </button>
-
-                          <button
-                            type="button"
-                            disabled={isOutOfStock}
-                            onClick={(e) => handleBuyNow(e, product)}
-                            className="flex-1 h-10 py-2 px-3 bg-maroon-900 hover:bg-maroon-800 active:scale-[0.98] text-white font-semibold text-xs rounded-lg transition-all flex items-center justify-center space-x-1.5 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                          >
-                            <ShoppingBag className="w-4 h-4 text-cream shrink-0" />
-                            <span className="truncate">
-                              {isOutOfStock
-                                ? t.productDetails?.outOfStockMsg || t.common?.outOfStock || "Out of Stock"
-                                : t.productDetails?.orderNow || "Buy Now"}
-                            </span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 sm:gap-5 lg:gap-6">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
             </div>
 
             {totalPages > 1 && (
