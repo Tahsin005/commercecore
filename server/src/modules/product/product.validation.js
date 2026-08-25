@@ -2,13 +2,14 @@ import { z } from 'zod';
 
 const objectIdString = z
   .string()
+  .trim()
   .min(1, 'Identifier is required')
   .regex(/^[0-9a-fA-F]{24}$/, 'Invalid MongoDB ObjectId');
 
 export const getProductsSchema = z.object({
   query: z.object({
     categoryId: objectIdString.optional(),
-    variantId: z.string().trim().optional(),
+    variantId: objectIdString.optional(),
     isFeatured: z.enum(['true', 'false']).optional(),
     isActive: z.enum(['true', 'false']).optional(),
     search: z.string().trim().optional(),
