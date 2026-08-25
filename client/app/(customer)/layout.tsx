@@ -9,7 +9,7 @@ export default function CustomerLayout({
   return (
     <>
       <Navbar />
-      {children}
+        {children}
       <Footer />
     </>
   );

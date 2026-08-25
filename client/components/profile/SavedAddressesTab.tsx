@@ -7,7 +7,6 @@ import {
   Edit2,
   Trash2,
   CheckCircle2,
-  Loader2,
   X,
   Building,
 } from "lucide-react";
@@ -133,9 +132,49 @@ export function SavedAddressesTab({ isAuthenticated }: SavedAddressesTabProps) {
       </div>
 
       {isAddressesLoading ? (
-        <div className="p-12 text-center text-maroon-700 flex flex-col items-center justify-center space-y-2 bg-white rounded-2xl border border-maroon-100 shadow-sm">
-          <Loader2 className="w-8 h-8 animate-spin text-maroon-800" />
-          <p className="text-xs font-medium">{t.common.loading || "Loading addresses..."}</p>
+        <div className="space-y-4 animate-pulse">
+          <div className="block md:hidden space-y-3.5">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl border border-maroon-100 p-4 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-maroon-100/70 pb-2.5">
+                  <div className="w-20 h-5 bg-maroon-100/70 rounded-full" />
+                  <div className="flex space-x-1.5">
+                    <div className="w-7 h-7 bg-maroon-50 rounded-lg" />
+                    <div className="w-7 h-7 bg-maroon-50 rounded-lg" />
+                  </div>
+                </div>
+                <div className="w-full h-10 bg-off-white/80 rounded-xl" />
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden md:block bg-white rounded-2xl border border-maroon-100 shadow-sm overflow-hidden">
+            <div className="bg-maroon-900 px-4 py-3.5 grid grid-cols-12 gap-4">
+              <div className="col-span-2 h-4 bg-maroon-800/80 rounded w-16" />
+              <div className="col-span-6 h-4 bg-maroon-800/80 rounded w-32" />
+              <div className="col-span-2 h-4 bg-maroon-800/80 rounded w-16" />
+              <div className="col-span-2 h-4 bg-maroon-800/80 rounded w-16 ml-auto" />
+            </div>
+            <div className="divide-y divide-maroon-100">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="px-4 py-4 grid grid-cols-12 gap-4 items-center">
+                  <div className="col-span-2">
+                    <div className="w-16 h-6 bg-maroon-100/70 rounded-full" />
+                  </div>
+                  <div className="col-span-6">
+                    <div className="w-3/4 h-4 bg-maroon-200/70 rounded" />
+                  </div>
+                  <div className="col-span-2">
+                    <div className="w-16 h-4 bg-maroon-100/70 rounded" />
+                  </div>
+                  <div className="col-span-2 flex justify-end space-x-2">
+                    <div className="w-8 h-8 bg-maroon-50 border border-maroon-200/60 rounded-lg" />
+                    <div className="w-8 h-8 bg-maroon-50 border border-maroon-200/60 rounded-lg" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       ) : addresses.length === 0 ? (
         <div className="p-12 text-center space-y-3 bg-white rounded-2xl border border-maroon-100 shadow-sm">

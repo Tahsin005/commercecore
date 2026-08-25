@@ -500,6 +500,7 @@ export default function ProductDetailsPage({ params }: ProductDetailsPageProps) 
                           key={color}
                           type="button"
                           title={`Color: ${color}`}
+                          aria-pressed={isSelected}
                           onClick={() => {
                             if (isSelected) {
                               setSelectedColor(null);

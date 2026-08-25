@@ -168,10 +168,11 @@ export function SocialIcon({ iconId, className }: SocialIconProps) {
 export function formatSocialLink(icon: string, rawUrl: string): string {
   if (!rawUrl) return "";
   const trimmed = rawUrl.trim();
+  const lowerTrimmed = trimmed.toLowerCase();
   const iconLower = (icon || "").toLowerCase().trim();
 
   if (iconLower === "whatsapp") {
-    if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("whatsapp://")) {
+    if (lowerTrimmed.startsWith("http://") || lowerTrimmed.startsWith("https://") || lowerTrimmed.startsWith("whatsapp://")) {
       return trimmed;
     }
     const cleanDigits = trimmed.replace(/[^0-9]/g, "");
@@ -185,20 +186,20 @@ export function formatSocialLink(icon: string, rawUrl: string): string {
   }
 
   if (iconLower === "phone") {
-    if (trimmed.startsWith("tel:")) return trimmed;
+    if (lowerTrimmed.startsWith("tel:")) return trimmed;
     return `tel:${trimmed}`;
   }
 
   if (iconLower === "email" || iconLower === "mail") {
-    if (trimmed.startsWith("mailto:")) return trimmed;
+    if (lowerTrimmed.startsWith("mailto:")) return trimmed;
     return `mailto:${trimmed}`;
   }
 
   if (
-    !trimmed.startsWith("http://") &&
-    !trimmed.startsWith("https://") &&
-    !trimmed.startsWith("mailto:") &&
-    !trimmed.startsWith("tel:")
+    !lowerTrimmed.startsWith("http://") &&
+    !lowerTrimmed.startsWith("https://") &&
+    !lowerTrimmed.startsWith("mailto:") &&
+    !lowerTrimmed.startsWith("tel:")
   ) {
     return `https://${trimmed}`;
   }

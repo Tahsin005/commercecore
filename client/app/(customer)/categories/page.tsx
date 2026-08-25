@@ -72,8 +72,8 @@ export default function CategoriesPage() {
 
   const products = response?.data?.products || [];
   const pagination = response?.data?.pagination;
-  const minBound = 10;
-  const maxBound = 99999;
+  const minBound = response?.data?.priceBounds?.minPrice ?? 10;
+  const maxBound = response?.data?.priceBounds?.maxPrice ?? 99999;
   const totalProducts = pagination?.totalProducts ?? products.length;
   const totalPages = pagination?.totalPages ?? 1;
   const currentPage = pagination?.currentPage ?? page;
@@ -315,7 +315,7 @@ export default function CategoriesPage() {
                   <Sparkles className={`w-3.5 h-3.5 ${appliedMinPrice !== "" || appliedMaxPrice !== "" ? "text-cream" : "text-maroon-700"}`} />
                   <span>
                     {appliedMinPrice !== "" || appliedMaxPrice !== ""
-                      ? `৳${Number(appliedMinPrice || 10).toLocaleString()} - ৳${Number(appliedMaxPrice || 99999).toLocaleString()}`
+                      ? `৳${Number(appliedMinPrice || minBound).toLocaleString()} - ৳${Number(appliedMaxPrice || maxBound).toLocaleString()}`
                       : t.home.priceFilter || "Price Range"}
                   </span>
                 </div>
@@ -403,7 +403,7 @@ export default function CategoriesPage() {
               )}
               {appliedMinPrice !== "" && (
                 <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-maroon-800 text-cream text-xs rounded-full shadow-2xs">
-                  <span>Min: ৳{appliedMinPrice}</span>
+                  <span>{t.home?.minPrice || "Min"}: ৳{appliedMinPrice}</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -419,7 +419,7 @@ export default function CategoriesPage() {
               )}
               {appliedMaxPrice !== "" && (
                 <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-maroon-800 text-cream text-xs rounded-full shadow-2xs">
-                  <span>Max: ৳{appliedMaxPrice}</span>
+                  <span>{t.home?.maxPrice || "Max"}: ৳{appliedMaxPrice}</span>
                   <button
                     type="button"
                     onClick={() => {

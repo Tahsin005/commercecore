@@ -109,6 +109,16 @@ export function SiteSettingsTab() {
       return;
     }
 
+    if (selectedIconId === "whatsapp") {
+      const lower = trimmedInput.toLowerCase();
+      const isDirectWaUrl = lower.startsWith("http://") || lower.startsWith("https://") || lower.startsWith("whatsapp://");
+      const cleanDigits = trimmedInput.replace(/[^0-9]/g, "");
+      if (!isDirectWaUrl && cleanDigits.length < 5) {
+        toast.error("Please enter a valid WhatsApp phone number");
+        return;
+      }
+    }
+
     const iconOption = getSocialIcon(selectedIconId);
     const finalUrl = formatSocialLink(selectedIconId, trimmedInput);
 

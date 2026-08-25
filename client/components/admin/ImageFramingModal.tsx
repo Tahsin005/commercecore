@@ -40,6 +40,7 @@ export function ImageFramingModal({
   items,
   onComplete,
   onCancel,
+  defaultAspect = 4 / 5,
   targetWidth = 1122,
   targetHeight = 1402,
 }: ImageFramingModalProps) {
@@ -47,7 +48,7 @@ export function ImageFramingModal({
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
-  const aspect = 4 / 5; // Strict 4:5 aspect ratio
+  const aspect = defaultAspect; // Use caller-provided or standard 4:5 aspect ratio
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [croppedResults, setCroppedResults] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -132,14 +133,9 @@ export function ImageFramingModal({
   };
 
   const handleSkipCurrent = () => {
-    if (!currentItem) return;
+    if (!currentItem || !currentItem.file) return;
 
-    // Use original file if available, or create dummy file
-    const fileToUse =
-      currentItem.file ||
-      new File([], currentItem.name, { type: "image/jpeg" });
-
-    const nextResults = [...croppedResults, fileToUse];
+    const nextResults = [...croppedResults, currentItem.file];
     setCroppedResults(nextResults);
 
     if (currentIndex + 1 < items.length) {
@@ -297,14 +293,18 @@ export function ImageFramingModal({
           </div>
 
           <div className="flex items-center justify-between pt-1 border-t border-neutral-800/80">
-            <button
-              type="button"
-              onClick={handleSkipCurrent}
-              disabled={isProcessing}
-              className="px-4 py-2 text-neutral-400 hover:text-neutral-200 text-xs font-semibold transition-colors cursor-pointer"
-            >
-              Skip Cropping (Use Original)
-            </button>
+            {currentItem.file ? (
+              <button
+                type="button"
+                onClick={handleSkipCurrent}
+                disabled={isProcessing}
+                className="px-4 py-2 text-neutral-400 hover:text-neutral-200 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Skip Cropping (Use Original)
+              </button>
+            ) : (
+              <div />
+            )}
 
             <div className="flex items-center space-x-3">
               <button

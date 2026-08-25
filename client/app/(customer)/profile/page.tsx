@@ -6,7 +6,6 @@ import {
   MapPin,
   User,
   Lock,
-  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -18,6 +17,7 @@ import { MyOrdersTab } from "@/components/profile/MyOrdersTab";
 import { SavedAddressesTab } from "@/components/profile/SavedAddressesTab";
 import { ProfileDetailsTab } from "@/components/profile/ProfileDetailsTab";
 import { SecurityTab } from "@/components/profile/SecurityTab";
+import { ProfileSkeleton } from "@/components/skeletons";
 
 type ProfileTab = "orders" | "addresses" | "info" | "security";
 
@@ -30,12 +30,7 @@ export default function CustomerProfilePage() {
   useMeQuery(Boolean(isHydrated && isAuthenticated));
 
   if (!isHydrated) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-maroon-800" />
-        <p className="text-sm font-medium text-maroon-700">{t.common.loading || "Loading profile..."}</p>
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   if (!isAuthenticated || !user) {

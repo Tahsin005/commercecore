@@ -68,7 +68,7 @@ export function RelatedProductsSection({ categoryId, currentProductId }: Related
           return (
             <div
               key={productId}
-              className="bg-white rounded-xl shadow-xs border border-maroon-100 hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden"
+              className="bg-white rounded-xl shadow-xs border border-maroon-100 hover:shadow-md transition-all flex flex-col justify-between group relative"
             >
               {hasDiscount && (
                 <span className="absolute -top-2.5 -right-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-mono text-[10px] font-black tracking-wider px-2 py-0.5 rounded-md shadow-md border-2 border-white uppercase z-20 pointer-events-none">

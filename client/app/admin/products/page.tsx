@@ -79,6 +79,11 @@ export default function AdminProductsPage() {
   const [cropTargetFormType, setCropTargetFormType] = useState<"create" | "edit">("create");
   const [cropTargetIndex, setCropTargetIndex] = useState<number | null>(null);
 
+  const isCreateModalOpenRef = useRef(isCreateModalOpen);
+  isCreateModalOpenRef.current = isCreateModalOpen;
+  const editingProductRef = useRef(editingProduct);
+  editingProductRef.current = editingProduct;
+
   const fileInputRefCreate = useRef<HTMLInputElement>(null);
   const fileInputRefEdit = useRef<HTMLInputElement>(null);
 
@@ -250,8 +255,8 @@ export default function AdminProductsPage() {
       const file = croppedFiles[i];
       try {
         const res = await uploadMutation.mutateAsync(file);
-        if (cropTargetFormType === "create" && !isCreateModalOpen) continue;
-        if (cropTargetFormType === "edit" && (!editingProduct || editingProduct.id !== editingProductId)) continue;
+        if (cropTargetFormType === "create" && !isCreateModalOpenRef.current) continue;
+        if (cropTargetFormType === "edit" && (!editingProductRef.current || editingProductRef.current.id !== editingProductId)) continue;
 
         const url = res.data.url;
         if (isSingleReframe) {

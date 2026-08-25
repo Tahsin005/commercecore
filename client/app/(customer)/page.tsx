@@ -72,8 +72,8 @@ export default function Home() {
 
   const products = response?.data?.products || [];
   const pagination = response?.data?.pagination;
-  const minBound = 10;
-  const maxBound = 99999;
+  const minBound = response?.data?.priceBounds?.minPrice ?? 10;
+  const maxBound = response?.data?.priceBounds?.maxPrice ?? 99999;
   const totalProducts = pagination?.totalProducts ?? products.length;
   const totalPages = pagination?.totalPages ?? 1;
   const currentPage = pagination?.currentPage ?? page;
@@ -414,7 +414,7 @@ export default function Home() {
                   )}
                   {appliedMinPrice !== "" && (
                     <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-maroon-800 text-cream text-xs rounded-full shadow-2xs">
-                      <span>Min: ৳{appliedMinPrice}</span>
+                      <span>{t.home?.minPrice || "Min"}: ৳{appliedMinPrice}</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -430,7 +430,7 @@ export default function Home() {
                   )}
                   {appliedMaxPrice !== "" && (
                     <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-maroon-800 text-cream text-xs rounded-full shadow-2xs">
-                      <span>Max: ৳{appliedMaxPrice}</span>
+                      <span>{t.home?.maxPrice || "Max"}: ৳{appliedMaxPrice}</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -647,23 +647,57 @@ export default function Home() {
                         </button>
 
                         <div className="flex items-center space-x-1 px-2">
-                          {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => {
-                            const isActive = pageNum === currentPage;
-                            return (
-                              <button
-                                key={pageNum}
-                                type="button"
-                                onClick={() => setPage(pageNum)}
-                                className={`w-8 h-8 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer flex items-center justify-center ${
-                                  isActive
-                                    ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
-                                    : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"
-                                }`}
-                              >
-                                {pageNum}
-                              </button>
-                            );
-                          })}
+                          {(() => {
+                            const pageNumbers: (number | string)[] = [];
+                            const delta = 1;
+                            const range: number[] = [];
+
+                            for (let i = 1; i <= totalPages; i++) {
+                              if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+                                range.push(i);
+                              }
+                            }
+
+                            let last: number | null = null;
+                            for (const p of range) {
+                              if (last !== null) {
+                                if (p - last === 2) {
+                                  pageNumbers.push(last + 1);
+                                } else if (p - last > 2) {
+                                  pageNumbers.push(`ellipsis-${last}`);
+                                }
+                              }
+                              pageNumbers.push(p);
+                              last = p;
+                            }
+
+                            return pageNumbers.map((item) => {
+                              if (typeof item === "string") {
+                                return (
+                                  <span key={item} className="px-1 text-xs text-maroon-400 font-mono select-none">
+                                    ...
+                                  </span>
+                                );
+                              }
+
+                              const pageNum = item;
+                              const isActive = pageNum === currentPage;
+                              return (
+                                <button
+                                  key={pageNum}
+                                  type="button"
+                                  onClick={() => setPage(pageNum)}
+                                  className={`w-8 h-8 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer flex items-center justify-center ${
+                                    isActive
+                                      ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
+                                      : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"
+                                  }`}
+                                >
+                                  {pageNum}
+                                </button>
+                              );
+                            });
+                          })()}
                         </div>
 
                         <button
