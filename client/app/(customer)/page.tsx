@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 
 import { useWishlist } from "@/hooks/useWishlist";
-import { useProductsQuery, Product } from "@/hooks/useProductQueries";
+import { useProductsQuery, useGlobalVariantsQuery, Product } from "@/hooks/useProductQueries";
 import { useProductCardActions, getProductStock, getProductDisplayPricing } from "@/hooks/useProductCardActions";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { HomepageBanners } from "@/components/HomepageBanners";
@@ -35,6 +35,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedVariantId, setSelectedVariantId] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("newest");
   const [minPrice, setMinPrice] = useState<string>("");
@@ -60,8 +61,16 @@ export default function Home() {
     });
   }, [categories]);
 
+  const { data: variantsResponse, isLoading: isVariantsLoading } = useGlobalVariantsQuery(false);
+  const variants = variantsResponse?.data || [];
+
+  const sortedVariants = useMemo(() => {
+    return [...variants].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }, [variants]);
+
   const { data: response, isLoading, error } = useProductsQuery({
     categoryId: selectedCategory === "all" ? undefined : selectedCategory,
+    variantId: selectedVariantId === "all" ? undefined : selectedVariantId,
     search: searchQuery,
     sortBy,
     minPrice: appliedMinPrice !== "" ? appliedMinPrice : undefined,
@@ -86,6 +95,11 @@ export default function Home() {
     setPage(1);
   };
 
+  const handleVariantSelect = (vId: string) => {
+    setSelectedVariantId(vId);
+    setPage(1);
+  };
+
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
     setPage(1);
@@ -105,6 +119,7 @@ export default function Home() {
 
   const handleClearFilters = () => {
     setSelectedCategory("all");
+    setSelectedVariantId("all");
     setSearchQuery("");
     setSortBy("newest");
     setMinPrice("");
@@ -117,6 +132,7 @@ export default function Home() {
 
   const hasActiveFilters =
     selectedCategory !== "all" ||
+    selectedVariantId !== "all" ||
     searchQuery.trim() !== "" ||
     sortBy !== "newest" ||
     appliedMinPrice !== "" ||
@@ -125,87 +141,82 @@ export default function Home() {
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (selectedCategory !== "all") count++;
+    if (selectedVariantId !== "all") count++;
     if (searchQuery.trim() !== "") count++;
     if (sortBy !== "newest") count++;
     if (appliedMinPrice !== "") count++;
     if (appliedMaxPrice !== "") count++;
     return count;
-  }, [selectedCategory, searchQuery, sortBy, appliedMinPrice, appliedMaxPrice]);
+  }, [selectedCategory, selectedVariantId, searchQuery, sortBy, appliedMinPrice, appliedMaxPrice]);
 
   const activeCategoryObj = categories.find((c) => c.id === selectedCategory);
+  const activeVariantObj = sortedVariants.find((v) => v.id === selectedVariantId);
 
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
       <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 py-6 flex-1">
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          
+
           <aside className="hidden lg:block lg:col-span-4 xl:col-span-3 space-y-5 lg:sticky lg:top-28">
-            
+
             <div className="bg-white rounded-2xl border border-maroon-100 shadow-sm overflow-hidden">
               <div className="bg-maroon-900 text-white px-4 py-3.5 flex items-center justify-between shadow-xs">
                 <div className="flex items-center space-x-2.5">
-                  <ListFilter className="w-5 h-5 text-cream" />
+                  <Sparkles className="w-5 h-5 text-cream" />
                   <h2 className="font-serif font-bold text-sm sm:text-base tracking-wide text-white">
-                    {t.home?.categoryItems || "সকল ক্যাটাগরি"}
+                    {t.home?.ageRangeFilter || "বয়সের ফিল্টার"}
                   </h2>
                 </div>
-                <Link
-                  href="/categories"
-                  className="text-[11px] text-cream/90 hover:text-white underline font-semibold transition-colors"
-                >
-                  {t.home?.showAllCategories || "সকল দেখুন"}
-                </Link>
+                {selectedVariantId !== "all" && (
+                  <button
+                    type="button"
+                    onClick={() => handleVariantSelect("all")}
+                    className="text-[11px] text-cream/90 hover:text-white underline font-semibold transition-colors cursor-pointer"
+                  >
+                    {t.home?.clearFilters || "মুছুন"}
+                  </button>
+                )}
               </div>
 
-              <div className="divide-y divide-maroon-50 max-h-[380px] overflow-y-auto scrollbar-thin">
+              <div className="divide-y divide-maroon-50 max-h-[380px] overflow-y-auto scrollbar-thin p-1">
                 <button
                   type="button"
-                  onClick={() => handleCategorySelect("all")}
-                  className={`w-full px-4 py-3 text-left flex items-center justify-between text-xs font-semibold transition-colors cursor-pointer ${
-                    selectedCategory === "all"
-                      ? "bg-maroon-100/80 text-maroon-900 font-bold border-l-4 border-maroon-900"
-                      : "text-maroon-800 hover:bg-maroon-50/70"
-                  }`}
+                  onClick={() => handleVariantSelect("all")}
+                  className={`w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs font-semibold rounded-xl transition-all cursor-pointer ${selectedVariantId === "all"
+                      ? "bg-maroon-900 text-white font-bold shadow-xs"
+                      : "text-maroon-800 hover:bg-maroon-50"
+                    }`}
                 >
                   <div className="flex items-center space-x-2.5">
-                    <Tag className="w-4 h-4 text-maroon-700 shrink-0" />
-                    <span>{t.home?.allProducts || "সকল পণ্য"}</span>
+                    <Sparkles className={`w-3.5 h-3.5 ${selectedVariantId === "all" ? "text-cream" : "text-maroon-600"}`} />
+                    <span>{t.home?.allAges || "সকল বয়স"}</span>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-maroon-400" />
+                  {selectedVariantId === "all" ? (
+                    <span className="w-2 h-2 rounded-full bg-cream inline-block" />
+                  ) : (
+                    <ChevronRight className="w-3.5 h-3.5 text-maroon-300" />
+                  )}
                 </button>
 
-                {sortedCategories.map((cat) => {
-                  const isSelected = selectedCategory === cat.id;
+                {sortedVariants.map((variant) => {
+                  const isSelected = selectedVariantId === variant.id;
+                  const label = variant.label || variant.size || "Standard";
                   return (
                     <button
-                      key={cat.id}
+                      key={variant.id}
                       type="button"
-                      onClick={() => handleCategorySelect(cat.id)}
-                      className={`w-full px-4 py-2.5 text-left flex items-center justify-between text-xs font-semibold transition-colors cursor-pointer ${
-                        isSelected
-                          ? "bg-maroon-100/80 text-maroon-900 font-bold border-l-4 border-maroon-900"
-                          : "text-maroon-800 hover:bg-maroon-50/70"
-                      }`}
+                      onClick={() => handleVariantSelect(variant.id)}
+                      className={`w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs font-semibold rounded-xl transition-all cursor-pointer ${isSelected
+                          ? "bg-maroon-900 text-white font-bold shadow-xs"
+                          : "text-maroon-800 hover:bg-maroon-50"
+                        }`}
                     >
                       <div className="flex items-center space-x-2.5 min-w-0">
-                        {cat.imageUrl ? (
-                          <div className="w-7 h-7 rounded-lg overflow-hidden bg-off-white relative shrink-0 border border-maroon-200/60">
-                            <Image src={cat.imageUrl} alt={cat.name} fill sizes="28px" className="object-cover" />
-                          </div>
-                        ) : (
-                          <Tag className="w-4 h-4 text-maroon-400 shrink-0" />
-                        )}
-                        <span className="truncate">{cat.name}</span>
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${isSelected ? "bg-cream" : "bg-maroon-400"}`} />
+                        <span className="truncate">{label}</span>
                       </div>
-                      <div className="flex items-center space-x-1.5 shrink-0">
-                        {cat.isFeatured && (
-                          <span className="bg-maroon-900 text-cream text-[9px] font-bold uppercase px-1.5 py-0.5 rounded shadow-2xs">
-                            HOT
-                          </span>
-                        )}
-                        <ChevronRight className="w-3.5 h-3.5 text-maroon-400" />
-                      </div>
+                      <ChevronRight className={`w-3.5 h-3.5 ${isSelected ? "text-cream" : "text-maroon-300"}`} />
                     </button>
                   );
                 })}
@@ -251,11 +262,10 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={handleApplyFilters}
-                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-2 ${
-                    minPrice !== appliedMinPrice || maxPrice !== appliedMaxPrice
+                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center space-x-2 ${minPrice !== appliedMinPrice || maxPrice !== appliedMaxPrice
                       ? "bg-maroon-900 hover:bg-maroon-800 text-cream shadow-md"
                       : "bg-maroon-100 hover:bg-maroon-200 text-maroon-900 border border-maroon-200"
-                  }`}
+                    }`}
                 >
                   <ListFilter className="w-3.5 h-3.5" />
                   <span>{t.home?.applyFilters || "Apply Filters"}</span>
@@ -295,8 +305,69 @@ export default function Home() {
           </aside>
 
           <div className="lg:col-span-8 xl:col-span-9 space-y-6">
-            
+
             <HomepageBanners />
+
+            <div className="bg-white rounded-2xl border border-maroon-100 p-4 sm:p-5 shadow-sm space-y-3.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Tag className="w-4 h-4 text-maroon-800" />
+                  <h3 className="font-serif font-bold text-sm sm:text-base text-maroon-900">
+                    {t.home?.categoriesTitle || "ক্যাটাগরি সমূহ"}
+                  </h3>
+                </div>
+                <Link
+                  href="/categories"
+                  className="text-xs font-semibold text-maroon-800 hover:text-maroon-900 hover:underline flex items-center space-x-1"
+                >
+                  <span>{t.home?.showAllCategories || "সকল দেখুন"}</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              <div className="flex items-center gap-2.5 sm:gap-3 overflow-x-auto pb-2 scrollbar-thin pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => handleCategorySelect("all")}
+                  className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${selectedCategory === "all"
+                      ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
+                      : "bg-off-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200/80"
+                    }`}
+                >
+                  <Tag className="w-3.5 h-3.5" />
+                  <span>{t.home?.allProducts || "সকল পণ্য"}</span>
+                </button>
+
+                {sortedCategories.map((cat) => {
+                  const isSelected = selectedCategory === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => handleCategorySelect(cat.id)}
+                      className={`flex items-center space-x-2.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer border ${isSelected
+                          ? "bg-maroon-900 text-white border-maroon-900 shadow-md ring-2 ring-maroon-900/30"
+                          : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"
+                        }`}
+                    >
+                      {cat.imageUrl ? (
+                        <div className="w-6 h-6 rounded-lg overflow-hidden relative shrink-0 border border-black/10">
+                          <Image src={cat.imageUrl} alt={cat.name} fill sizes="24px" className="object-cover" />
+                        </div>
+                      ) : (
+                        <Tag className="w-3.5 h-3.5 opacity-60 shrink-0" />
+                      )}
+                      <span className="whitespace-nowrap">{cat.name}</span>
+                      {cat.isFeatured && !isSelected && (
+                        <span className="bg-maroon-900 text-cream text-[9px] font-bold uppercase px-1.5 py-0.5 rounded shadow-2xs">
+                          HOT
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="bg-white rounded-2xl border border-maroon-100/80 p-3.5 flex items-center space-x-3 shadow-2xs hover:shadow-xs transition-shadow">
@@ -412,6 +483,18 @@ export default function Home() {
                       </button>
                     </span>
                   )}
+                  {selectedVariantId !== "all" && (
+                    <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-maroon-900 text-cream text-xs rounded-full shadow-2xs">
+                      <span>{activeVariantObj?.label || "Age"}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleVariantSelect("all")}
+                        className="hover:text-white cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  )}
                   {appliedMinPrice !== "" && (
                     <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-maroon-800 text-cream text-xs rounded-full shadow-2xs">
                       <span>{t.home?.minPrice || "Min"}: ৳{appliedMinPrice}</span>
@@ -515,7 +598,7 @@ export default function Home() {
                       return (
                         <div
                           key={productId}
-                          className="bg-white rounded-xl shadow-xs border border-maroon-100 hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden"
+                          className="bg-white rounded-xl shadow-xs border border-maroon-100 hover:shadow-md transition-all flex flex-col justify-between group relative"
                         >
                           {hasDiscount && (
                             <span className="absolute -top-2.5 -right-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-mono text-[10px] font-black tracking-wider px-2 py-0.5 rounded-md shadow-md border-2 border-white uppercase z-20 pointer-events-none">
@@ -537,11 +620,10 @@ export default function Home() {
                                 e.preventDefault();
                                 handleToggleWishlist(product);
                               }}
-                              className={`absolute top-2.5 left-2.5 p-1.5 rounded-full border transition-all cursor-pointer shadow-sm z-30 ${
-                                wishlisted
+                              className={`absolute top-2.5 left-2.5 p-1.5 rounded-full border transition-all cursor-pointer shadow-sm z-30 ${wishlisted
                                   ? "bg-maroon-900 text-cream border-maroon-800"
                                   : "bg-white/90 backdrop-blur-xs text-maroon-600 border-maroon-200 hover:bg-white"
-                              }`}
+                                }`}
                               title={wishlisted ? t.home?.removeFromWishlist || "Remove from Wishlist" : t.home?.addToWishlist || "Add to Wishlist"}
                             >
                               <Heart className={`w-3.5 h-3.5 ${wishlisted ? "fill-cream" : ""}`} />
@@ -687,11 +769,10 @@ export default function Home() {
                                   key={pageNum}
                                   type="button"
                                   onClick={() => setPage(pageNum)}
-                                  className={`w-8 h-8 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer flex items-center justify-center ${
-                                    isActive
+                                  className={`w-8 h-8 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer flex items-center justify-center ${isActive
                                       ? "bg-maroon-900 text-white shadow-md ring-2 ring-maroon-900/30"
                                       : "bg-white hover:bg-maroon-50 text-maroon-800 border border-maroon-200"
-                                  }`}
+                                    }`}
                                 >
                                   {pageNum}
                                 </button>
@@ -750,7 +831,7 @@ export default function Home() {
                 <div className="flex items-center space-x-2.5">
                   <ListFilter className="w-5 h-5 text-cream" />
                   <h3 className="font-serif font-bold text-base tracking-wide text-white">
-                    {t.home?.filtersModalTitle || "Filters & Categories"}
+                    {t.home?.filterBtn || "ফিল্টার"}
                   </h3>
                 </div>
 
@@ -777,53 +858,49 @@ export default function Home() {
               <div className="p-5 space-y-6 overflow-y-auto flex-1 divide-y divide-maroon-100">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-serif font-bold text-sm text-maroon-900">
-                      {t.home?.categoryItems || "Categories"}
+                    <span className="font-serif font-bold text-sm text-maroon-900 flex items-center space-x-1.5">
+                      <Sparkles className="w-4 h-4 text-maroon-700" />
+                      <span>{t.home?.ageRangeFilter || "Age Ranges"}</span>
                     </span>
-                    <Link
-                      href="/categories"
-                      onClick={() => setMobileFilterOpen(false)}
-                      className="text-xs text-maroon-700 hover:text-maroon-900 underline font-semibold"
-                    >
-                      {t.home?.showAllCategories || "View All"}
-                    </Link>
+                    {selectedVariantId !== "all" && (
+                      <button
+                        type="button"
+                        onClick={() => handleVariantSelect("all")}
+                        className="text-xs text-maroon-700 hover:text-maroon-900 underline font-semibold cursor-pointer"
+                      >
+                        {t.home?.clearFilters || "Reset"}
+                      </button>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto scrollbar-thin pr-1">
                     <button
                       type="button"
-                      onClick={() => handleCategorySelect("all")}
-                      className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center space-x-2 transition-all text-left cursor-pointer ${
-                        selectedCategory === "all"
+                      onClick={() => handleVariantSelect("all")}
+                      className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center space-x-2 transition-all text-left cursor-pointer ${selectedVariantId === "all"
                           ? "bg-maroon-900 text-white border-maroon-900 shadow-xs"
                           : "bg-off-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
-                      }`}
+                        }`}
                     >
-                      <Tag className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{t.home?.allProducts || "All Products"}</span>
+                      <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{t.home?.allAges || "All Ages"}</span>
                     </button>
 
-                    {sortedCategories.map((cat) => {
-                      const isSelected = selectedCategory === cat.id;
+                    {sortedVariants.map((variant) => {
+                      const isSelected = selectedVariantId === variant.id;
+                      const label = variant.label || variant.size || "Standard";
                       return (
                         <button
-                          key={cat.id}
+                          key={variant.id}
                           type="button"
-                          onClick={() => handleCategorySelect(cat.id)}
-                          className={`p-2 rounded-xl border text-xs font-semibold flex items-center space-x-2 transition-all text-left cursor-pointer ${
-                            isSelected
+                          onClick={() => handleVariantSelect(variant.id)}
+                          className={`p-2 rounded-xl border text-xs font-semibold flex items-center space-x-2 transition-all text-left cursor-pointer ${isSelected
                               ? "bg-maroon-900 text-white border-maroon-900 shadow-xs"
                               : "bg-off-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
-                          }`}
+                            }`}
                         >
-                          {cat.imageUrl ? (
-                            <div className="w-5 h-5 rounded-md overflow-hidden bg-white relative shrink-0 border border-maroon-200/50">
-                              <Image src={cat.imageUrl} alt={cat.name} fill sizes="20px" className="object-cover" />
-                            </div>
-                          ) : (
-                            <Tag className="w-3.5 h-3.5 shrink-0" />
-                          )}
-                          <span className="truncate">{cat.name}</span>
+                          <span className={`w-2 h-2 rounded-full shrink-0 ${isSelected ? "bg-cream" : "bg-maroon-400"}`} />
+                          <span className="truncate">{label}</span>
                         </button>
                       );
                     })}

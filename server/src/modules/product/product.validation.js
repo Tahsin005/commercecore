@@ -8,6 +8,7 @@ const objectIdString = z
 export const getProductsSchema = z.object({
   query: z.object({
     categoryId: objectIdString.optional(),
+    variantId: z.string().trim().optional(),
     isFeatured: z.enum(['true', 'false']).optional(),
     isActive: z.enum(['true', 'false']).optional(),
     search: z.string().trim().optional(),

@@ -135,6 +135,11 @@ export const en: TranslationType = {
     filterBtn: "Filter",
     filtersModalTitle: "Filters & Categories",
     applyFilters: "Apply Filters",
+    ageRangeFilter: "Age Range Filter",
+    allAges: "All Ages",
+    ageRanges: "Age Ranges",
+    categoriesTitle: "Categories",
+    browseByCategory: "Browse by Category",
   },
   productDetails: {
     notFoundTitle: "Product Not Found",
