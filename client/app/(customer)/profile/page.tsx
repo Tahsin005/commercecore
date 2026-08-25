@@ -6,7 +6,6 @@ import {
   MapPin,
   User,
   Lock,
-  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -18,6 +17,7 @@ import { MyOrdersTab } from "@/components/profile/MyOrdersTab";
 import { SavedAddressesTab } from "@/components/profile/SavedAddressesTab";
 import { ProfileDetailsTab } from "@/components/profile/ProfileDetailsTab";
 import { SecurityTab } from "@/components/profile/SecurityTab";
+import { ProfileSkeleton } from "@/components/skeletons";
 
 type ProfileTab = "orders" | "addresses" | "info" | "security";
 
@@ -30,12 +30,7 @@ export default function CustomerProfilePage() {
   useMeQuery(Boolean(isHydrated && isAuthenticated));
 
   if (!isHydrated) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-maroon-800" />
-        <p className="text-sm font-medium text-maroon-700">{t.common.loading || "Loading profile..."}</p>
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   if (!isAuthenticated || !user) {
@@ -43,7 +38,7 @@ export default function CustomerProfilePage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8 font-sans w-full overflow-hidden">
+    <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 py-8 space-y-8 font-sans overflow-hidden">
       <ProfileHeader user={user} onEditProfileClick={() => setActiveTab("info")} />
 
       <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 bg-maroon-100/40 sm:bg-transparent p-1.5 sm:p-0 rounded-2xl sm:rounded-none border border-maroon-200/60 sm:border-0 sm:border-b sm:border-maroon-200/80 sm:pb-3">

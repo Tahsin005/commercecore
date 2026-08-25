@@ -102,9 +102,15 @@ export interface PaginationInfo {
   hasPrevPage: boolean;
 }
 
+export interface PriceBounds {
+  minPrice: number;
+  maxPrice: number;
+}
+
 export interface ProductsResponsePayload {
   products: Product[];
   pagination: PaginationInfo;
+  priceBounds?: PriceBounds;
 }
 
 export interface ProductQueryParams {
@@ -153,6 +159,10 @@ export function normalizeProductsResponse(
           hasNextPage: false,
           hasPrevPage: false,
         },
+        priceBounds: {
+          minPrice: 10,
+          maxPrice: 99999,
+        },
       },
     };
   }
@@ -188,6 +198,7 @@ export function useProductsQuery(
       const rawRes = await apiClient<ApiResponse<ProductsResponsePayload | Product[]>>(url);
       return normalizeProductsResponse(rawRes, Number(page || 1));
     },
+    placeholderData: (previousData) => previousData,
   });
 }
 

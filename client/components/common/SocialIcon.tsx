@@ -44,7 +44,7 @@ export const PRESELECTED_SOCIAL_ICONS: SocialIconOption[] = [
   {
     id: "whatsapp",
     name: "WhatsApp",
-    placeholder: "https://wa.me/8801700000000",
+    placeholder: "01700000000 or +8801700000000",
     icon: FaWhatsapp,
     category: "social",
   },
@@ -163,4 +163,46 @@ export function SocialIcon({ iconId, className }: SocialIconProps) {
   }
   const IconComponent = iconOption.icon;
   return <IconComponent className={className} />;
+}
+
+export function formatSocialLink(icon: string, rawUrl: string): string {
+  if (!rawUrl) return "";
+  const trimmed = rawUrl.trim();
+  const lowerTrimmed = trimmed.toLowerCase();
+  const iconLower = (icon || "").toLowerCase().trim();
+
+  if (iconLower === "whatsapp") {
+    if (lowerTrimmed.startsWith("http://") || lowerTrimmed.startsWith("https://") || lowerTrimmed.startsWith("whatsapp://")) {
+      return trimmed;
+    }
+    const cleanDigits = trimmed.replace(/[^0-9]/g, "");
+    if (!cleanDigits) return trimmed;
+
+    // If 11 digits starting with 01 (standard Bangladesh phone format e.g. 01700000000)
+    if (cleanDigits.startsWith("01") && cleanDigits.length === 11) {
+      return `https://wa.me/88${cleanDigits}`;
+    }
+    return `https://wa.me/${cleanDigits}`;
+  }
+
+  if (iconLower === "phone") {
+    if (lowerTrimmed.startsWith("tel:")) return trimmed;
+    return `tel:${trimmed}`;
+  }
+
+  if (iconLower === "email" || iconLower === "mail") {
+    if (lowerTrimmed.startsWith("mailto:")) return trimmed;
+    return `mailto:${trimmed}`;
+  }
+
+  if (
+    !lowerTrimmed.startsWith("http://") &&
+    !lowerTrimmed.startsWith("https://") &&
+    !lowerTrimmed.startsWith("mailto:") &&
+    !lowerTrimmed.startsWith("tel:")
+  ) {
+    return `https://${trimmed}`;
+  }
+
+  return trimmed;
 }

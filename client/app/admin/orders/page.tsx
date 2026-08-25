@@ -730,12 +730,14 @@ export default function AdminOrdersPage() {
                                   {item.size || item.selectedVariantLabel || "Standard"}
                                 </span>
                                 {item.color && (
-                                  <span className="inline-flex items-center gap-1 text-[11px] font-bold font-mono text-maroon-800 bg-off-white border border-maroon-200 px-2 py-0.5 rounded">
+                                  <span
+                                    className="inline-flex items-center text-[11px] font-bold text-maroon-800 bg-off-white border border-maroon-200 p-0.5 rounded shadow-2xs"
+                                    title={`Color: ${item.color}`}
+                                  >
                                     <span
-                                      className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0"
+                                      className="w-3.5 h-3.5 rounded-xs border border-black/20 shrink-0"
                                       style={{ backgroundColor: item.color }}
                                     />
-                                    <span className="uppercase">{item.color}</span>
                                   </span>
                                 )}
                               </div>

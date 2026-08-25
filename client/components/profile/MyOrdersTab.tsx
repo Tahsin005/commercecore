@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import {
   ShoppingBag,
-  Loader2,
   ChevronRight,
   X,
   Calendar,
@@ -41,9 +40,85 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
 
   if (isOrdersLoading) {
     return (
-      <div className="p-12 text-center text-maroon-700 flex flex-col items-center justify-center space-y-2 bg-white rounded-2xl border border-maroon-100 shadow-sm">
-        <Loader2 className="w-8 h-8 animate-spin text-maroon-800" />
-        <p className="text-xs font-medium">{t.common.loading || "Loading your orders..."}</p>
+      <div className="space-y-4 max-w-full animate-pulse">
+        <div className="block md:hidden space-y-3.5">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl border border-maroon-100 p-4 shadow-sm space-y-3"
+            >
+              <div className="flex items-start justify-between gap-2 border-b border-maroon-100/70 pb-2.5">
+                <div className="space-y-1.5">
+                  <div className="w-28 h-4 bg-maroon-200/60 rounded" />
+                  <div className="w-20 h-3 bg-maroon-100/60 rounded" />
+                </div>
+                <div className="w-20 h-5 bg-amber-100/70 rounded-full" />
+              </div>
+
+              <div className="bg-off-white/80 p-2.5 rounded-xl border border-maroon-100/60 space-y-2">
+                <div className="w-24 h-3 bg-maroon-100/60 rounded" />
+                <div className="flex justify-between items-center">
+                  <div className="w-36 h-3.5 bg-maroon-200/60 rounded" />
+                  <div className="w-14 h-3.5 bg-maroon-200/60 rounded" />
+                </div>
+              </div>
+
+              <div className="pt-1 flex items-center justify-between gap-2">
+                <div className="space-y-1">
+                  <div className="w-16 h-2.5 bg-maroon-100/50 rounded" />
+                  <div className="w-20 h-5 bg-maroon-200/70 rounded" />
+                </div>
+                <div className="w-24 h-8 bg-maroon-900/30 rounded-xl" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden md:block bg-white rounded-2xl border border-maroon-100 shadow-sm overflow-hidden w-full max-w-full">
+          <div className="w-full">
+            <div className="bg-maroon-900 px-4 py-3.5 grid grid-cols-12 gap-4">
+              <div className="col-span-3 h-4 bg-maroon-800/80 rounded w-24" />
+              <div className="col-span-4 h-4 bg-maroon-800/80 rounded w-32" />
+              <div className="col-span-2 h-4 bg-maroon-800/80 rounded w-16 mx-auto" />
+              <div className="col-span-2 h-4 bg-maroon-800/80 rounded w-20 ml-auto" />
+              <div className="col-span-1 h-4 bg-maroon-800/80 rounded w-12 mx-auto" />
+            </div>
+
+            <div className="divide-y divide-maroon-100">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="px-4 py-4 grid grid-cols-12 gap-4 items-center">
+                  <div className="col-span-3 space-y-1.5">
+                    <div className="w-28 h-4 bg-maroon-200/70 rounded" />
+                    <div className="w-20 h-3 bg-maroon-100/60 rounded" />
+                  </div>
+
+                  <div className="col-span-4 space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <div className="w-40 h-3.5 bg-maroon-200/60 rounded" />
+                      <div className="w-14 h-3.5 bg-maroon-200/60 rounded" />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="w-32 h-3 bg-maroon-100/50 rounded" />
+                      <div className="w-12 h-3 bg-maroon-100/50 rounded" />
+                    </div>
+                  </div>
+
+                  <div className="col-span-2 flex justify-center">
+                    <div className="w-20 h-6 bg-amber-100/60 rounded-full" />
+                  </div>
+
+                  <div className="col-span-2 flex justify-end">
+                    <div className="w-20 h-5 bg-maroon-200/70 rounded" />
+                  </div>
+
+                  <div className="col-span-1 flex justify-center">
+                    <div className="w-20 h-7 bg-maroon-100/70 border border-maroon-200/60 rounded-lg" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -126,12 +201,14 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                           <span>{name}</span>
                           <span className="text-maroon-600 font-mono text-[10px]">({size})</span>
                           {item.color && (
-                            <span className="inline-flex items-center gap-1 text-[9px] font-bold font-mono text-maroon-800 bg-white border border-maroon-200 px-1 rounded-sm">
+                            <span
+                              className="inline-flex items-center text-[9px] font-bold text-maroon-800 bg-white border border-maroon-200 p-0.5 rounded shrink-0 shadow-2xs"
+                              title={`Color: ${item.color}`}
+                            >
                               <span
-                                className="w-1.5 h-1.5 rounded-full border border-black/20 shrink-0"
+                                className="w-2.5 h-2.5 rounded-xs border border-black/20 shrink-0"
                                 style={{ backgroundColor: item.color }}
                               />
-                              <span className="uppercase">{item.color}</span>
                             </span>
                           )}
                           <span>× {item.quantity}</span>
@@ -215,12 +292,14 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                                 <span>{name}</span>
                                 <span>({size})</span>
                                 {item.color && (
-                                  <span className="inline-flex items-center gap-1 text-[9px] font-bold font-mono text-maroon-800 bg-white border border-maroon-200 px-1 rounded-sm">
+                                  <span
+                                    className="inline-flex items-center text-[9px] font-bold text-maroon-800 bg-white border border-maroon-200 p-0.5 rounded shrink-0 shadow-2xs"
+                                    title={`Color: ${item.color}`}
+                                  >
                                     <span
-                                      className="w-1.5 h-1.5 rounded-full border border-black/20 shrink-0"
+                                      className="w-2.5 h-2.5 rounded-xs border border-black/20 shrink-0"
                                       style={{ backgroundColor: item.color }}
                                     />
-                                    <span className="uppercase">{item.color}</span>
                                   </span>
                                 )}
                                 <span>× {item.quantity}</span>
@@ -352,12 +431,14 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                             <div className="inline-flex items-center justify-center gap-1.5 flex-wrap">
                               <span>{size}</span>
                               {item.color && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold font-mono text-maroon-800 bg-off-white border border-maroon-200 px-1.5 py-0.5 rounded-sm">
+                                <span
+                                  className="inline-flex items-center text-[10px] font-bold text-maroon-800 bg-off-white border border-maroon-200 p-0.5 rounded shrink-0 shadow-2xs"
+                                  title={`Color: ${item.color}`}
+                                >
                                   <span
-                                    className="w-2 h-2 rounded-full border border-black/20 shrink-0"
+                                    className="w-3.5 h-3.5 rounded-xs border border-black/20 shrink-0"
                                     style={{ backgroundColor: item.color }}
                                   />
-                                  <span className="uppercase">{item.color}</span>
                                 </span>
                               )}
                             </div>
@@ -384,12 +465,14 @@ export function MyOrdersTab({ isAuthenticated }: MyOrdersTabProps) {
                           <p className="text-maroon-600 text-[11px] flex items-center gap-1 flex-wrap">
                             <span className="font-mono text-maroon-700 bg-off-white px-1 rounded border border-maroon-200">{size}</span>
                             {item.color && (
-                              <span className="inline-flex items-center gap-1 text-[9px] font-bold font-mono text-maroon-800 bg-off-white border border-maroon-200 px-1 rounded-sm">
+                              <span
+                                className="inline-flex items-center text-[9px] font-bold text-maroon-800 bg-off-white border border-maroon-200 p-0.5 rounded shrink-0 shadow-2xs"
+                                title={`Color: ${item.color}`}
+                              >
                                 <span
-                                  className="w-1.5 h-1.5 rounded-full border border-black/20 shrink-0"
+                                  className="w-2.5 h-2.5 rounded-xs border border-black/20 shrink-0"
                                   style={{ backgroundColor: item.color }}
                                 />
-                                <span className="uppercase">{item.color}</span>
                               </span>
                             )}
                             <span>× {item.quantity}</span>

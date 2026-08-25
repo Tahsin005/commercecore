@@ -10,6 +10,12 @@ export const getProductsSchema = z.object({
     categoryId: objectIdString.optional(),
     isFeatured: z.enum(['true', 'false']).optional(),
     isActive: z.enum(['true', 'false']).optional(),
+    search: z.string().trim().optional(),
+    sortBy: z.enum(['newest', 'oldest', 'price_asc', 'price_desc', 'name_asc', 'name_desc']).optional(),
+    minPrice: z.preprocess((val) => (val === '' ? undefined : val), z.coerce.number().min(0, 'Min price cannot be negative').finite()).optional(),
+    maxPrice: z.preprocess((val) => (val === '' ? undefined : val), z.coerce.number().min(0, 'Max price cannot be negative').finite()).optional(),
+    page: z.preprocess((val) => (val === '' ? undefined : val), z.coerce.number().int().min(1, 'Page must be at least 1')).optional(),
+    limit: z.preprocess((val) => (val === '' ? undefined : val), z.coerce.number().int().min(1).max(100, 'Limit cannot exceed 100')).optional(),
   }),
 });
 

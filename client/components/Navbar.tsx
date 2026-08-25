@@ -155,29 +155,37 @@ export function Navbar() {
     }
   };
 
+  const brandNameParts = (t.common.rupzonCollection || "Rupzon Collection").split(" ");
+  const brandFirst = brandNameParts[0] || "Rupzon";
+  const brandSecond = brandNameParts.slice(1).join(" ") || "Collection";
+
   return (
     <>
       <header className="sticky top-0 z-40 bg-maroon-900 text-white shadow-lg border-b border-maroon-800 font-sans relative">
         <MarqueeBanner />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-3 shrink-0 group mr-2 sm:mr-4">
-            <div className="p-1.5 bg-white rounded-lg shadow-sm group-hover:bg-cream transition-colors shrink-0">
-              <Image
-                src="/logo.png"
-                alt="Rupzon Collection Logo"
-                width={36}
-                height={36}
-                className="w-7 h-7 object-contain"
-              />
+        <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 h-20 sm:h-22 flex items-center justify-between gap-4">
+          <Link href="/" className="flex items-center space-x-3.5 shrink-0 group mr-2 sm:mr-4">
+            <Image
+              src="/logo.png"
+              alt="Rupzon Collection Logo"
+              width={76}
+              height={76}
+              className="w-14 h-14 sm:w-18 sm:h-18 object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
+              priority
+            />
+            <div className="flex flex-col justify-center leading-none">
+              <span className="font-serif text-lg sm:text-2xl font-bold tracking-tight text-white group-hover:text-cream transition-colors whitespace-nowrap">
+                {brandFirst}
+              </span>
+              <span className="font-serif text-xs sm:text-sm font-semibold tracking-wider text-maroon-200 uppercase group-hover:text-cream transition-colors whitespace-nowrap mt-0.5 sm:mt-1">
+                {brandSecond}
+              </span>
             </div>
-            <span className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-white group-hover:text-cream transition-colors whitespace-nowrap hidden sm:inline">
-              {t.common.rupzonCollection}
-            </span>
           </Link>
 
-          <div ref={searchRef} className="relative flex-1 max-w-xs sm:max-w-md mx-2 sm:mx-6 z-30">
+          <div ref={searchRef} className="relative flex-1 max-w-md md:max-w-xl lg:max-w-2xl xl:max-w-3xl mx-2 sm:mx-6 lg:mx-8 z-30">
             <div className="relative flex items-center">
-              <Search className="w-4 h-4 text-cream/70 absolute left-3 pointer-events-none" />
+              <Search className="w-4 h-4 text-cream/70 absolute left-3.5 pointer-events-none" />
               <input
                 type="text"
                 role="combobox"
@@ -198,9 +206,9 @@ export function Navbar() {
                 onFocus={() => setIsSearchFocused(true)}
                 onKeyDown={handleKeyDown}
                 placeholder={t.home?.searchPlaceholder || "Search products, code..."}
-                className="w-full pl-9 pr-9 py-1.5 bg-maroon-800/80 border border-maroon-700 focus:border-cream rounded-full text-xs text-white placeholder-cream/60 focus:outline-none focus:ring-1 focus:ring-cream/50 transition-all shadow-inner"
+                className="w-full pl-10 pr-10 py-2.5 bg-maroon-800/80 border border-maroon-700 focus:border-cream rounded-full text-xs sm:text-sm text-white placeholder-cream/60 focus:outline-none focus:ring-1 focus:ring-cream/50 transition-all shadow-inner"
               />
-              <div className="absolute right-2.5 flex items-center space-x-1">
+              <div className="absolute right-3 flex items-center space-x-1">
                 {(isSearchLoading || isSearchFetching || isDebouncing) && (
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-cream/80" />
                 )}
@@ -221,7 +229,7 @@ export function Navbar() {
             </div>
 
             {showDropdown && (
-              <div className="fixed inset-x-3 top-[5.25rem] sm:absolute sm:top-full sm:inset-x-auto sm:left-0 sm:right-0 sm:mt-2 bg-white text-maroon-900 rounded-2xl sm:rounded-xl shadow-2xl border border-maroon-100 overflow-hidden z-50 animate-in fade-in-50 slide-in-from-top-1 duration-150">
+              <div className="fixed inset-x-3 top-[6rem] sm:absolute sm:top-full sm:inset-x-auto sm:left-0 sm:right-0 sm:mt-2 bg-white text-maroon-900 rounded-2xl sm:rounded-xl shadow-2xl border border-maroon-100 overflow-hidden z-50 animate-in fade-in-50 slide-in-from-top-1 duration-150">
                 {searchResults.length > 0 ? (
                   <div id="searchScrollableDiv" className="max-h-[60vh] sm:max-h-80 overflow-y-auto scrollbar-thin">
                     <div id="search-results-listbox" role="listbox" aria-label={t.navbar?.categories || "Search Results"}>
@@ -321,7 +329,7 @@ export function Navbar() {
           <div className="hidden lg:flex items-center space-x-3">
             <button
               onClick={toggleLanguage}
-              className="px-2.5 py-1.5 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white font-semibold text-xs rounded-md transition-all flex items-center space-x-1.5 cursor-pointer shadow-xs"
+              className="px-3 py-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white font-semibold text-xs rounded-lg transition-all flex items-center space-x-1.5 cursor-pointer shadow-xs"
               title={language === "bn" ? "Switch to English" : "বাংলায় পরিবর্তন করুন"}
             >
               <Globe className="w-3.5 h-3.5 text-cream" />
@@ -330,7 +338,7 @@ export function Navbar() {
 
             <button
               onClick={openCartDrawer}
-              className="px-3.5 py-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white font-medium text-xs rounded-md transition-all flex items-center space-x-2 cursor-pointer shadow-sm whitespace-nowrap"
+              className="px-4 py-2.5 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white font-medium text-xs rounded-lg transition-all flex items-center space-x-2 cursor-pointer shadow-sm whitespace-nowrap"
               title={t.navbar.openCart}
             >
               <ShoppingCart className="w-4 h-4 text-cream" />
@@ -346,7 +354,7 @@ export function Navbar() {
 
             <button
               onClick={openWishlistDrawer}
-              className="px-3.5 py-2 bg-maroon-800 hover:bg-maroon-700 active:scale-[0.98] border border-maroon-700 text-cream font-medium text-xs rounded-md flex items-center space-x-2 shadow-sm whitespace-nowrap cursor-pointer transition-all"
+              className="px-4 py-2.5 bg-maroon-800 hover:bg-maroon-700 active:scale-[0.98] border border-maroon-700 text-cream font-medium text-xs rounded-lg flex items-center space-x-2 shadow-sm whitespace-nowrap cursor-pointer transition-all"
               title={t.navbar.wishlist}
             >
               <Heart className={`w-4 h-4 text-cream ${wishlistCount > 0 ? "fill-cream" : ""}`} />
@@ -370,7 +378,7 @@ export function Navbar() {
                   <div className="flex items-center space-x-2 pl-2 border-l border-maroon-700">
                     <Link
                       href="/profile"
-                      className="px-2.5 py-1.5 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 rounded-md text-cream hover:text-white text-xs transition-all flex items-center space-x-1.5 cursor-pointer max-w-[140px]"
+                      className="px-3 py-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 rounded-lg text-cream hover:text-white text-xs transition-all flex items-center space-x-1.5 cursor-pointer max-w-[140px]"
                       title={t.navbar.profileTooltip || "View Profile & Orders"}
                     >
                       <User className="w-3.5 h-3.5 text-cream shrink-0" />
@@ -378,7 +386,7 @@ export function Navbar() {
                     </Link>
                     <button
                       onClick={handleLogoutClick}
-                      className="p-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white rounded-md text-xs transition-all flex items-center space-x-1 cursor-pointer"
+                      className="p-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white rounded-lg text-xs transition-all flex items-center space-x-1 cursor-pointer"
                       title={t.navbar.signOut}
                     >
                       <LogOut className="w-4 h-4" />
@@ -387,7 +395,7 @@ export function Navbar() {
                 ) : (
                   <Link
                     href="/login"
-                    className="px-3.5 py-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white font-medium text-xs rounded-md transition-all flex items-center space-x-1.5 whitespace-nowrap"
+                    className="px-4 py-2.5 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 text-cream hover:text-white font-medium text-xs rounded-lg transition-all flex items-center space-x-1.5 whitespace-nowrap"
                   >
                     <LogIn className="w-3.5 h-3.5" />
                     <span>{t.navbar.signIn}</span>
@@ -396,7 +404,7 @@ export function Navbar() {
               </div>
             ) : (
               <div className="flex items-center space-x-2 animate-pulse">
-                <div className="w-20 h-8 bg-maroon-800/80 border border-maroon-700/60 rounded-md" />
+                <div className="w-20 h-9 bg-maroon-800/80 border border-maroon-700/60 rounded-lg" />
               </div>
             )}
           </div>
@@ -404,7 +412,7 @@ export function Navbar() {
           <div className="flex items-center space-x-2 lg:hidden">
             <button
               onClick={toggleLanguage}
-              className="p-2 bg-maroon-800 border border-maroon-700 rounded-md text-cream font-bold text-xs flex items-center space-x-1"
+              className="hidden min-[500px]:flex p-2.5 bg-maroon-800 border border-maroon-700 rounded-lg text-cream font-bold text-xs items-center space-x-1"
               title={language === "bn" ? "Switch to English" : "বাংলায় পরিবর্তন করুন"}
             >
               <Globe className="w-4 h-4 text-cream" />
@@ -413,7 +421,7 @@ export function Navbar() {
 
             <button
               onClick={openWishlistDrawer}
-              className="relative p-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 rounded-md text-cream flex items-center justify-center cursor-pointer transition-colors"
+              className="hidden min-[500px]:flex relative p-2.5 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 rounded-lg text-cream items-center justify-center cursor-pointer transition-colors"
               title={t.navbar.wishlist}
             >
               <Heart className={`w-4 h-4 text-cream ${wishlistCount > 0 ? "fill-cream" : ""}`} />
@@ -428,7 +436,7 @@ export function Navbar() {
 
             <button
               onClick={openCartDrawer}
-              className="relative p-2 bg-maroon-800 border border-maroon-700 rounded-md text-cream flex items-center justify-center cursor-pointer"
+              className="relative p-2.5 bg-maroon-800 border border-maroon-700 rounded-lg text-cream flex items-center justify-center cursor-pointer"
               title={t.navbar.openCart}
             >
               <ShoppingCart className="w-4 h-4" />
@@ -443,7 +451,7 @@ export function Navbar() {
 
             <button
               onClick={toggleMobileMenu}
-              className="p-2 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 rounded-md text-cream hover:text-white transition-all cursor-pointer"
+              className="p-2.5 bg-maroon-800 hover:bg-maroon-700 border border-maroon-700 rounded-lg text-cream hover:text-white transition-all cursor-pointer"
               aria-label={t.navbar.toggleMenu}
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -463,6 +471,41 @@ export function Navbar() {
                 <span>{t.navbar.profile || "My Profile"}</span>
               </Link>
             )}
+
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                openWishlistDrawer();
+              }}
+              className="min-[500px]:hidden w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-maroon-800 text-cream text-xs font-semibold uppercase tracking-wider cursor-pointer text-left"
+            >
+              <div className="flex items-center space-x-2">
+                <Heart className={`w-4 h-4 text-cream ${wishlistCount > 0 ? "fill-cream" : ""}`} />
+                <span>{t.navbar.wishlist}</span>
+              </div>
+              {isHydrated && wishlistCount > 0 && (
+                <span className="bg-cream text-maroon-900 font-extrabold text-[10px] min-w-[20px] h-[20px] px-1 rounded-full flex items-center justify-center border border-maroon-900 shadow">
+                  {wishlistCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                toggleLanguage();
+              }}
+              className="min-[500px]:hidden w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-maroon-800 text-cream text-xs font-semibold uppercase tracking-wider cursor-pointer text-left"
+            >
+              <div className="flex items-center space-x-2">
+                <Globe className="w-4 h-4 text-cream" />
+                <span>{language === "bn" ? "English Version" : "বাংলা সংস্করণ"}</span>
+              </div>
+              <span className="font-mono text-[10px] bg-maroon-800 border border-maroon-700 px-2 py-0.5 rounded text-cream">
+                {language === "bn" ? "EN" : "বাংলা"}
+              </span>
+            </button>
 
             <Link
               href="/checkout"

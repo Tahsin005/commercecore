@@ -260,12 +260,14 @@ export function WishlistDrawer({ isOpen, onClose }: WishlistDrawerProps) {
                           </span>
                         )}
                         {item.color && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold font-mono text-maroon-800 bg-white border border-maroon-200 px-1.5 py-0.2 rounded-sm shrink-0">
+                          <span
+                            className="inline-flex items-center text-[10px] font-bold text-maroon-800 bg-white border border-maroon-200 p-0.5 rounded shrink-0 shadow-2xs"
+                            title={`Color: ${item.color}`}
+                          >
                             <span
-                              className="w-2 h-2 rounded-full border border-black/20 shrink-0"
+                              className="w-3.5 h-3.5 rounded-xs border border-black/20 shrink-0"
                               style={{ backgroundColor: item.color }}
                             />
-                            <span className="uppercase">{item.color}</span>
                           </span>
                         )}
                         <span className="text-xs font-mono text-maroon-700 font-bold">

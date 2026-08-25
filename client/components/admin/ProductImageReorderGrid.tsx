@@ -10,6 +10,7 @@ import {
   Sparkles,
   Info,
   Palette,
+  Crop,
 } from "lucide-react";
 
 interface ProductImageReorderGridProps {
@@ -18,6 +19,7 @@ interface ProductImageReorderGridProps {
   onReorder: (newImages: string[], newColors: string[]) => void;
   onRemove: (index: number) => void;
   onColorChange?: (index: number, newColor: string) => void;
+  onReframe?: (index: number) => void;
 }
 
 export function ProductImageReorderGrid({
@@ -26,6 +28,7 @@ export function ProductImageReorderGrid({
   onReorder,
   onRemove,
   onColorChange,
+  onReframe,
 }: ProductImageReorderGridProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -178,17 +181,33 @@ export function ProductImageReorderGrid({
                   </span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove(idx);
-                  }}
-                  className="absolute top-1.5 right-1.5 p-1 bg-red-600/90 hover:bg-red-700 text-white rounded-full transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-red-500 focus-visible:outline-none shadow-md hover:scale-110 z-10"
-                  title="Remove image"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+                <div className="absolute top-1.5 right-1.5 flex items-center space-x-1 z-10">
+                  {onReframe && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onReframe(idx);
+                      }}
+                      className="p-1 bg-maroon-900/90 hover:bg-maroon-800 text-white rounded-full transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-maroon-500 focus-visible:outline-none shadow-md hover:scale-110"
+                      title="Reframe / Crop image"
+                    >
+                      <Crop className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemove(idx);
+                    }}
+                    className="p-1 bg-red-600/90 hover:bg-red-700 text-white rounded-full transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-red-500 focus-visible:outline-none shadow-md hover:scale-110"
+                    title="Remove image"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
 
                 {isCover ? (
                   <div className="absolute bottom-0 inset-x-0 bg-emerald-600/95 text-white text-[9px] font-bold text-center py-0.5 uppercase tracking-wider shadow-xs flex items-center justify-center gap-1">

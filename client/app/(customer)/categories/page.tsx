@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -19,6 +19,8 @@ import {
   Layers,
   ShoppingCart,
   ShoppingBag,
+  Sparkles,
+  ListFilter,
 } from "lucide-react";
 
 import { useWishlist } from "@/hooks/useWishlist";
@@ -28,6 +30,7 @@ import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { isProductOnSale, getProductEffectivePrice, getProductDiscountPercentage } from "@/lib/discount";
 import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
 import { ProductCardImageSlider } from "@/components/ProductCardImageSlider";
+import { PriceRangeSlider } from "@/components/PriceRangeSlider";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function CategoriesPage() {
@@ -36,6 +39,8 @@ export default function CategoriesPage() {
   const [sortBy, setSortBy] = useState<string>("newest");
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
+  const [appliedMinPrice, setAppliedMinPrice] = useState<string>("");
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState<string>("");
   const [page, setPage] = useState<number>(1);
   const limit = 12;
 
@@ -59,14 +64,16 @@ export default function CategoriesPage() {
     categoryId: selectedCategory === "all" ? undefined : selectedCategory,
     search: searchQuery,
     sortBy,
-    minPrice: minPrice !== "" ? minPrice : undefined,
-    maxPrice: maxPrice !== "" ? maxPrice : undefined,
+    minPrice: appliedMinPrice !== "" ? appliedMinPrice : undefined,
+    maxPrice: appliedMaxPrice !== "" ? appliedMaxPrice : undefined,
     page,
     limit,
   });
 
   const products = response?.data?.products || [];
   const pagination = response?.data?.pagination;
+  const minBound = response?.data?.priceBounds?.minPrice ?? 10;
+  const maxBound = response?.data?.priceBounds?.maxPrice ?? 99999;
   const totalProducts = pagination?.totalProducts ?? products.length;
   const totalPages = pagination?.totalPages ?? 1;
   const currentPage = pagination?.currentPage ?? page;
@@ -89,14 +96,28 @@ export default function CategoriesPage() {
     setPage(1);
   };
 
-  const handleMinPriceChange = (val: string) => {
-    setMinPrice(val);
-    setPage(1);
-  };
+  const [isPricePopoverOpen, setIsPricePopoverOpen] = useState<boolean>(false);
+  const pricePopoverRef = useRef<HTMLDivElement>(null);
 
-  const handleMaxPriceChange = (val: string) => {
-    setMaxPrice(val);
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (pricePopoverRef.current && !pricePopoverRef.current.contains(e.target as Node)) {
+        setIsPricePopoverOpen(false);
+      }
+    };
+    if (isPricePopoverOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isPricePopoverOpen]);
+
+  const handleApplyFilters = () => {
+    setAppliedMinPrice(minPrice);
+    setAppliedMaxPrice(maxPrice);
     setPage(1);
+    setIsPricePopoverOpen(false);
   };
 
   const handleClearFilters = () => {
@@ -105,19 +126,22 @@ export default function CategoriesPage() {
     setSortBy("newest");
     setMinPrice("");
     setMaxPrice("");
+    setAppliedMinPrice("");
+    setAppliedMaxPrice("");
     setPage(1);
+    setIsPricePopoverOpen(false);
   };
 
   const hasActiveFilters =
     selectedCategory !== "all" ||
     searchQuery.trim() !== "" ||
     sortBy !== "newest" ||
-    minPrice !== "" ||
-    maxPrice !== "";
+    appliedMinPrice !== "" ||
+    appliedMaxPrice !== "";
 
   return (
     <div className="min-h-screen bg-off-white text-text-main flex flex-col font-sans">
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 w-full flex-1 space-y-8">
+      <main className="w-full max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 py-6 flex-1 space-y-8">
         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-maroon-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center space-x-2 text-maroon-800">
@@ -154,7 +178,7 @@ export default function CategoriesPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={() => handleCategorySelect("all")}
@@ -230,9 +254,9 @@ export default function CategoriesPage() {
           </div>
         ) : null}
 
-        <div className="bg-white p-4 rounded-2xl border border-maroon-100 shadow-sm space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-            <div className="relative md:col-span-5">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-maroon-100 shadow-sm space-y-3">
+          <div className="flex flex-col md:flex-row items-center gap-3">
+            <div className="relative flex-1 w-full">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-maroon-500">
                 <Search className="w-4 h-4" />
               </div>
@@ -241,7 +265,7 @@ export default function CategoriesPage() {
                 placeholder={t.home.searchPlaceholder || "Search by product title or description..."}
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-10 pr-9 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs placeholder-maroon-500/70 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all font-medium"
+                className="w-full pl-10 pr-9 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs placeholder-maroon-500/70 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all font-medium h-11 shadow-2xs"
               />
               {searchQuery && (
                 <button
@@ -254,14 +278,14 @@ export default function CategoriesPage() {
               )}
             </div>
 
-            <div className="relative md:col-span-4 flex items-center">
+            <div className="relative w-full md:w-56 shrink-0">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-maroon-500">
                 <ArrowUpDown className="w-3.5 h-3.5" />
               </div>
               <select
                 value={sortBy}
                 onChange={(e) => handleSortChange(e.target.value)}
-                className="w-full pl-9 pr-8 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs font-medium focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all cursor-pointer appearance-none"
+                className="w-full pl-9 pr-8 py-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs font-medium focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all cursor-pointer appearance-none h-11 shadow-2xs"
               >
                 <option value="newest">{t.home.sortNewest || "Newest First"}</option>
                 <option value="price_asc">{t.home.sortPriceLowToHigh || "Price: Low to High"}</option>
@@ -275,37 +299,161 @@ export default function CategoriesPage() {
               </div>
             </div>
 
-            <div className="md:col-span-3 flex items-center space-x-2">
-              <div className="flex items-center space-x-1.5 flex-1 min-w-0">
-                <input
-                  type="number"
-                  placeholder={t.home.minPrice || "Min ৳"}
-                  value={minPrice}
-                  onChange={(e) => handleMinPriceChange(e.target.value)}
-                  className="w-full py-2 px-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs placeholder-maroon-500/70 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all font-mono"
-                />
-                <span className="text-maroon-400 text-xs font-bold">-</span>
-                <input
-                  type="number"
-                  placeholder={t.home.maxPrice || "Max ৳"}
-                  value={maxPrice}
-                  onChange={(e) => handleMaxPriceChange(e.target.value)}
-                  className="w-full py-2 px-2.5 bg-off-white text-maroon-900 border border-maroon-200 rounded-xl text-xs placeholder-maroon-500/70 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 transition-all font-mono"
-                />
-              </div>
+            <div className="relative w-full md:w-auto shrink-0" ref={pricePopoverRef}>
+              <button
+                type="button"
+                onClick={() => setIsPricePopoverOpen((prev) => !prev)}
+                className={`w-full md:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-between md:justify-center space-x-2.5 border h-11 shadow-2xs ${
+                  appliedMinPrice !== "" || appliedMaxPrice !== ""
+                    ? "bg-maroon-900 text-cream border-maroon-900 shadow-xs"
+                    : isPricePopoverOpen
+                    ? "bg-maroon-50 text-maroon-900 border-maroon-300 ring-2 ring-maroon-800/20"
+                    : "bg-off-white hover:bg-maroon-50 text-maroon-900 border-maroon-200"
+                }`}
+              >
+                <div className="flex items-center space-x-1.5">
+                  <Sparkles className={`w-3.5 h-3.5 ${appliedMinPrice !== "" || appliedMaxPrice !== "" ? "text-cream" : "text-maroon-700"}`} />
+                  <span>
+                    {appliedMinPrice !== "" || appliedMaxPrice !== ""
+                      ? `৳${Number(appliedMinPrice || minBound).toLocaleString()} - ৳${Number(appliedMaxPrice || maxBound).toLocaleString()}`
+                      : t.home.priceFilter || "Price Range"}
+                  </span>
+                </div>
+                <ChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 ${isPricePopoverOpen ? "-rotate-90" : "rotate-90"} ${appliedMinPrice !== "" || appliedMaxPrice !== "" ? "text-cream/80" : "text-maroon-500"}`} />
+              </button>
 
-              {hasActiveFilters && (
-                <button
-                  type="button"
-                  onClick={handleClearFilters}
-                  className="p-2 bg-maroon-50 hover:bg-maroon-100 text-maroon-800 border border-maroon-200 rounded-xl transition-colors cursor-pointer shrink-0"
-                  title={t.home.clearFilters || "Clear Filters"}
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
+              {isPricePopoverOpen && (
+                <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-white rounded-2xl border border-maroon-100 shadow-2xl p-5 z-50 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="flex items-center justify-between pb-2 border-b border-maroon-100">
+                    <span className="font-serif font-bold text-xs text-maroon-900 flex items-center space-x-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-maroon-700" />
+                      <span>{t.home.priceFilter || "Price Range"}</span>
+                    </span>
+                    {(minPrice !== "" || maxPrice !== "" || appliedMinPrice !== "" || appliedMaxPrice !== "") && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMinPrice("");
+                          setMaxPrice("");
+                          setAppliedMinPrice("");
+                          setAppliedMaxPrice("");
+                          setPage(1);
+                        }}
+                        className="text-[10px] font-bold text-maroon-600 hover:text-maroon-900 cursor-pointer underline"
+                      >
+                        {t.home.clearFilters || "Reset"}
+                      </button>
+                    )}
+                  </div>
+
+                  <PriceRangeSlider
+                    minBound={minBound}
+                    maxBound={maxBound}
+                    minPrice={minPrice}
+                    maxPrice={maxPrice}
+                    showPresets={true}
+                    onChange={(min, max) => {
+                      setMinPrice(min);
+                      setMaxPrice(max);
+                    }}
+                  />
+
+                  <div className="pt-2 border-t border-maroon-100 flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={handleApplyFilters}
+                      className="flex-1 py-2.5 bg-maroon-900 hover:bg-maroon-800 text-cream font-bold text-xs rounded-xl shadow-xs cursor-pointer transition-all flex items-center justify-center space-x-1.5"
+                    >
+                      <ListFilter className="w-3.5 h-3.5" />
+                      <span>{t.home.applyFilters || "Apply Filters"}</span>
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="p-2.5 bg-maroon-50 hover:bg-maroon-100 text-maroon-800 border border-maroon-200 rounded-xl transition-colors cursor-pointer shrink-0 h-11 flex items-center justify-center shadow-2xs"
+                title={t.home.clearFilters || "Clear Filters"}
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            )}
           </div>
+
+          {hasActiveFilters && (
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-maroon-100">
+              <span className="text-[11px] font-bold text-maroon-600 uppercase tracking-wider">
+                {t.home?.filtersLabel || "Filters:"}
+              </span>
+              {selectedCategory !== "all" && (
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-maroon-900 text-cream text-xs rounded-full shadow-2xs">
+                  <span>{sortedCategories.find((c) => c.id === selectedCategory)?.name || "Category"}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCategorySelect("all")}
+                    className="hover:text-white cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </span>
+              )}
+              {appliedMinPrice !== "" && (
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-maroon-800 text-cream text-xs rounded-full shadow-2xs">
+                  <span>{t.home?.minPrice || "Min"}: ৳{appliedMinPrice}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMinPrice("");
+                      setAppliedMinPrice("");
+                      setPage(1);
+                    }}
+                    className="hover:text-white cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </span>
+              )}
+              {appliedMaxPrice !== "" && (
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-maroon-800 text-cream text-xs rounded-full shadow-2xs">
+                  <span>{t.home?.maxPrice || "Max"}: ৳{appliedMaxPrice}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMaxPrice("");
+                      setAppliedMaxPrice("");
+                      setPage(1);
+                    }}
+                    className="hover:text-white cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </span>
+              )}
+              {searchQuery && (
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-maroon-800 text-cream text-xs rounded-full shadow-2xs">
+                  <span>&quot;{searchQuery}&quot;</span>
+                  <button
+                    type="button"
+                    onClick={() => handleSearchChange("")}
+                    className="hover:text-white cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="text-xs font-bold text-maroon-700 hover:text-maroon-900 underline ml-2 cursor-pointer"
+              >
+                {t.home?.resetAllFilters || "Reset All"}
+              </button>
+            </div>
+          )}
         </div>
 
         {isLoading && <ProductGridSkeleton count={8} />}
@@ -338,7 +486,7 @@ export default function CategoriesPage() {
 
         {!isLoading && !error && products.length > 0 && (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
               {products.map((product) => {
                 const defaultColor = (product.colors && product.colors.length > 0 && product.colors[0]) ? product.colors[0] : undefined;
                 const wishlisted = isInWishlist(product.id, defaultColor);
@@ -358,7 +506,7 @@ export default function CategoriesPage() {
                 return (
                   <div
                     key={productId}
-                    className="bg-white rounded-xl shadow-md border border-maroon-100 hover:shadow-xl transition-all flex flex-col justify-between group relative"
+                    className="bg-white rounded-xl shadow-xs border border-maroon-100 hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden"
                   >
                     {hasDiscount && (
                       <span className="absolute -top-2.5 -right-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-mono text-[10px] font-black tracking-wider px-2 py-0.5 rounded-md shadow-md border-2 border-white uppercase z-20 pointer-events-none">
@@ -366,7 +514,7 @@ export default function CategoriesPage() {
                       </span>
                     )}
 
-                    <div className="relative">
+                    <div className="relative overflow-hidden rounded-t-xl">
                       <ProductCardImageSlider
                         images={product.images}
                         productName={product.name}

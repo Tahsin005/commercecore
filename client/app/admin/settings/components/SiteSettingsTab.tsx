@@ -14,7 +14,7 @@ import {
   MarqueeInput,
   FooterSettingsInput,
 } from "@/lib/validations/settings";
-import { PRESELECTED_SOCIAL_ICONS, SocialIcon, getSocialIcon } from "@/components/common/SocialIcon";
+import { PRESELECTED_SOCIAL_ICONS, SocialIcon, getSocialIcon, formatSocialLink } from "@/components/common/SocialIcon";
 
 export function SiteSettingsTab() {
   const { data: settings, isLoading } = useSiteSettingsQuery();
@@ -103,16 +103,28 @@ export function SiteSettingsTab() {
   };
 
   const onAddSocialLink = () => {
-    const trimmedUrl = linkUrl.trim();
-    if (!trimmedUrl) {
-      toast.error("Please enter a link URL");
+    const trimmedInput = linkUrl.trim();
+    if (!trimmedInput) {
+      toast.error(selectedIconId === "whatsapp" ? "Please enter a WhatsApp number" : "Please enter a link URL");
       return;
     }
 
+    if (selectedIconId === "whatsapp") {
+      const lower = trimmedInput.toLowerCase();
+      const isDirectWaUrl = lower.startsWith("http://") || lower.startsWith("https://") || lower.startsWith("whatsapp://");
+      const cleanDigits = trimmedInput.replace(/[^0-9]/g, "");
+      if (!isDirectWaUrl && cleanDigits.length < 5) {
+        toast.error("Please enter a valid WhatsApp phone number");
+        return;
+      }
+    }
+
     const iconOption = getSocialIcon(selectedIconId);
+    const finalUrl = formatSocialLink(selectedIconId, trimmedInput);
+
     const newLink: SocialLinkItem = {
       icon: selectedIconId,
-      url: trimmedUrl,
+      url: finalUrl,
       label: customLabel.trim() || iconOption?.name || selectedIconId,
     };
 
@@ -327,7 +339,7 @@ export function SiteSettingsTab() {
 
               <div className="sm:col-span-4">
                 <label className="block text-[11px] font-semibold text-maroon-900 mb-1">
-                  Link URL <span className="text-red-500">*</span>
+                  {selectedIconId === "whatsapp" ? "WhatsApp Number" : "Link URL"} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -339,7 +351,11 @@ export function SiteSettingsTab() {
                       onAddSocialLink();
                     }
                   }}
-                  placeholder={currentSelectedOption.placeholder}
+                  placeholder={
+                    selectedIconId === "whatsapp"
+                      ? "01700000000 or +8801700000000"
+                      : currentSelectedOption.placeholder
+                  }
                   className="w-full px-3 py-2 bg-white text-maroon-900 border border-maroon-200 rounded-lg text-xs focus:ring-2 focus:ring-maroon-700"
                 />
               </div>
@@ -366,6 +382,7 @@ export function SiteSettingsTab() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
               {socialLinks.map((item, idx) => {
                 const opt = getSocialIcon(item.icon);
+                const activeUrl = formatSocialLink(item.icon, item.url);
                 return (
                   <div
                     key={`${item.icon}-${idx}`}
@@ -380,11 +397,11 @@ export function SiteSettingsTab() {
                           {item.label || opt?.name || item.icon}
                         </p>
                         <a
-                          href={item.url}
+                          href={activeUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[11px] text-maroon-600 hover:text-maroon-900 truncate flex items-center space-x-0.5"
-                          title={item.url}
+                          title={activeUrl}
                         >
                           <span className="truncate max-w-[140px]">{item.url}</span>
                           <ExternalLink className="w-2.5 h-2.5 shrink-0 opacity-60" />
