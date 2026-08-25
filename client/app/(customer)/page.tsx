@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import {
   Package,
   Tag,
@@ -20,7 +19,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { useProductsQuery, useGlobalVariantsQuery, Product } from "@/hooks/useProductQueries";
+import { useProductsQuery, useGlobalVariantsQuery } from "@/hooks/useProductQueries";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { HomepageBanners } from "@/components/HomepageBanners";
 import { ProductGridSkeleton } from "@/components/skeletons";
@@ -80,8 +79,6 @@ export default function Home() {
   const totalProducts = pagination?.totalProducts ?? products.length;
   const totalPages = pagination?.totalPages ?? 1;
   const currentPage = pagination?.currentPage ?? page;
-
-  const router = useRouter();
 
   const handleCategorySelect = (catId: string) => {
     setSelectedCategory(catId);

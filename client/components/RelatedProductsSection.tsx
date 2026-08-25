@@ -1,7 +1,7 @@
 "use client";
 
 import { ProductCard } from "@/components/ProductCard";
-import { useProductsQuery, Product } from "@/hooks/useProductQueries";
+import { useProductsQuery } from "@/hooks/useProductQueries";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface RelatedProductsSectionProps {

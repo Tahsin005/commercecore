@@ -1,13 +1,9 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
 import {
   Package,
-  Eye,
   Tag,
   Search,
   ArrowUpDown,
@@ -20,7 +16,7 @@ import {
   ListFilter,
 } from "lucide-react";
 
-import { useProductsQuery, Product } from "@/hooks/useProductQueries";
+import { useProductsQuery } from "@/hooks/useProductQueries";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { CategoriesSkeleton, ProductGridSkeleton } from "@/components/skeletons";
 import { ProductCard } from "@/components/ProductCard";
@@ -70,8 +66,6 @@ export default function CategoriesPage() {
   const totalProducts = pagination?.totalProducts ?? products.length;
   const totalPages = pagination?.totalPages ?? 1;
   const currentPage = pagination?.currentPage ?? page;
-
-  const router = useRouter();
 
   const handleCategorySelect = (catId: string) => {
     setSelectedCategory(catId);

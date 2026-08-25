@@ -30,7 +30,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
       ? product.colors[0]
       : undefined;
   const targetWishlistId = selectedVariant?.id || product.id;
-  const wishlisted = isInWishlist(targetWishlistId, defaultColor) || isInWishlist(product.id, defaultColor);
+  const wishlisted = isInWishlist(targetWishlistId, defaultColor);
 
   const { regularPrice, hasDiscount, discountPercent, effectivePrice } =
     getProductDisplayPricing(product);
@@ -40,6 +40,10 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
   const productId = product.id;
   const productHref = `/product/${productId}`;
+
+  const cartButtonLabel = isOutOfStock
+    ? t.productDetails?.outOfStockMsg || t.common?.outOfStock || "Out of Stock"
+    : t.productDetails?.addToCart || "Add to Cart";
 
   return (
     <div
@@ -138,12 +142,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
               disabled={isOutOfStock}
               onClick={(e) => handleAddToCart(e, product)}
               className="w-8.5 h-8.5 sm:w-9 sm:h-9 bg-off-white hover:bg-maroon-900 text-maroon-900 hover:text-cream border border-maroon-200 hover:border-maroon-900 active:scale-95 rounded-lg transition-all flex items-center justify-center shrink-0 shadow-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed group/cart"
-              title={
-                isOutOfStock
-                  ? t.productDetails?.outOfStockMsg || t.common?.outOfStock || "Out of Stock"
-                  : t.productDetails?.addToCart || "Add to Cart"
-              }
-              aria-label={t.productDetails?.addToCart || "Add to Cart"}
+              title={cartButtonLabel}
+              aria-label={cartButtonLabel}
             >
               <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover/cart:scale-110 text-maroon-800 group-hover/cart:text-cream" />
             </button>
