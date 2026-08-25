@@ -115,6 +115,7 @@ export interface ProductsResponsePayload {
 
 export interface ProductQueryParams {
   categoryId?: string;
+  variantId?: string;
   isFeatured?: boolean;
   search?: string;
   minPrice?: number | string;
@@ -125,9 +126,10 @@ export interface ProductQueryParams {
 }
 
 export function buildProductQueryString(params: ProductQueryParams, pageOverride?: number): string {
-  const { categoryId, isFeatured, search, minPrice, maxPrice, sortBy, page, limit } = params;
+  const { categoryId, variantId, isFeatured, search, minPrice, maxPrice, sortBy, page, limit } = params;
   const urlParams = new URLSearchParams();
   if (categoryId && categoryId !== "all") urlParams.append("categoryId", categoryId);
+  if (variantId && variantId !== "all") urlParams.append("variantId", variantId);
   if (isFeatured) urlParams.append("isFeatured", "true");
   if (search && search.trim()) urlParams.append("search", search.trim());
   if (minPrice !== undefined && minPrice !== "") urlParams.append("minPrice", String(minPrice));
@@ -178,12 +180,13 @@ export function useProductsQuery(
       ? { categoryId: paramsOrCategory, isFeatured: isFeaturedFlag }
       : paramsOrCategory || {};
 
-  const { categoryId, isFeatured, search, minPrice, maxPrice, sortBy, page, limit } = queryParams;
+  const { categoryId, variantId, isFeatured, search, minPrice, maxPrice, sortBy, page, limit } = queryParams;
 
   return useQuery<ApiResponse<ProductsResponsePayload>, ApiError>({
     queryKey: [
       "products",
       categoryId || "all",
+      variantId || "all",
       isFeatured ? "featured" : "all",
       search || "",
       minPrice !== undefined ? String(minPrice) : "",

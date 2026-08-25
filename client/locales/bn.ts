@@ -146,6 +146,11 @@ export const bn = {
     filterBtn: "ফিল্টার",
     filtersModalTitle: "ক্যাটাগরি ও ফিল্টার",
     applyFilters: "ফিল্টার প্রয়োগ করুন",
+    ageRangeFilter: "বয়সের গ্রুপ ফিল্টার",
+    allAges: "সকল বয়স",
+    ageRanges: "বয়সের গ্রুপসমূহ",
+    categoriesTitle: "ক্যাটাগরি সমূহ",
+    browseByCategory: "ক্যাটাগরি অনুযায়ী ব্রাউজ করুন",
   },
 
   // Product Details

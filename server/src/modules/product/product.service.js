@@ -157,6 +157,19 @@ export const getAllProductsService = async (query = {}) => {
   if (query.categoryId) {
     filter.categoryId = query.categoryId;
   }
+  if (query.variantId && query.variantId !== 'all') {
+    const rawIds = Array.isArray(query.variantId) ? query.variantId : query.variantId.split(',').map((s) => s.trim()).filter(Boolean);
+    const validVariantIds = rawIds.filter((id) => mongoose.Types.ObjectId.isValid(id));
+    if (validVariantIds.length > 0) {
+      const links = await ProductVariantLink.find({ productVariantId: { $in: validVariantIds } }).select('productId');
+      const matchedProductIds = links.map((l) => l.productId);
+      if (filter._id) {
+        filter._id = { $in: matchedProductIds.filter((id) => filter._id.$in.map(String).includes(String(id))) };
+      } else {
+        filter._id = { $in: matchedProductIds };
+      }
+    }
+  }
   if (query.isFeatured !== undefined) {
     filter.isFeatured = query.isFeatured === 'true' || query.isFeatured === true;
   }
