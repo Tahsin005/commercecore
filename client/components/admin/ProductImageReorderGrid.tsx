@@ -127,7 +127,7 @@ export function ProductImageReorderGrid({
         </span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
         {images.map((imgUrl, idx) => {
           const isCover = idx === 0;
           const isBeingDragged = draggedIndex === idx;
@@ -159,19 +159,19 @@ export function ProductImageReorderGrid({
                   src={imgUrl}
                   alt={`Product image ${idx + 1}`}
                   fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   className="object-cover pointer-events-none transition-transform duration-300 group-hover:scale-105"
                 />
 
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                  <div className="bg-black/60 backdrop-blur-xs text-white p-1.5 rounded-full shadow-md">
-                    <GripVertical className="w-4 h-4" />
+                  <div className="bg-black/60 backdrop-blur-xs text-white p-2 rounded-full shadow-md">
+                    <GripVertical className="w-5 h-5" />
                   </div>
                 </div>
 
-                <div className="absolute top-1.5 left-1.5 flex items-center gap-1">
+                <div className="absolute top-2 left-2 flex items-center gap-1">
                   <span
-                    className={`text-[10px] font-bold font-mono px-1.5 py-0.5 rounded-md shadow-xs ${
+                    className={`text-[11px] font-bold font-mono px-2 py-0.5 rounded-md shadow-xs ${
                       isCover
                         ? "bg-emerald-600 text-white"
                         : "bg-black/65 backdrop-blur-xs text-white"
@@ -181,7 +181,7 @@ export function ProductImageReorderGrid({
                   </span>
                 </div>
 
-                <div className="absolute top-1.5 right-1.5 flex items-center space-x-1 z-10">
+                <div className="absolute top-2 right-2 flex items-center space-x-1.5 z-10">
                   {onReframe && (
                     <button
                       type="button"
@@ -189,8 +189,9 @@ export function ProductImageReorderGrid({
                         e.stopPropagation();
                         onReframe(idx);
                       }}
-                      className="p-1 bg-maroon-900/90 hover:bg-maroon-800 text-white rounded-full transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-maroon-500 focus-visible:outline-none shadow-md hover:scale-110"
+                      className="p-1.5 bg-maroon-900/90 hover:bg-maroon-800 text-white rounded-full transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-maroon-500 focus-visible:outline-none shadow-md hover:scale-110"
                       title="Reframe / Crop image"
+                      aria-label="Reframe / Crop image"
                     >
                       <Crop className="w-3.5 h-3.5" />
                     </button>
@@ -202,16 +203,17 @@ export function ProductImageReorderGrid({
                       e.stopPropagation();
                       onRemove(idx);
                     }}
-                    className="p-1 bg-red-600/90 hover:bg-red-700 text-white rounded-full transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-red-500 focus-visible:outline-none shadow-md hover:scale-110"
+                    className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-red-500 focus-visible:outline-none shadow-md hover:scale-110"
                     title="Remove image"
+                    aria-label="Remove image"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
                 {isCover ? (
-                  <div className="absolute bottom-0 inset-x-0 bg-emerald-600/95 text-white text-[9px] font-bold text-center py-0.5 uppercase tracking-wider shadow-xs flex items-center justify-center gap-1">
-                    <Sparkles className="w-2.5 h-2.5" />
+                  <div className="absolute bottom-0 inset-x-0 bg-emerald-600/95 text-white text-[10px] font-bold text-center py-1 uppercase tracking-wider shadow-xs flex items-center justify-center gap-1">
+                    <Sparkles className="w-3 h-3" />
                     <span>Cover Photo</span>
                   </div>
                 ) : (
@@ -221,15 +223,15 @@ export function ProductImageReorderGrid({
                       e.stopPropagation();
                       handleMakeCover(idx);
                     }}
-                    className="absolute bottom-0 inset-x-0 bg-maroon-900/90 hover:bg-maroon-900 text-white text-[9px] font-semibold text-center py-1 uppercase tracking-wider opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-maroon-500 focus-visible:outline-none transition-all cursor-pointer shadow-xs z-10"
+                    className="absolute bottom-0 inset-x-0 bg-maroon-900/90 hover:bg-maroon-900 text-white text-[10px] font-semibold text-center py-1.5 uppercase tracking-wider opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-maroon-500 focus-visible:outline-none transition-all cursor-pointer shadow-xs z-10"
                   >
                     Set as Cover
                   </button>
                 )}
               </div>
 
-              <div className="p-1.5 bg-white border-t border-maroon-100 flex items-center justify-between gap-1.5">
-                <div className="flex items-center gap-1.5 min-w-0">
+              <div className="p-2 bg-white border-t border-maroon-100 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <div className="relative flex items-center shrink-0">
                     <input
                       type="color"
@@ -239,14 +241,14 @@ export function ProductImageReorderGrid({
                       title="Pick color for this image"
                     />
                   </div>
-                  <span className="font-mono text-[9px] text-maroon-800 uppercase font-semibold truncate" title={itemColor}>
+                  <span className="font-mono text-[10px] text-maroon-800 uppercase font-semibold truncate" title={itemColor}>
                     {itemColor}
                   </span>
                 </div>
-                <Palette className="w-3 h-3 text-maroon-400 shrink-0" />
+                <Palette className="w-3.5 h-3.5 text-maroon-400 shrink-0" />
               </div>
 
-              <div className="flex items-center justify-between p-1 bg-off-white border-t border-maroon-100 text-[10px] text-maroon-700">
+              <div className="flex items-center justify-between px-2 py-1.5 bg-off-white border-t border-maroon-100 text-xs text-maroon-700">
                 <button
                   type="button"
                   disabled={idx === 0}
@@ -257,9 +259,9 @@ export function ProductImageReorderGrid({
                   className="p-1 hover:bg-maroon-200/70 rounded text-maroon-800 disabled:opacity-20 disabled:hover:bg-transparent transition-colors cursor-pointer disabled:cursor-not-allowed"
                   title="Move left"
                 >
-                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span className="text-[9px] font-medium text-maroon-500 font-sans">
+                <span className="text-[10px] font-semibold text-maroon-600 font-sans">
                   {isCover ? "Main" : `Slot ${idx + 1}`}
                 </span>
                 <button
@@ -272,7 +274,7 @@ export function ProductImageReorderGrid({
                   className="p-1 hover:bg-maroon-200/70 rounded text-maroon-800 disabled:opacity-20 disabled:hover:bg-transparent transition-colors cursor-pointer disabled:cursor-not-allowed"
                   title="Move right"
                 >
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
