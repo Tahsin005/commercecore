@@ -45,11 +45,10 @@ export function AdminSidebar({ collapsed, onToggleCollapse }: AdminSidebarProps)
 
       <div className={`shrink-0 transition-all duration-300 ${collapsed ? "w-16" : "w-16 lg:w-64"}`}>
         <aside
-          className={`bg-maroon-900 text-white border-r border-maroon-800 transition-all duration-300 flex flex-col justify-between h-screen fixed top-0 left-0 overflow-hidden ${
-            collapsed
+          className={`bg-maroon-900 text-white border-r border-maroon-800 transition-all duration-300 flex flex-col justify-between h-screen fixed top-0 left-0 overflow-hidden ${collapsed
               ? "w-16 z-30"
               : "z-50 w-64 shadow-2xl lg:z-30 lg:w-64"
-          }`}
+            }`}
         >
           <div>
             {collapsed ? (
@@ -67,7 +66,7 @@ export function AdminSidebar({ collapsed, onToggleCollapse }: AdminSidebarProps)
                 <Link href="/admin" className="flex items-center space-x-2.5 overflow-hidden group">
                   <Image
                     src="/logo.png"
-                    alt="Rupzon Collection Admin"
+                    alt="Commerce Core Admin"
                     width={32}
                     height={32}
                     className="w-8 h-8 object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
@@ -96,11 +95,10 @@ export function AdminSidebar({ collapsed, onToggleCollapse }: AdminSidebarProps)
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-xs transition-all ${
-                      isActive
+                    className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-xs transition-all ${isActive
                         ? "bg-cream text-maroon-900 font-bold shadow-sm"
                         : "text-maroon-200 hover:bg-maroon-800 hover:text-white"
-                    }`}
+                      }`}
                     title={collapsed ? item.label : undefined}
                   >
                     <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-maroon-900" : "text-cream/80"}`} />
@@ -114,9 +112,8 @@ export function AdminSidebar({ collapsed, onToggleCollapse }: AdminSidebarProps)
           <div className="p-3 border-t border-maroon-800">
             <Link
               href="/"
-              className={`flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold bg-maroon-800/80 hover:bg-maroon-800 text-cream transition-all border border-maroon-700/80 ${
-                collapsed ? "justify-center" : ""
-              }`}
+              className={`flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold bg-maroon-800/80 hover:bg-maroon-800 text-cream transition-all border border-maroon-700/80 ${collapsed ? "justify-center" : ""
+                }`}
               title="Return to Customer Storefront"
             >
               <ExternalLink className="w-4 h-4 shrink-0 text-cream" />

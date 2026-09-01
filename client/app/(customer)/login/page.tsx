@@ -100,9 +100,9 @@ export default function LoginPage() {
     });
   };
 
-  const brandNameParts = (t.common.rupzonCollection || "Rupzon Collection").split(" ");
-  const brandFirst = brandNameParts[0] || "Rupzon";
-  const brandSecond = brandNameParts.slice(1).join(" ") || "Collection";
+  const brandNameParts = (t.common.commerceCore || "Commerce Core").split(" ");
+  const brandFirst = brandNameParts[0] || "Commerce";
+  const brandSecond = brandNameParts.slice(1).join(" ") || "Core";
 
   return (
     <GuestGuard>
@@ -144,9 +144,8 @@ export default function LoginPage() {
                       type="text"
                       placeholder={t.login.identifierPlaceholder}
                       {...register("identifier")}
-                      className={`w-full pl-10 pr-4 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${
-                        errors.identifier ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
-                      }`}
+                      className={`w-full pl-10 pr-4 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${errors.identifier ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
+                        }`}
                     />
                   </div>
                   {errors.identifier && (
@@ -170,9 +169,8 @@ export default function LoginPage() {
                       type={showPassword ? "text" : "password"}
                       placeholder={t.login.passwordPlaceholder}
                       {...register("password")}
-                      className={`w-full pl-10 pr-11 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${
-                        errors.password ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
-                      }`}
+                      className={`w-full pl-10 pr-11 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${errors.password ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
+                        }`}
                     />
                     <button
                       type="button"
@@ -231,7 +229,7 @@ export default function LoginPage() {
               <div className="relative group">
                 <Image
                   src="/logo.png"
-                  alt="Rupzon Collection Logo"
+                  alt="Commerce Core Logo"
                   width={240}
                   height={240}
                   className="w-44 h-44 sm:w-52 sm:h-52 lg:w-60 lg:h-60 object-contain drop-shadow-2xl transition-transform duration-300 group-hover:scale-105"

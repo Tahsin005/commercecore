@@ -31,7 +31,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       setAuth: (user: User, token: string) => {
         if (typeof window !== "undefined") {
-          document.cookie = `rupzon_token=${token}; path=/; max-age=2592000; SameSite=Lax`;
+          document.cookie = `commercecore_token=${token}; path=/; max-age=2592000; SameSite=Lax`;
         }
         set({
           user,
@@ -48,11 +48,11 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         if (typeof window !== "undefined") {
-          document.cookie = "rupzon_token=; path=/; max-age=0; SameSite=Lax";
+          document.cookie = "commercecore_token=; path=/; max-age=0; SameSite=Lax";
           try {
-            localStorage.removeItem("rupzon_auth_store");
-            localStorage.removeItem("rupzon_guest_cart");
-            localStorage.removeItem("rupzon_guest_wishlist");
+            localStorage.removeItem("commercecore_auth_store");
+            localStorage.removeItem("commercecore_guest_cart");
+            localStorage.removeItem("commercecore_guest_wishlist");
           } catch (err) {
             console.error("Failed to clear localStorage on logout:", err);
           }
@@ -70,7 +70,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: "rupzon_auth_store",
+      name: "commercecore_auth_store",
       storage: createJSONStorage(() => localStorage),
     }
   )

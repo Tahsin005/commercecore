@@ -10,11 +10,11 @@ export const DEFAULT_SETTINGS = {
     outsideDhaka: 120,
   },
   marquee: {
-    text: "Welcome to Rupzon Collection! Fast Cash-on-Delivery nationwide.",
+    text: "Welcome to Commerce Core! Fast Cash-on-Delivery nationwide.",
     isActive: true,
   },
   footer_settings: {
-    description: "Rupzon Collection is a premium full-stack e-commerce platform delivering high quality collections.",
+    description: "Commerce Core is a premium full-stack e-commerce platform delivering high quality collections.",
     helpline: "01700000000",
     socialLinks: [],
   },

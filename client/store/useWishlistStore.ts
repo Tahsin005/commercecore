@@ -86,7 +86,7 @@ export const useWishlistStore = create<GuestWishlistState>()(
       clearWishlist: () => set({ items: [] }),
     }),
     {
-      name: "rupzon_guest_wishlist",
+      name: "commercecore_guest_wishlist",
       storage: createJSONStorage(() => localStorage),
     }
   )

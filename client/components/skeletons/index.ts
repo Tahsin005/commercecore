@@ -4,3 +4,5 @@ export { ProductDetailsSkeleton } from "./ProductDetailsSkeleton";
 export { CheckoutSkeleton } from "./CheckoutSkeleton";
 export { OrderSuccessSkeleton } from "./OrderSuccessSkeleton";
 export { ProfileSkeleton } from "./ProfileSkeleton";
+export { AgeFilterSkeleton } from "./AgeFilterSkeleton";
+

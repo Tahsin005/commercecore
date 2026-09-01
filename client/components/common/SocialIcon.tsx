@@ -100,7 +100,7 @@ export const PRESELECTED_SOCIAL_ICONS: SocialIconOption[] = [
   {
     id: "email",
     name: "Email",
-    placeholder: "mailto:support@rupzon.com",
+    placeholder: "mailto:support@commercecore.com",
     icon: FaEnvelope,
     category: "contact",
   },
@@ -114,7 +114,7 @@ export const PRESELECTED_SOCIAL_ICONS: SocialIconOption[] = [
   {
     id: "website",
     name: "Website",
-    placeholder: "https://rupzon.com",
+    placeholder: "https://commercecore.com",
     icon: FaGlobe,
     category: "general",
   },
@@ -128,7 +128,7 @@ export const PRESELECTED_SOCIAL_ICONS: SocialIconOption[] = [
   {
     id: "store",
     name: "Store / Outlet",
-    placeholder: "https://rupzon.com/stores",
+    placeholder: "https://commercecore.com/stores",
     icon: FaShop,
     category: "general",
   },

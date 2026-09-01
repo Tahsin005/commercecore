@@ -105,9 +105,9 @@ export default function SignupPage() {
     });
   };
 
-  const brandNameParts = (t.common.rupzonCollection || "Rupzon Collection").split(" ");
-  const brandFirst = brandNameParts[0] || "Rupzon";
-  const brandSecond = brandNameParts.slice(1).join(" ") || "Collection";
+  const brandNameParts = (t.common.commerceCore || "Commerce Core").split(" ");
+  const brandFirst = brandNameParts[0] || "Commerce";
+  const brandSecond = brandNameParts.slice(1).join(" ") || "Core";
 
   return (
     <GuestGuard>
@@ -121,7 +121,7 @@ export default function SignupPage() {
               <div className="relative group">
                 <Image
                   src="/logo.png"
-                  alt="Rupzon Collection Logo"
+                  alt="Commerce Core Logo"
                   width={240}
                   height={240}
                   className="w-44 h-44 sm:w-52 sm:h-52 lg:w-60 lg:h-60 object-contain drop-shadow-2xl transition-transform duration-300 group-hover:scale-105"
@@ -177,9 +177,8 @@ export default function SignupPage() {
                       type="text"
                       placeholder={t.signup.namePlaceholder}
                       {...register("name")}
-                      className={`w-full pl-10 pr-4 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${
-                        errors.name ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
-                      }`}
+                      className={`w-full pl-10 pr-4 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${errors.name ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
+                        }`}
                     />
                   </div>
                   {errors.name && (
@@ -204,9 +203,8 @@ export default function SignupPage() {
                         type="email"
                         placeholder={t.signup.emailPlaceholder}
                         {...register("email")}
-                        className={`w-full pl-10 pr-3.5 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${
-                          errors.email ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
-                        }`}
+                        className={`w-full pl-10 pr-3.5 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${errors.email ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
+                          }`}
                       />
                     </div>
                     {errors.email && (
@@ -230,9 +228,8 @@ export default function SignupPage() {
                         type="tel"
                         placeholder={t.signup.phonePlaceholder}
                         {...register("phone")}
-                        className={`w-full pl-10 pr-3.5 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${
-                          errors.phone ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
-                        }`}
+                        className={`w-full pl-10 pr-3.5 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${errors.phone ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
+                          }`}
                       />
                     </div>
                     {errors.phone && (
@@ -258,9 +255,8 @@ export default function SignupPage() {
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         {...register("password")}
-                        className={`w-full pl-10 pr-10 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${
-                          errors.password ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
-                        }`}
+                        className={`w-full pl-10 pr-10 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${errors.password ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
+                          }`}
                       />
                       <button
                         type="button"
@@ -292,9 +288,8 @@ export default function SignupPage() {
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="••••••••"
                         {...register("confirmPassword")}
-                        className={`w-full pl-10 pr-10 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${
-                          errors.confirmPassword ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
-                        }`}
+                        className={`w-full pl-10 pr-10 py-2.5 sm:py-3 bg-off-white text-maroon-900 border rounded-xl text-sm placeholder-maroon-500/60 focus:outline-none focus:bg-white focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 shadow-2xs transition-all ${errors.confirmPassword ? "border-red-500 focus:ring-red-500" : "border-maroon-200"
+                          }`}
                       />
                       <button
                         type="button"

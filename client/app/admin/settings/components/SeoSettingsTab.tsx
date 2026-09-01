@@ -144,9 +144,9 @@ export function SeoSettingsTab() {
     const keywordsArray =
       typeof data.keywords === "string"
         ? data.keywords
-            .split(",")
-            .map((k) => k.trim())
-            .filter(Boolean)
+          .split(",")
+          .map((k) => k.trim())
+          .filter(Boolean)
         : data.keywords || [];
 
     upsertMutation.mutate(
@@ -240,9 +240,8 @@ export function SeoSettingsTab() {
                   Meta Title (Browser &amp; Search Title)
                 </label>
                 <span
-                  className={`text-[11px] font-mono ${
-                    currentTitle.length > 65 ? "text-amber-600 font-bold" : "text-maroon-500"
-                  }`}
+                  className={`text-[11px] font-mono ${currentTitle.length > 65 ? "text-amber-600 font-bold" : "text-maroon-500"
+                    }`}
                 >
                   {currentTitle.length}/60 chars
                 </span>
@@ -250,7 +249,7 @@ export function SeoSettingsTab() {
               <input
                 type="text"
                 {...register("title")}
-                placeholder={`e.g. ${currentPresetConfig.label.split(" (")[0]} | Rupzon Collection`}
+                placeholder={`e.g. ${currentPresetConfig.label.split(" (")[0]} | Commerce Core`}
                 className="w-full px-3 py-2 bg-off-white text-maroon-900 border border-maroon-200 rounded-lg text-xs focus:bg-white focus:ring-2 focus:ring-maroon-700"
               />
               {errors.title && <p className="text-red-500 text-[11px] mt-1">{errors.title.message}</p>}
@@ -262,9 +261,8 @@ export function SeoSettingsTab() {
                   Meta Description (SERP Snippet)
                 </label>
                 <span
-                  className={`text-[11px] font-mono ${
-                    currentDesc.length > 160 ? "text-amber-600 font-bold" : "text-maroon-500"
-                  }`}
+                  className={`text-[11px] font-mono ${currentDesc.length > 160 ? "text-amber-600 font-bold" : "text-maroon-500"
+                    }`}
                 >
                   {currentDesc.length}/160 chars
                 </span>
@@ -410,7 +408,7 @@ export function SeoSettingsTab() {
 
               <div className="p-3 bg-white space-y-1">
                 <span className="text-[10px] uppercase font-bold text-maroon-600 tracking-wider">
-                  rupzoncollection.com
+                  commercecoreshop.vercel.app
                 </span>
                 <h4 className="text-xs font-bold text-maroon-900 line-clamp-1">
                   {previewTitle}

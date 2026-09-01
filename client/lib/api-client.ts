@@ -20,7 +20,7 @@ export function getStoredAuthToken(): string | null {
   if (typeof window === "undefined") return null;
 
   try {
-    const stored = localStorage.getItem("rupzon_auth_store");
+    const stored = localStorage.getItem("commercecore_auth_store");
     if (stored) {
       const parsed = JSON.parse(stored);
       const token = parsed?.state?.token;

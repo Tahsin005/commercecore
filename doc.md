@@ -14,7 +14,7 @@ We implement a **Dual-Tracking Setup** (Browser Pixel + Server-Side Conversions 
 | `FB_CAPI_ACCESS_TOKEN` | Server (`server/.env`) | Meta System User Access Token generated from Events Manager | `""` |
 | `FB_TEST_EVENT_CODE` | Server (`server/.env`) | Optional test code (e.g. `TEST94112`) for real-time validation in Events Manager | `""` |
 | `FB_API_VERSION` | Server (`server/.env`) | Meta Graph API Version | `v20.0` |
-| `CLIENT_URL` | Server (`server/.env`) | Frontend verified base domain URL for absolute event source resolution | `https://rupzoncollection.com` |
+| `CLIENT_URL` | Server (`server/.env`) | Frontend verified base domain URL for absolute event source resolution | `https://commercecoreshop.vercel.app` |
 
 ---
 
@@ -60,13 +60,13 @@ Managed through `server/src/utils/metaCapi.js` using native Node.js `fetch`, SHA
 
 ### 4.1 Website Event Requirements
 1. **`client_user_agent`**: Must forward the raw, unhashed browser User-Agent header (`req.headers['user-agent']`) in `user_data.client_user_agent`.
-2. **`event_source_url`**: Must provide an absolute URL on the verified domain (e.g. `https://rupzoncollection.com/checkout`) where the user initiated the event.
+2. **`event_source_url`**: Must provide an absolute URL on the verified domain (e.g. `https://commercecoreshop.vercel.app/checkout`) where the user initiated the event.
 
 | # | Event Name | Trigger Point / Source File | Parameters Sent |
 |---|---|---|---|
-| 1 | **`Purchase`** | `server/src/modules/order/order.service.js`<br>• Triggered immediately after `Order.create` and `OrderItem.insertMany` succeed | • `event_name`: `'Purchase'`<br>• `event_id`: `order.orderNumber` (Matches client `eventID`)<br>• `event_time`: Unix Timestamp (seconds)<br>• `action_source`: `'website'`<br>• `event_source_url`: `https://rupzoncollection.com/checkout`<br>• `user_data`: SHA-256 hashed email (`em`), normalized & hashed phone (`ph`), name (`fn`/`ln`), userId (`external_id`), raw `client_user_agent`, `client_ip_address`<br>• `custom_data`: `currency: 'BDT'`, `value: order.total`, `order_id: order.orderNumber`, `content_ids`, `num_items` |
-| 2 | **`CompleteRegistration` (Signup)** | `server/src/modules/user/user.service.js`<br>• Triggered inside `registerUser` after DB user creation | • `event_name`: `'CompleteRegistration'`<br>• `event_id`: `reg_{userId}` (Matches client `eventID`)<br>• `event_time`: Unix Timestamp (seconds)<br>• `action_source`: `'website'`<br>• `event_source_url`: `https://rupzoncollection.com/signup`<br>• `user_data`: SHA-256 hashed email (`em`), phone (`ph`), name (`fn`/`ln`), userId (`external_id`), raw `client_user_agent`, `client_ip_address`<br>• `custom_data`: `status: true`, `content_name: 'signup'` |
-| 3 | **`CompleteRegistration` (Claim Account)** | `server/src/modules/user/user.service.js`<br>• Triggered inside `claimAccountService` after account password is set | • `event_name`: `'CompleteRegistration'`<br>• `event_id`: `claim_{userId}` (Matches client `eventID`)<br>• `event_time`: Unix Timestamp (seconds)<br>• `action_source`: `'website'`<br>• `event_source_url`: `https://rupzoncollection.com/order-success/{orderNumber}`<br>• `user_data`: SHA-256 hashed email (`em`), phone (`ph`), name (`fn`/`ln`), userId (`external_id`), raw `client_user_agent`, `client_ip_address`<br>• `custom_data`: `status: true`, `content_name: 'claim_account'` |
+| 1 | **`Purchase`** | `server/src/modules/order/order.service.js`<br>• Triggered immediately after `Order.create` and `OrderItem.insertMany` succeed | • `event_name`: `'Purchase'`<br>• `event_id`: `order.orderNumber` (Matches client `eventID`)<br>• `event_time`: Unix Timestamp (seconds)<br>• `action_source`: `'website'`<br>• `event_source_url`: `https://commercecoreshop.vercel.app/checkout`<br>• `user_data`: SHA-256 hashed email (`em`), normalized & hashed phone (`ph`), name (`fn`/`ln`), userId (`external_id`), raw `client_user_agent`, `client_ip_address`<br>• `custom_data`: `currency: 'BDT'`, `value: order.total`, `order_id: order.orderNumber`, `content_ids`, `num_items` |
+| 2 | **`CompleteRegistration` (Signup)** | `server/src/modules/user/user.service.js`<br>• Triggered inside `registerUser` after DB user creation | • `event_name`: `'CompleteRegistration'`<br>• `event_id`: `reg_{userId}` (Matches client `eventID`)<br>• `event_time`: Unix Timestamp (seconds)<br>• `action_source`: `'website'`<br>• `event_source_url`: `https://commercecoreshop.vercel.app/signup`<br>• `user_data`: SHA-256 hashed email (`em`), phone (`ph`), name (`fn`/`ln`), userId (`external_id`), raw `client_user_agent`, `client_ip_address`<br>• `custom_data`: `status: true`, `content_name: 'signup'` |
+| 3 | **`CompleteRegistration` (Claim Account)** | `server/src/modules/user/user.service.js`<br>• Triggered inside `claimAccountService` after account password is set | • `event_name`: `'CompleteRegistration'`<br>• `event_id`: `claim_{userId}` (Matches client `eventID`)<br>• `event_time`: Unix Timestamp (seconds)<br>• `action_source`: `'website'`<br>• `event_source_url`: `https://commercecoreshop.vercel.app/order-success/{orderNumber}`<br>• `user_data`: SHA-256 hashed email (`em`), phone (`ph`), name (`fn`/`ln`), userId (`external_id`), raw `client_user_agent`, `client_ip_address`<br>• `custom_data`: `status: true`, `content_name: 'claim_account'` |
 
 ---
 

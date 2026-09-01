@@ -1,12 +1,12 @@
-# Rupzon Collection — UI Design System & Aesthetic Guide
+# Commerce Core — UI Design System & Aesthetic Guide
 
-This document serves as the authoritative visual design guide for **Rupzon Collection**. All future UI components, pages, and feature additions must strictly adhere to the visual tokens, typography hierarchies, border specifications, and design patterns outlined below.
+This document serves as the authoritative visual design guide for **Commerce Core**. All future UI components, pages, and feature additions must strictly adhere to the visual tokens, typography hierarchies, border specifications, and design patterns outlined below.
 
 ---
 
 ## 1. Core Visual Identity & Philosophy
 
-Rupzon Collection embodies an **elegant, high-contrast, luxury e-commerce aesthetic**. It blends rich deep maroon shades with warm cream accents, soft rose blush tones, crisp white surfaces, and refined serif/sans-serif typography.
+Commerce Core embodies an **elegant, high-contrast, luxury e-commerce aesthetic**. It blends rich deep maroon shades with warm cream accents, soft rose blush tones, crisp white surfaces, and refined serif/sans-serif typography.
 
 ### Key Aesthetic Principles:
 - **Rich Palette**: Deep maroon hues (`--maroon-900`) for headers, primary actions, and hero sections paired with warm cream (`--cream`) and rose blush (`--maroon-100` / `--maroon-50`).
@@ -48,7 +48,7 @@ Referenced directly from [`client/app/globals.css`](client/app/globals.css).
 
 ## 3. Typography & Hierarchy
 
-Rupzon Collection uses two primary Google Fonts loaded via Next.js Font Optimization in [`client/app/layout.tsx`](client/app/layout.tsx):
+Commerce Core uses two primary Google Fonts loaded via Next.js Font Optimization in [`client/app/layout.tsx`](client/app/layout.tsx):
 
 1. **Serif Heading Font**: `Playfair Display` (`--font-playfair`, Tailwind class `font-serif`)
 2. **Sans-Serif Body Font**: `Poppins` (`--font-poppins`, Tailwind class `font-sans`, weights: 400, 500, 600, 700)

@@ -93,7 +93,7 @@ export function constructMetadata({
       title: ogTitle,
       description: ogDescription,
       images: [ogImage],
-      creator: "@rupzoncollection",
+      creator: "@commercecore",
     },
   };
 }

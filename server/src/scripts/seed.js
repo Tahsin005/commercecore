@@ -6,6 +6,7 @@ import Category from '../modules/category/category.model.js';
 import Product, { ProductVariant, ProductVariantLink } from '../modules/product/product.model.js';
 import UploadConfig from '../modules/upload/uploadConfig.model.js';
 import { uploadImageToCloudinaryService } from '../modules/upload/upload.service.js';
+import { seedDefaultSeoRecordsService } from '../modules/seo/seo.service.js';
 import logger from '../utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -557,6 +558,9 @@ const seedDatabase = async () => {
       }
       productIndex++;
     }
+
+    logger.info('Seeding default SEO metadata for frontend routes...');
+    await seedDefaultSeoRecordsService();
 
     logger.info(`Successfully seeded ${sampleCategories.length} Sharee categories, ${createdVariants.length} age variants, ${sampleProducts.length} Sharee products, and ${totalLinks} variant links.`);
     logger.info('All Sharee category and product images were successfully uploaded to Cloudinary!');

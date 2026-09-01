@@ -22,7 +22,7 @@ import {
 import { useProductsQuery, useGlobalVariantsQuery } from "@/hooks/useProductQueries";
 import { useCategoriesQuery } from "@/hooks/useCategoryQueries";
 import { HomepageBanners } from "@/components/HomepageBanners";
-import { ProductGridSkeleton } from "@/components/skeletons";
+import { ProductGridSkeleton, AgeFilterSkeleton } from "@/components/skeletons";
 import { ProductCard } from "@/components/ProductCard";
 import { PriceRangeSlider } from "@/components/PriceRangeSlider";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -170,46 +170,52 @@ export default function Home() {
               </div>
 
               <div className="divide-y divide-maroon-50 max-h-[380px] overflow-y-auto scrollbar-thin p-1">
-                <button
-                  type="button"
-                  onClick={() => handleVariantSelect("all")}
-                  className={`w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs font-semibold rounded-xl transition-all cursor-pointer ${selectedVariantId === "all"
-                      ? "bg-maroon-900 text-white font-bold shadow-xs"
-                      : "text-maroon-800 hover:bg-maroon-50"
-                    }`}
-                >
-                  <div className="flex items-center space-x-2.5">
-                    <Sparkles className={`w-3.5 h-3.5 ${selectedVariantId === "all" ? "text-cream" : "text-maroon-600"}`} />
-                    <span>{t.home?.allAges || "সকল বয়স"}</span>
-                  </div>
-                  {selectedVariantId === "all" ? (
-                    <span className="w-2 h-2 rounded-full bg-cream inline-block" />
-                  ) : (
-                    <ChevronRight className="w-3.5 h-3.5 text-maroon-300" />
-                  )}
-                </button>
-
-                {sortedVariants.map((variant) => {
-                  const isSelected = selectedVariantId === variant.id;
-                  const label = variant.label || variant.size || "Standard";
-                  return (
+                {isVariantsLoading ? (
+                  <AgeFilterSkeleton count={7} layout="list" />
+                ) : (
+                  <>
                     <button
-                      key={variant.id}
                       type="button"
-                      onClick={() => handleVariantSelect(variant.id)}
-                      className={`w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs font-semibold rounded-xl transition-all cursor-pointer ${isSelected
+                      onClick={() => handleVariantSelect("all")}
+                      className={`w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs font-semibold rounded-xl transition-all cursor-pointer ${selectedVariantId === "all"
                           ? "bg-maroon-900 text-white font-bold shadow-xs"
                           : "text-maroon-800 hover:bg-maroon-50"
                         }`}
                     >
-                      <div className="flex items-center space-x-2.5 min-w-0">
-                        <span className={`w-2 h-2 rounded-full shrink-0 ${isSelected ? "bg-cream" : "bg-maroon-400"}`} />
-                        <span className="truncate">{label}</span>
+                      <div className="flex items-center space-x-2.5">
+                        <Sparkles className={`w-3.5 h-3.5 ${selectedVariantId === "all" ? "text-cream" : "text-maroon-600"}`} />
+                        <span>{t.home?.allAges || "সকল বয়স"}</span>
                       </div>
-                      <ChevronRight className={`w-3.5 h-3.5 ${isSelected ? "text-cream" : "text-maroon-300"}`} />
+                      {selectedVariantId === "all" ? (
+                        <span className="w-2 h-2 rounded-full bg-cream inline-block" />
+                      ) : (
+                        <ChevronRight className="w-3.5 h-3.5 text-maroon-300" />
+                      )}
                     </button>
-                  );
-                })}
+
+                    {sortedVariants.map((variant) => {
+                      const isSelected = selectedVariantId === variant.id;
+                      const label = variant.label || variant.size || "Standard";
+                      return (
+                        <button
+                          key={variant.id}
+                          type="button"
+                          onClick={() => handleVariantSelect(variant.id)}
+                          className={`w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs font-semibold rounded-xl transition-all cursor-pointer ${isSelected
+                              ? "bg-maroon-900 text-white font-bold shadow-xs"
+                              : "text-maroon-800 hover:bg-maroon-50"
+                            }`}
+                        >
+                          <div className="flex items-center space-x-2.5 min-w-0">
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${isSelected ? "bg-cream" : "bg-maroon-400"}`} />
+                            <span className="truncate">{label}</span>
+                          </div>
+                          <ChevronRight className={`w-3.5 h-3.5 ${isSelected ? "text-cream" : "text-maroon-300"}`} />
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
               </div>
             </div>
 
@@ -737,38 +743,42 @@ export default function Home() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto scrollbar-thin pr-1">
-                    <button
-                      type="button"
-                      onClick={() => handleVariantSelect("all")}
-                      className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center space-x-2 transition-all text-left cursor-pointer ${selectedVariantId === "all"
-                          ? "bg-maroon-900 text-white border-maroon-900 shadow-xs"
-                          : "bg-off-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
-                        }`}
-                    >
-                      <Sparkles className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{t.home?.allAges || "All Ages"}</span>
-                    </button>
+                  {isVariantsLoading ? (
+                    <AgeFilterSkeleton count={6} layout="grid" />
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto scrollbar-thin pr-1">
+                      <button
+                        type="button"
+                        onClick={() => handleVariantSelect("all")}
+                        className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center space-x-2 transition-all text-left cursor-pointer ${selectedVariantId === "all"
+                            ? "bg-maroon-900 text-white border-maroon-900 shadow-xs"
+                            : "bg-off-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
+                          }`}
+                      >
+                        <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{t.home?.allAges || "All Ages"}</span>
+                      </button>
 
-                    {sortedVariants.map((variant) => {
-                      const isSelected = selectedVariantId === variant.id;
-                      const label = variant.label || variant.size || "Standard";
-                      return (
-                        <button
-                          key={variant.id}
-                          type="button"
-                          onClick={() => handleVariantSelect(variant.id)}
-                          className={`p-2 rounded-xl border text-xs font-semibold flex items-center space-x-2 transition-all text-left cursor-pointer ${isSelected
-                              ? "bg-maroon-900 text-white border-maroon-900 shadow-xs"
-                              : "bg-off-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
-                            }`}
-                        >
-                          <span className={`w-2 h-2 rounded-full shrink-0 ${isSelected ? "bg-cream" : "bg-maroon-400"}`} />
-                          <span className="truncate">{label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                      {sortedVariants.map((variant) => {
+                        const isSelected = selectedVariantId === variant.id;
+                        const label = variant.label || variant.size || "Standard";
+                        return (
+                          <button
+                            key={variant.id}
+                            type="button"
+                            onClick={() => handleVariantSelect(variant.id)}
+                            className={`p-2 rounded-xl border text-xs font-semibold flex items-center space-x-2 transition-all text-left cursor-pointer ${isSelected
+                                ? "bg-maroon-900 text-white border-maroon-900 shadow-xs"
+                                : "bg-off-white text-maroon-800 border-maroon-200 hover:bg-maroon-50"
+                              }`}
+                          >
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${isSelected ? "bg-cream" : "bg-maroon-400"}`} />
+                            <span className="truncate">{label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2.5 pt-4">

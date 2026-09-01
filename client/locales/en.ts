@@ -2,7 +2,7 @@ import { TranslationType } from "./bn";
 
 export const en: TranslationType = {
   common: {
-    rupzonCollection: "Rupzon Collection",
+    commerceCore: "Commerce Core",
     tagline: "Premium Full-Stack E-Commerce Platform",
     currencySymbol: "৳",
     loading: "Loading...",
@@ -63,7 +63,7 @@ export const en: TranslationType = {
     codDesc: "Pay safely when you receive your package",
     qualityTitle: "100% Authentic Quality",
     qualityDesc: "Curated premium fabrics & products",
-    brandDesc: "Rupzon Collection is a premium full-stack e-commerce platform delivering high quality collections, seamless variant ordering, and fast Cash-on-Delivery nationwide.",
+    brandDesc: "Commerce Core is a premium full-stack e-commerce platform delivering high quality collections, seamless variant ordering, and fast Cash-on-Delivery nationwide.",
     quickNav: "Quick Navigation",
     shopProducts: "Shop Products",
     viewCheckout: "View Checkout",
@@ -202,7 +202,7 @@ export const en: TranslationType = {
   },
   login: {
     title: "Welcome Back",
-    subtitle: "Sign in to access your Rupzon Collection account",
+    subtitle: "Sign in to access your Commerce Core account",
     identifierLabel: "Email or Phone Number",
     identifierPlaceholder: "name@example.com or 01700000000",
     passwordLabel: "Password",
@@ -216,7 +216,7 @@ export const en: TranslationType = {
   },
   signup: {
     title: "Create Account",
-    subtitle: "Join Rupzon Collection to start shopping today",
+    subtitle: "Join Commerce Core to start shopping today",
     brandTag: "Join Us Today & Start Shopping",
     nameLabel: "Full Name",
     namePlaceholder: "John Doe",

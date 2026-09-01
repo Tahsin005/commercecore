@@ -138,7 +138,7 @@ export const useCartStore = create<GuestCartState>()(
       },
     }),
     {
-      name: "rupzon_guest_cart",
+      name: "commercecore_guest_cart",
       storage: createJSONStorage(() => localStorage),
     }
   )

@@ -14,7 +14,7 @@ import { contentBlockFormSchema, ContentBlockFormInput } from "@/lib/validations
 import { DialogModal } from "@/components/ui/DialogModal";
 
 const DEFAULT_CORE_PAGES = [
-  { key: "about_us", title: "About Us", defaultBody: "Welcome to Rupzon Collection! We provide high quality collections." },
+  { key: "about_us", title: "About Us", defaultBody: "Welcome to Commerce Core! We provide high quality collections." },
   { key: "contact_us", title: "Contact Us", defaultBody: "Reach out to our customer support team for inquiries." },
   { key: "how_to_buy", title: "How to Buy", defaultBody: "Browse our collections, add items to cart, and checkout easily." },
   { key: "return_policy", title: "Return Policy", defaultBody: "Returns are accepted within 7 days of delivery." },

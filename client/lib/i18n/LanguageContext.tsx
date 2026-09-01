@@ -29,9 +29,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let resolvedLang: Language = "bn";
     try {
-      const rupzonVal = localStorage.getItem("rupzon_lang");
-      if (rupzonVal === "bn" || rupzonVal === "en") {
-        resolvedLang = rupzonVal;
+      const storedVal = localStorage.getItem("commercecore_lang");
+      if (storedVal === "bn" || storedVal === "en") {
+        resolvedLang = storedVal;
       }
     } catch {
       // fallback to bn
@@ -43,7 +43,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isHydrated) {
-      localStorage.setItem("rupzon_lang", language);
+      localStorage.setItem("commercecore_lang", language);
       document.documentElement.lang = language;
     }
   }, [language, isHydrated]);
@@ -62,7 +62,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         <div className="relative z-10 flex flex-col items-center space-y-6 animate-in fade-in duration-200">
           <Image
             src="/logo.png"
-            alt="Rupzon Collection"
+            alt="Commerce Core"
             width={260}
             height={260}
             className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 object-contain drop-shadow-2xl animate-pulse"
@@ -70,7 +70,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
           />
           <div className="flex items-center space-x-3 text-cream tracking-wider">
             <Loader2 className="w-5 h-5 animate-spin text-cream" />
-            <span className="font-serif text-xl sm:text-2xl font-bold">Rupzon Collection</span>
+            <span className="font-serif text-xl sm:text-2xl font-bold">Commerce Core</span>
           </div>
         </div>
       </div>

@@ -155,9 +155,9 @@ export function Navbar() {
     }
   };
 
-  const brandNameParts = (t.common.rupzonCollection || "Rupzon Collection").split(" ");
-  const brandFirst = brandNameParts[0] || "Rupzon";
-  const brandSecond = brandNameParts.slice(1).join(" ") || "Collection";
+  const brandNameParts = (t.common.commerceCore || "Commerce Core").split(" ");
+  const brandFirst = brandNameParts[0] || "Commerce";
+  const brandSecond = brandNameParts.slice(1).join(" ") || "Core";
 
   return (
     <>
@@ -167,7 +167,7 @@ export function Navbar() {
           <Link href="/" className="flex items-center space-x-3.5 shrink-0 group mr-2 sm:mr-4">
             <Image
               src="/logo.png"
-              alt="Rupzon Collection Logo"
+              alt="Commerce Core Logo"
               width={76}
               height={76}
               className="w-14 h-14 sm:w-18 sm:h-18 object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
@@ -264,9 +264,8 @@ export function Navbar() {
                               aria-selected={isSelected}
                               onClick={() => handleSelectProduct(product.id)}
                               onMouseEnter={() => setActiveIndex(index)}
-                              className={`w-full text-left p-3 sm:p-2.5 flex items-center space-x-3 cursor-pointer transition-colors group animate-in fade-in slide-in-from-bottom-2 duration-200 ${
-                                isSelected ? "bg-maroon-100/90" : "hover:bg-maroon-50/90"
-                              }`}
+                              className={`w-full text-left p-3 sm:p-2.5 flex items-center space-x-3 cursor-pointer transition-colors group animate-in fade-in slide-in-from-bottom-2 duration-200 ${isSelected ? "bg-maroon-100/90" : "hover:bg-maroon-50/90"
+                                }`}
                             >
                               <div className="relative w-12 h-12 sm:w-11 sm:h-11 rounded-xl sm:rounded-lg bg-off-white overflow-hidden shrink-0 border border-maroon-100 flex items-center justify-center">
                                 {hasImage ? (

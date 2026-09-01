@@ -40,7 +40,7 @@ export const createOrderService = async (orderPayload, reqUser = null, reqMeta =
     user = await User.findOne({ phone: phone.trim() }).select('+password');
 
     if (!user) {
-      const userEmail = email && email.trim() ? email.trim().toLowerCase() : `guest_${Date.now()}@rupzoncollection.com`;
+      const userEmail = email && email.trim() ? email.trim().toLowerCase() : `guest_${Date.now()}@commercecore.com`;
 
       user = await User.create({
         name: customerName.trim(),

@@ -8,7 +8,7 @@ const env = {
   jwtSecret: process.env.JWT_SECRET || 'fallback_secret',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1000d',
   adminEmails: process.env.ADMIN_EMAILS || 'admin@gmail.com',
-  clientUrl: process.env.CLIENT_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://rupzoncollection.com',
+  clientUrl: process.env.CLIENT_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://commercecoreshop.vercel.app',
   fbPixelId: process.env.FB_PIXEL_ID || '1738010567468201',
   fbCapiAccessToken: process.env.FB_CAPI_ACCESS_TOKEN || '',
   fbTestEventCode: process.env.FB_TEST_EVENT_CODE || '',

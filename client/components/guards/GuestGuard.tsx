@@ -26,7 +26,7 @@ export function GuestGuard({ children }: GuestGuardProps) {
         <div className="flex flex-col items-center space-y-4 bg-white p-8 px-10 rounded-2xl shadow-xl border border-maroon-100">
           <Image
             src="/logo.png"
-            alt="Rupzon Collection Logo"
+            alt="Commerce Core Logo"
             width={64}
             height={64}
             className="w-16 h-16 object-contain"

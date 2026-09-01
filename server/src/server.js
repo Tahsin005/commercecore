@@ -5,6 +5,7 @@ import connectDB from './config/db.js';
 import { ensureUniqueProductVariantLinks } from './modules/product/productVariantLink.model.js';
 import { ensureCartIndexes } from './modules/cart/cart.model.js';
 import { ensureWishlistIndexes } from './modules/wishlist/wishlist.model.js';
+import { seedDefaultSeoRecordsService } from './modules/seo/seo.service.js';
 
 const startServer = async () => {
   try {
@@ -12,6 +13,7 @@ const startServer = async () => {
     await ensureUniqueProductVariantLinks();
     await ensureCartIndexes();
     await ensureWishlistIndexes();
+    await seedDefaultSeoRecordsService();
 
     const server = app.listen(env.port, () => {
       logger.info(`Server is running on port ${env.port} in ${env.nodeEnv} mode`);

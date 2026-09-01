@@ -41,8 +41,8 @@ export function HomepageBanners() {
     return (
       <div className="relative w-full rounded-2xl overflow-hidden shadow-xl border border-maroon-100 bg-black/5 aspect-21/9 min-h-[180px] sm:min-h-[280px] md:min-h-[360px] my-2">
         <Image
-          src="/banner.png"
-          alt="Rupzon Collection Banner"
+          src="/banner.jpeg"
+          alt="Commerce Core Banner"
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1152px"
           priority

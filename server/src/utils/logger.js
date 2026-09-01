@@ -7,14 +7,14 @@ const logger = winston.createLogger({
     winston.format.errors({ stack: true }),
     winston.format.json()
   ),
-  defaultMeta: { service: 'rupzon-collection-api' },
+  defaultMeta: { service: 'commerce-core-api' },
   transports: [
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),
         winston.format.printf(
           ({ level, message, timestamp, stack, service }) =>
-            `${timestamp} [${service || 'rupzon-collection-api'}] ${level}: ${stack || message}`
+            `${timestamp} [${service || 'commerce-core-api'}] ${level}: ${stack || message}`
         )
       ),
     }),

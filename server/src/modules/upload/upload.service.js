@@ -31,7 +31,7 @@ export const uploadImageToCloudinaryService = async (fileBuffer, originalname = 
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: 'rupzon_collection',
+        folder: 'commerce_core',
         resource_type: 'image',
       },
       async (error, result) => {
